@@ -1,0 +1,13 @@
+{
+  "name": "sukhakarta-bishi",
+  "version": "1.0.0",
+  "description": "सुखकर्ता बीशी - 50-आठवडे बचत फंड व्यवस्थापन व सदस्य पोर्टल",
+  "main": "index.html",
+  "scripts": {
+    "dev": "node scripts/server.js",
+    "start": "node scripts/server.js"
+  },
+  "keywords": ["bishi", "chitfund", "savings", "finance", "firebase"],
+  "author": "",
+  "license": "ISC"
+}
