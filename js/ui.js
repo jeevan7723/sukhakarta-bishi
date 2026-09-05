@@ -167,6 +167,37 @@ class UIManager {
     }
   }
 
+  setFilter(filterName) {
+    this.currentFilter = filterName || 'all';
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === this.currentFilter);
+    });
+    this.renderMembersTable();
+  }
+
+  filterCompletedMembers() {
+    this.searchQuery = '';
+    const searchInput = document.getElementById('memberSearchInput');
+    if (searchInput) searchInput.value = '';
+
+    this.setFilter('completed');
+
+    const completedCount = window.bishiStore.getMembers().filter(m => {
+      const stats = window.bishiStore.calculateMemberStats(m);
+      return stats.isFullyPaid || m.status === 'completed';
+    }).length;
+
+    this.showToast(`🏆 पूर्ण झालेले सदस्य फिल्टर केले आहेत (${completedCount} सदस्य)`, 'info');
+
+    // Smooth scroll down to table
+    setTimeout(() => {
+      const target = document.querySelector('.toolbar-card') || document.getElementById('membersTableBody');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
+  }
+
   showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -875,7 +906,7 @@ class UIManager {
     } else if (this.currentFilter === 'completed') {
       members = members.filter(m => {
         const stats = window.bishiStore.calculateMemberStats(m);
-        return stats.isFullyPaid;
+        return stats.isFullyPaid || m.status === 'completed';
       });
     }
 
@@ -2638,11 +2669,14 @@ class UIManager {
     const filterBtns = document.querySelectorAll('.filter-btn');
     filterBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.currentFilter = btn.dataset.filter;
-        this.renderMembersTable();
+        this.setFilter(btn.dataset.filter);
       });
+    });
+
+    // पूर्ण झालेले सदस्य पहा बटण
+    document.getElementById('btnFilterCompletedMembers')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.filterCompletedMembers();
     });
 
     // प्रशासक सेटिंग्स मोडल
