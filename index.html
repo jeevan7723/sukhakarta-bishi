@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>सुखकर्ता बीशी - ५०-आठवडे फंड व्यवस्थापन व सदस्य पोर्टल</title>
+  <meta name="description" content="सुखकर्ता बीशी साप्ताहिक बचत व फंड व्यवस्थापन डॅशबोर्ड - प्रशासक पॅनल आणि सदस्य पोर्टल.">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/members.css">
+  <link rel="stylesheet" href="css/receipt.css">
+  <link rel="stylesheet" href="css/admin.css">
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%3E<text y=%2226%22 font-size=%2226%22>💰</text></svg>">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       युनिफाईड लॉगिन स्क्रीन (प्रशासक व सदस्य दोघांसाठी)
+       ========================================================================== -->
+  <div class="login-screen-overlay" id="adminLoginScreen">
+    <div class="login-card">
+      <div class="login-logo">₹</div>
+      <h2 class="login-title">सुखकर्ता बीशी</h2>
+      <p class="login-sub">५०-आठवडे बचत फंड व पासबुक पोर्टल</p>
+
+      <!-- लॉगिन फॉर्म -->
+      <form id="unifiedLoginForm" class="login-form">
+        <div class="form-group" style="margin-bottom: 1.15rem;">
+          <label class="form-label" for="loginIdentifier" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; display: block;">
+            सदस्य आयडी / मोबाईल नंबर / युझरनेम
+          </label>
+          <div class="login-input-group" style="margin-bottom: 0;">
+            <span class="login-input-icon">👤</span>
+            <input type="text" id="loginIdentifier" class="login-input" placeholder="उदा. admin, SKB-001, किंवा 9822014521" autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <label class="form-label" for="loginPassword" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0;">
+              पासवर्ड / पिन (PIN)
+            </label>
+            <button type="button" id="btnToggleLoginPass" style="background: none; border: none; font-size: 0.78rem; color: var(--blue-400); cursor: pointer; padding: 0;">
+              पहा
+            </button>
+          </div>
+          <div class="login-input-group" style="margin-bottom: 0;">
+            <span class="login-input-icon">🔒</span>
+            <input type="password" id="loginPassword" class="login-input" placeholder="पासवर्ड टाका" required autocomplete="current-password">
+          </div>
+        </div>
+
+        <div id="unifiedLoginError" style="display: none; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; font-size: 0.85rem; color: #fb7185; margin-bottom: 1.15rem; text-align: left; line-height: 1.4;">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.35rem; font-size: 0.85rem; color: var(--text-secondary);">
+          <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+            <input type="checkbox" id="loginRemember" checked style="accent-color: var(--emerald-500); cursor: pointer;"> माझे लॉगिन जतन ठेवा
+          </label>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">प्रशासक व सदस्य प्रवेश</span>
+        </div>
+
+        <button type="submit" id="btnUnifiedLoginSubmit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <span>लॉगिन करा</span>
+          <span>➔</span>
+        </button>
+
+        <div style="margin-top: 1.25rem; font-size: 0.78rem; color: var(--text-muted); text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.9rem;">
+          <span>🔒 <strong>प्रशासक:</strong> अधिकृत ॲडमिन पासवर्ड</span> • <span><strong>सदस्य:</strong> आयडी / फोन + पासवर्ड</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <!-- मुख्य नेव्हिगेशन बार -->
+    <header class="top-navbar no-print">
+      <div class="brand-container">
+        <div class="brand-logo">₹</div>
+        <div class="brand-info">
+          <h1 class="brand-title">सुखकर्ता बीशी</h1>
+          <div class="brand-subtitle">
+            <span>५०-आठवडे बचत व फंड व्यवस्थापन</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Firebase रिअल-टाईम क्लाउड स्टेटस बॅज (फक्त प्रशासकांसाठी) -->
+        <button type="button" class="cloud-status-badge connecting" id="cloudStatusBadge" onclick="window.firebaseSyncManager.openCloudControlModal()" title="Firebase रियल-टाईम क्लाउड डेटाबेस व्यवस्थापन (क्लिक करा)" style="display: none;">
+          <span class="cloud-dot connecting" id="cloudStatusDot"></span>
+          <span id="cloudStatusText">Firebase क्लाउड</span>
+        </button>
+
+        <!-- थीम टॉगल -->
+        <button class="btn btn-secondary btn-icon" id="themeToggleBtn" title="थीम बदला (Dark/Light)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+
+        <!-- नियम व दंड दर (प्रशासक) -->
+        <button class="btn btn-secondary" id="btnOpenAdminSettings" title="बीशी नियम व लेट फी दर" style="display: none;">
+          ⚙️ नियम व दंड दर
+        </button>
+
+        <!-- सर्व सदस्यांच्या ठेवी (प्रशासक) -->
+        <button class="btn btn-secondary" id="btnOpenTxnLog" title="सर्व सदस्यांचा ठेवी इतिहास व खातावही" style="display: none;">
+          📋 सर्व सदस्यांची खातावही
+        </button>
+
+        <!-- एक्सपोर्ट व बॅकअप (प्रशासक) -->
+        <button class="btn btn-secondary" id="btnOpenExport" onclick="document.getElementById('exportModal').classList.add('active')" title="डेटा बॅकअप व एक्सपोर्ट">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          डेटा बॅकअप / एक्सपोर्ट
+        </button>
+
+        <!-- डेटा साफ करा / रिसेट (प्रशासक) -->
+        <button class="btn btn-secondary" id="btnOpenClearDataModal" onclick="window.ui.openMasterClearDataModal()" title="वेबसाइट व डेटाबेस डेटा साफ करा" style="display: none; border-color: rgba(244, 63, 94, 0.4); color: var(--rose-400);">
+          🗑️ डेटा साफ करा
+        </button>
+
+        <!-- नवीन सदस्य जोडा (प्रशासक) -->
+        <button class="btn btn-primary" id="btnOpenAddMember">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          नवीन सदस्य जोडा
+        </button>
+
+        <!-- वापरकर्ता प्रोफाइल बॅज व लॉगआउट -->
+        <div class="user-profile-badge" id="userProfileBadge" style="display: none;">
+          <div class="avatar-mini" id="userBadgeAvatar">👑</div>
+          <span id="userBadgeName" style="font-weight: 700;">प्रशासक</span>
+          <button type="button" class="btn btn-danger btn-sm" id="btnLogoutUser" onclick="window.authManager.logout()" style="padding: 0.25rem 0.75rem; font-size: 0.78rem; font-weight: 700; cursor: pointer;" title="लॉगआउट करा">
+            लॉगआउट
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- मुख्य विभाग -->
+    <main class="main-content">
+      
+      <!-- ==========================================================================
+           दृश्य १: प्रशासक कलेक्शन डॅशबोर्ड (केवळ प्रशासक)
+           ========================================================================== -->
+      <div id="dashboardView">
+        <!-- मुख्य आकडेवारी कार्ड्स -->
+        <section class="metrics-grid">
+          <!-- कार्ड १: एकूण सक्रिय सदस्य -->
+          <div class="stat-card highlight-blue">
+            <div class="stat-header">
+              <span class="stat-label">सक्रिय सदस्य</span>
+              <div class="stat-icon icon-blue">👥</div>
+            </div>
+            <div class="stat-value" id="statTotalMembers">0</div>
+            <div class="stat-footer">
+              <span id="statTotalMembersSub">० सेटल झालेले</span>
+              <span style="color: var(--blue-400); font-weight: 600;">५०-आठवडे ग्रुप</span>
+            </div>
+          </div>
+
+          <!-- कार्ड २: ५०-आठवड्यांचे एकूण फंड लक्ष्य -->
+          <div class="stat-card highlight-gold">
+            <div class="stat-header">
+              <span class="stat-label">एकूण फंड लक्ष्य पूल</span>
+              <div class="stat-icon icon-gold">🎯</div>
+            </div>
+            <div class="stat-value" id="statTotalFundPool">₹0</div>
+            <div class="stat-footer">
+              <span id="statTotalFundPoolSub">५० आठवड्यांचे एकूण लक्ष्य</span>
+              <span style="color: var(--gold-400); font-weight: 600;">फंड उद्दिष्ट</span>
+            </div>
+          </div>
+
+          <!-- कार्ड ३: आतापर्यंत जमा एकूण बचत -->
+          <div class="stat-card highlight-emerald">
+            <div class="stat-header">
+              <span class="stat-label">आतापर्यंत जमा एकूण बचत</span>
+              <div class="stat-icon icon-emerald">💰</div>
+            </div>
+            <div class="stat-value" id="statTotalCollected">₹0</div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" id="progressTotalCollected" style="width: 0%;"></div>
+            </div>
+            <div class="stat-footer">
+              <span id="statTotalCollectedSub">एकूण लक्ष्याच्या ०%</span>
+              <span style="color: var(--emerald-400); font-weight: 600;">एकूण जमा</span>
+            </div>
+          </div>
+
+          <!-- कार्ड ४: चालू आठवड्याचे कलेक्शन -->
+          <div class="stat-card highlight-rose">
+            <div class="stat-header">
+              <span class="stat-label">चालू आठवडा कलेक्शन</span>
+              <div class="stat-icon icon-rose">📅</div>
+            </div>
+            <div class="stat-value" id="statWeekCollected">₹0</div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill gold" id="progressWeekCollected" style="width: 0%;"></div>
+            </div>
+            <div class="stat-footer">
+              <span id="statWeekCollectedSub">० पैकी ० जमा</span>
+              <span id="statWeekPending" style="color: var(--rose-400); font-weight: 700;">₹० बाकी</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ५०-आठवडे नेव्हिगेटर कॅरोसेल बार -->
+        <section class="week-navigator-card">
+          <div class="week-nav-header">
+            <div class="week-nav-title">
+              <h2 style="font-size: 1.15rem; font-weight: 700;">साप्ताहिक कलेक्शन सायकल</h2>
+              <span class="current-week-badge" id="currentWeekDisplayTitle">आठवडा १</span>
+            </div>
+            <div class="week-nav-controls">
+              <button class="btn btn-secondary btn-sm" id="btnPrevWeek" title="मागील आठवडा">◀ मागील</button>
+              <button class="btn btn-secondary btn-sm" id="btnNextWeek" title="पुढील आठवडा">पुढील ▶</button>
+            </div>
+          </div>
+          <div class="week-scroll-container" id="weekScrollContainer">
+            <!-- आठवडा १ ते ५० बटणे डायनॅमिकली भरली जातात -->
+          </div>
+        </section>
+
+        <!-- निवडलेल्या आठवड्याचा सारांश बॅनर -->
+        <section class="week-summary-banner">
+          <div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">निवडलेला आठवडा</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #fff;" id="bannerCurrentWeekNumber">आठवडा १ / ५०</div>
+          </div>
+          <div class="summary-details">
+            <div class="summary-item">
+              <span class="label">अपेक्षित हप्ता लक्ष्य</span>
+              <span class="val" id="bannerWeekTarget" style="color: var(--text-primary);">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">आतापर्यंत जमा रक्कम</span>
+              <span class="val" id="bannerWeekCollected" style="color: var(--emerald-400);">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">या आठवड्याची बाकी</span>
+              <span class="val" id="bannerWeekPending" style="color: var(--rose-400);">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">कलेक्शन टक्केवारी</span>
+              <span class="val" id="bannerWeekRate" style="color: var(--gold-400);">0%</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ५०-आठवडे पूर्ण अभिनंदन अलर्ट बॅनर -->
+        <div id="adminMaturityAlertBanner" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(16, 185, 129, 0.15)); border: 1.5px solid var(--gold-400); border-radius: var(--radius-lg); padding: 1.15rem 1.35rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.18);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div style="font-size: 2rem; line-height: 1;">🏆</div>
+              <div>
+                <div style="font-size: 1.1rem; font-weight: 800; color: #fff;">
+                  ५०-आठवड्यांचे चक्र पूर्ण झाले!
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;" id="adminMaturityAlertText">
+                  सदस्याने सर्व ५० साप्ताहिक हप्ते पूर्ण केले आहेत. ८% मॅच्युरिटी व्याज बोनस जोडला गेला आहे!
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-gold btn-sm" id="btnFilterCompletedMembers" onclick="document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); const cb = document.querySelector('[data-filter=\'completed\']'); if(cb) { cb.classList.add('active'); window.ui.currentFilter = 'completed'; window.ui.renderMembersTable(); }">
+                👀 पूर्ण झालेले सदस्य पहा
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- टूलबार: शोध व फिल्टर -->
+        <section class="toolbar-card">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="memberSearchInput" class="search-input" placeholder="सदस्याचे नाव, फोन नंबर किंवा आयडी शोधा...">
+          </div>
+
+          <div class="filter-group">
+            <button class="filter-btn active" data-filter="all">सर्व सदस्य</button>
+            <button class="filter-btn" data-filter="pending">या आठवड्याची बाकी</button>
+            <button class="filter-btn" data-filter="overdue">थकबाकी / लेट</button>
+            <button class="filter-btn" data-filter="paid">या आठवड्यात जमा</button>
+            <button class="filter-btn" data-filter="completed">पूर्ण झालेले (५० आठवडे)</button>
+          </div>
+        </section>
+
+        <!-- साप्ताहिक कलेक्शन टेबल -->
+        <section class="table-responsive">
+          <table class="custom-table" id="membersTable">
+            <thead>
+              <tr>
+                <th>सदस्य तपशील</th>
+                <th>साप्ताहिक हप्ता</th>
+                <th>या आठवड्याची स्थिती</th>
+                <th>एकूण जमा बचत</th>
+                <th>पुढील हप्ता / लक्ष्य</th>
+                <th>५०-आठवडे प्रगती</th>
+                <th style="text-align: right;">क्रिया / ऑप्शन्स</th>
+              </tr>
+            </thead>
+            <tbody id="membersTableBody">
+              <!-- डायनॅमिकली भरले जाते -->
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ५०-आठवडे आर्थिक पूल आढावा -->
+        <div class="glass-card" style="margin-top: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h3 style="font-size: 1.2rem; color: #fff;">📊 ५०-आठवडे आर्थिक पूल व खातावही आढावा</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">सर्व सदस्यांच्या ठेवी, लेट फी दंड आणि मॅच्युरिटी लक्ष्यांचा थेट ताळेबंद.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('adminTxnModal').classList.add('active'); window.ui.renderAdminTransactionsTab();">
+                📜 सर्व व्यवहार खातावही
+              </button>
+              <button class="btn btn-gold btn-sm" onclick="document.getElementById('exportModal').classList.add('active')">
+                📥 एक्सेल / CSV डाउनलोड
+              </button>
+            </div>
+          </div>
+
+          <div class="audit-grid" style="margin-bottom: 0;">
+            <div class="audit-card">
+              <div class="audit-card-lbl">५०-आठवड्यांचे एकूण फंड लक्ष्य</div>
+              <div class="audit-card-val" id="auditFundTarget" style="color: var(--gold-400);">₹0</div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">सर्व सदस्यांचे एकूण अपेक्षित उद्दिष्ट</p>
+            </div>
+            <div class="audit-card">
+              <div class="audit-card-lbl">आतापर्यंत जमा एकूण बचत</div>
+              <div class="audit-card-val" id="auditTotalCollected" style="color: var(--emerald-400);">₹0</div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">सदस्यांनी आतापर्यंत भरलेली मूळ रक्कम</p>
+            </div>
+            <div class="audit-card">
+              <div class="audit-card-lbl">एकूण गोळा झालेला दंड (लेट फी)</div>
+              <div class="audit-card-val" id="auditTotalFines" style="color: var(--rose-400);">₹0</div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">प्रशासकीय लेट फी दंडाची एकूण रक्कम</p>
+            </div>
+            <div class="audit-card">
+              <div class="audit-card-lbl">शिल्लक बाकी रक्कम</div>
+              <div class="audit-card-val" id="auditTotalPending" style="color: var(--blue-400);">₹0</div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">लक्ष्य पूर्ण करण्यासाठी उर्वरित रक्कम</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ==========================================================================
+           दृश्य २: सदस्य वैयक्तिक पोर्टल (केवळ सदस्य)
+           ========================================================================== -->
+      <div id="customerPortalView" style="display: none;">
+        
+        <!-- सदस्य प्रोफाइल हिरो कार्ड -->
+        <section class="customer-hero-card">
+          <div class="customer-profile-info">
+            <div class="customer-avatar-large" id="custHeroAvatar">A</div>
+            <div>
+              <div style="font-size: 0.82rem; color: var(--blue-400); font-weight: 700; text-transform: uppercase;">सदस्य बचत पासबुक व खातावही पोर्टल</div>
+              <h2 style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem;" id="custHeroName">सदस्याचे नाव</h2>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);" id="custHeroMeta">आयडी: SKB-001 • फोन</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+            <button class="btn btn-secondary" id="btnCustHeroPassbook" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.1rem; font-size: 0.88rem; font-weight: 700; border-color: rgba(59, 130, 246, 0.4); color: var(--blue-300); background: rgba(59, 130, 246, 0.12);" title="सदस्य ५०-आठवडे पासबुक व खातावही पहा">
+              <span>📖</span> सदस्य खातावही (पासबुक पहा)
+            </button>
+            <button class="btn btn-secondary" id="btnCustHeroDownloadLedger" style="padding: 0.65rem 1.1rem; font-size: 0.88rem;">
+              📥 स्टेटमेंट डाउनलोड करा
+            </button>
+            <button class="btn btn-emerald" id="btnCustHeroVoucher" style="display: none; padding: 0.65rem 1.1rem; font-size: 0.88rem; font-weight: 700;">
+              📜 मॅच्युरिटी व्हाउचर पहा
+            </button>
+          </div>
+        </section>
+
+        <!-- सदस्य सायकल स्विचर (एकापेक्षा जास्त सायकल्स असल्यास) -->
+        <div id="custCycleSwitcherContainer" style="display: none; margin-bottom: 1.25rem;"></div>
+
+        <!-- ५०-आठवडे पूर्ण अभिनंदन उत्सव बॅनर -->
+        <div id="custMaturityCelebrationBanner" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(16, 185, 129, 0.22)); border: 2px solid var(--gold-400); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; text-align: center; box-shadow: 0 0 30px rgba(245, 158, 11, 0.25);">
+          <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">🏆 🎉 🌟</div>
+          <h3 style="font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 0.4rem;">
+            ५०-आठवड्यांचे बचत चक्र यशस्वीरीत्या पूर्ण झाले!
+          </h3>
+          <p style="font-size: 0.95rem; color: var(--text-primary); max-width: 600px; margin: 0 auto 1.25rem;">
+            हार्दिक अभिनंदन! आपण सर्व ५० साप्ताहिक हप्ते यशस्वीरीत्या पूर्ण केले आहेत. आपल्या फंडमध्ये <strong style="color: var(--emerald-400);">८% मॅच्युरिटी व्याज बोनस</strong> जोडला गेला आहे.
+          </p>
+          <div style="display: inline-flex; gap: 1.5rem; background: rgba(0, 0, 0, 0.4); padding: 0.85rem 1.5rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.15); flex-wrap: wrap; justify-content: center;">
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">५०-आठवडे एकूण बचत:</span>
+              <div style="font-size: 1.2rem; font-weight: 800; color: #fff;" id="custMatTotalSavings">₹50,000</div>
+            </div>
+            <div style="font-size: 1.5rem; color: var(--gold-400); font-weight: 800; align-self: center;">+</div>
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">८% व्याज बोनस:</span>
+              <div style="font-size: 1.2rem; font-weight: 800; color: var(--emerald-400);" id="custMatBonusAmount">+₹4,000</div>
+            </div>
+            <div style="font-size: 1.5rem; color: var(--gold-400); font-weight: 800; align-self: center;">=</div>
+            <div>
+              <span style="font-size: 0.75rem; color: var(--gold-400); text-transform: uppercase; font-weight: 700;">एकूण मॅच्युरिटी परतावा:</span>
+              <div style="font-size: 1.35rem; font-weight: 800; color: var(--gold-400);" id="custMatFinalPayout">₹54,000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- सदस्य ५०-आठवडे बचत व व्याज परतावा कार्ड -->
+        <section class="glass-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(245, 158, 11, 0.08)); border: 1px solid rgba(16, 185, 129, 0.25);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="font-size: 1.25rem;">💎</span>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0;">
+                  ५०-आठवडे बचत व <span id="custRateHeader" style="color: var(--emerald-400);">८% व्याज परतावा</span>
+                </h3>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                प्रशासक निश्चित दर: सर्व ५० आठवडे पूर्ण केल्यास एकूण बचतीवर <strong style="color: var(--emerald-400);" id="custRateBadge">८% व्याज बोनस</strong> दिला जाईल.
+              </p>
+            </div>
+
+            <!-- आर्थिक गणना तपशील -->
+            <div style="display: flex; gap: 1rem; align-items: center; background: rgba(0, 0, 0, 0.35); padding: 0.75rem 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.1); flex-wrap: wrap;">
+              <div>
+                <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">५०-आठवडे बचत</span>
+                <div style="font-size: 1.1rem; font-weight: 800; color: #fff;" id="custCalcPrincipal">₹50,000</div>
+              </div>
+              <div style="font-size: 1.1rem; color: var(--gold-400); font-weight: 800;">+</div>
+              <div>
+                <span style="font-size: 0.72rem; color: var(--emerald-400); text-transform: uppercase; font-weight: 700;" id="custCalcInterestLabel">८% व्याज बोनस</span>
+                <div style="font-size: 1.1rem; font-weight: 800; color: var(--emerald-400);" id="custCalcInterestAmt">+₹4,000</div>
+              </div>
+              <div style="font-size: 1.1rem; color: var(--gold-400); font-weight: 800;">=</div>
+              <div>
+                <span style="font-size: 0.72rem; color: var(--gold-400); text-transform: uppercase; font-weight: 700;">एकूण मॅच्युरिटी परतावा</span>
+                <div style="font-size: 1.2rem; font-weight: 800; color: var(--gold-400);" id="custCalcTotalPayout">₹54,000</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- सदस्य वैयक्तिक ४ KPI कार्ड्स -->
+        <section class="customer-stats-grid">
+          <!-- कार्ड १: ५०-आठवडे लक्ष्य -->
+          <div class="stat-card highlight-gold">
+            <div class="stat-header">
+              <span class="stat-label">५०-आठवड्यांचे बचत लक्ष्य</span>
+              <div class="stat-icon icon-gold">🎯</div>
+            </div>
+            <div class="stat-value" id="custStatGoal">₹50,000</div>
+            <div class="stat-footer">
+              <span id="custStatGoalSub">५० आठवड्यांचे एकूण उद्दिष्ट</span>
+            </div>
+          </div>
+
+          <!-- कार्ड २: आतापर्यंत एकूण जमा -->
+          <div class="stat-card highlight-emerald">
+            <div class="stat-header">
+              <span class="stat-label">आतापर्यंत एकूण जमा बचत</span>
+              <div class="stat-icon icon-emerald">💰</div>
+            </div>
+            <div class="stat-value" id="custStatDeposited">₹0</div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" id="custProgressDeposited" style="width: 0%;"></div>
+            </div>
+            <div class="stat-footer">
+              <span id="custStatDepositedSub">० पैकी ५० आठवडे जमा</span>
+            </div>
+          </div>
+
+          <!-- कार्ड ३: पुढील देय हप्ता -->
+          <div class="stat-card highlight-rose">
+            <div class="stat-header">
+              <span class="stat-label">पुढील देय हप्ता</span>
+              <div class="stat-icon icon-rose">📅</div>
+            </div>
+            <div class="stat-value" id="custStatNextDue">आठवडा १</div>
+            <div class="stat-footer">
+              <span id="custStatNextDueSub" style="color: var(--rose-400); font-weight: 700;">देय रक्कम: ₹०</span>
+            </div>
+          </div>
+
+          <!-- कार्ड ४: लक्ष्यासाठी उर्वरित रक्कम -->
+          <div class="stat-card highlight-blue">
+            <div class="stat-header">
+              <span class="stat-label">लक्ष्यासाठी उर्वरित रक्कम</span>
+              <div class="stat-icon icon-blue">⏳</div>
+            </div>
+            <div class="stat-value" id="custStatRemaining">₹0</div>
+            <div class="stat-footer">
+              <span id="custStatRemainingSub">५० आठवडे बाकी</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ५०-आठवडे पासबुक ग्रिड -->
+        <section class="glass-card" style="margin-bottom: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h3 style="font-size: 1.2rem; color: #fff;">📖 माझे ५०-आठवडे बचत पासबुक</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">अधिकृत डिजिटल पावती पाहण्यासाठी कोणत्याही जमा झालेल्या आठवड्यावर क्लिक करा.</p>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">
+              🟢 जमा • 🟡 चालू हप्ता • 🔴 थकबाकी • ⚪ प्रलंबित
+            </div>
+          </div>
+          <div class="passbook-grid" id="custPassbookGrid">
+            <!-- ५० आठवड्यांचे बॉक्स डायनॅमिकली भरले जातात -->
+          </div>
+        </section>
+
+        <!-- सदस्य खातावही व व्यवहार इतिहास -->
+        <section class="glass-card" style="padding: 0; overflow: hidden; margin-top: 1.5rem;">
+          <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h3 style="font-size: 1.15rem; color: #fff;">📜 माझे सर्व व्यवहार व पेमेंट इतिहास</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">आपल्या ५०-आठवडे बीशीचे जमा हप्ते आणि डिजिटल पावत्यांचा संपूर्ण तपशील.</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btnCustDownloadMyLedger">
+              📥 माझे स्टेटमेंट डाउनलोड करा
+            </button>
+          </div>
+          <div class="table-responsive" style="border: none; box-shadow: none;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>पावती क्र.</th>
+                  <th>व्यवहार / आठवडा</th>
+                  <th>जमा हप्ता</th>
+                  <th>लेट फी दंड</th>
+                  <th>एकूण भरलेली रक्कम</th>
+                  <th>पेमेंट पद्धत</th>
+                  <th>तारीख</th>
+                  <th style="text-align: right;">पावती</th>
+                </tr>
+              </thead>
+              <tbody id="custHistoryTableBody">
+                <!-- डायनॅमिकली भरले जाते -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       मोडल्स (MODALS)
+       ========================================================================== -->
+
+  <!-- मोडल १: नवीन सदस्य जोडा (केवळ प्रशासक) -->
+  <div class="modal-overlay" id="addMemberModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>➕</span> नवीन सदस्य जोडा (प्रशासक)
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <form id="addMemberForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="addMemberName">सदस्याचे पूर्ण नाव *</label>
+            <input type="text" id="addMemberName" class="form-control" placeholder="उदा. राजेश पाटील" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="addMemberPhone">मोबाईल नंबर *</label>
+            <input type="tel" id="addMemberPhone" class="form-control" placeholder="उदा. 9822014521" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">साप्ताहिक हप्ता रक्कम निवडा (₹) *</label>
+            <div class="amount-presets">
+              <button type="button" class="preset-btn" data-amount="500">₹५०० / आठवडा</button>
+              <button type="button" class="preset-btn active" data-amount="1000">₹१,००० / आठवडा</button>
+              <button type="button" class="preset-btn" data-amount="2000">₹२,००० / आठवडा</button>
+              <button type="button" class="preset-btn" data-amount="5000">₹५,००० / आठवडा</button>
+            </div>
+            <input type="number" id="addMemberWeeklyAmount" class="form-control" value="1000" min="100" step="50" required>
+          </div>
+
+          <!-- ५०-आठवडे एकूण लक्ष्य प्रिव्ह्यू कार्ड -->
+          <div style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.15rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">५०-आठवड्यांचे एकूण उद्दिष्ट</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">साप्ताहिक हप्ता × ५० आठवडे</div>
+            </div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: var(--gold-400); font-family: var(--font-display);" id="addMemberTotalAccumulationPreview">₹५०,०००</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="addMemberStartWeek">सुरुवातीचा आठवडा</label>
+              <input type="number" id="addMemberStartWeek" class="form-control" value="1" min="1" max="50">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="addMemberPassword">सदस्य लॉगिन पासवर्ड / पिन</label>
+              <input type="text" id="addMemberPassword" class="form-control" placeholder="डिफॉल्ट: फोनचे शेवटचे ४ आकडे">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="addMemberNominee">वारसदार (नॉमिनी) / नाते</label>
+            <input type="text" id="addMemberNominee" class="form-control" placeholder="उदा. पूजा पाटील (पत्नी)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="addMemberNotes">पत्ता / व्यवसाय / टीप</label>
+            <input type="text" id="addMemberNotes" class="form-control" placeholder="उदा. कापड दुकान, सेक्टर ४">
+          </div>
+
+          <!-- पहिला हप्ता आत्ताच जमा करा चेकबॉक्स -->
+          <div style="background: var(--bg-tertiary); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-top: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); cursor: pointer;" for="addMemberInitialDeposit">
+                पहिल्या आठवड्याचा हप्ता आत्ताच जमा करायचा आहे का?
+              </label>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">पहिला हप्ता लगेच जमा म्हणून नोंदवला जाईल</div>
+            </div>
+            <input type="checkbox" id="addMemberInitialDeposit" style="width: 20px; height: 20px; cursor: pointer;">
+          </div>
+
+          <div id="addMemberInitialDepositOptions" style="display: none;">
+            <div class="form-group" style="margin-top: 0.75rem;">
+              <label class="form-label" for="addMemberPaymentMode">पेमेंट पद्धत *</label>
+              <select id="addMemberPaymentMode" class="form-control">
+                <option value="Cash">💵 रोख (Cash)</option>
+                <option value="UPI">📱 UPI / GPay / PhonePe</option>
+                <option value="Bank Transfer">🏦 बँक ट्रान्सफर (NEFT/IMPS)</option>
+                <option value="Cheque">📜 चेक (Cheque)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="addMemberUpiGroup" style="display: none; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+              <label class="form-label" for="addMemberUpiId" style="color: var(--blue-400); font-weight: 700;">
+                UPI आयडी / संदर्भ क्र. *
+              </label>
+              <input type="text" id="addMemberUpiId" class="form-control" placeholder="उदा. member@okaxis किंवा 9890112233@upi">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">रद्द करा</button>
+          <button type="submit" class="btn btn-primary">सदस्य जतन करा</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- मोडल १.५: सदस्य तपशील एडिट करा (केवळ प्रशासक) -->
+  <div class="modal-overlay" id="editMemberModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.2));">
+        <h3 class="modal-title" style="color: var(--blue-400);">
+          <span>✏️</span> सदस्य तपशील एडिट करा
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <form id="editMemberForm">
+        <div class="modal-body">
+          <div style="background: var(--bg-tertiary); padding: 0.85rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.15rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">सदस्य आयडी</span>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #fff; font-family: var(--font-mono);" id="editMemberIdBadge">SKB-001</div>
+            </div>
+            <span class="status-pill status-active" id="editMemberStatusBadge">सक्रिय सदस्य</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editMemberName">पूर्ण नाव *</label>
+            <input type="text" id="editMemberName" class="form-control" placeholder="उदा. राजेश पाटील" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editMemberPhone">मोबाईल नंबर *</label>
+            <input type="tel" id="editMemberPhone" class="form-control" placeholder="उदा. 9822014521" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">साप्ताहिक हप्ता रक्कम (₹) *</label>
+            <div class="amount-presets" id="editAmountPresets">
+              <button type="button" class="preset-btn" data-amount="500">₹५०० / आठवडा</button>
+              <button type="button" class="preset-btn active" data-amount="1000">₹१,००० / आठवडा</button>
+              <button type="button" class="preset-btn" data-amount="2000">₹२,००० / आठवडा</button>
+              <button type="button" class="preset-btn" data-amount="5000">₹५,००० / आठवडा</button>
+            </div>
+            <input type="number" id="editMemberWeeklyAmount" class="form-control" value="1000" min="100" step="50" required>
+          </div>
+
+          <!-- ५०-आठवडे एकूण लक्ष्य प्रिव्ह्यू कार्ड -->
+          <div style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.15rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">५०-आठवड्यांचे एकूण उद्दिष्ट</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">साप्ताहिक हप्ता × ५० आठवडे</div>
+            </div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: var(--gold-400); font-family: var(--font-display);" id="editMemberTotalAccumulationPreview">₹५०,०००</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editMemberPassword">सदस्य लॉगिन पासवर्ड / पिन</label>
+            <input type="text" id="editMemberPassword" class="form-control" placeholder="सध्याचा पासवर्ड तसाच ठेवण्यासाठी रिकामे सोडा">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">सदस्य लॉगिन करण्यासाठी हा पासवर्ड वापरतील.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editMemberNominee">वारसदार नाव व नाते</label>
+            <input type="text" id="editMemberNominee" class="form-control" placeholder="उदा. पूजा पाटील (पत्नी)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editMemberNotes">पत्ता / व्यवसाय / टीप</label>
+            <input type="text" id="editMemberNotes" class="form-control" placeholder="उदा. दुकान क्र. ४, मार्केट यार्ड">
+          </div>
+
+          <div style="border-top: 1px dashed var(--border-color); padding-top: 0.85rem; margin-top: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; color: var(--gold-400); font-size: 0.82rem;">भरणा डेटा साफ करा (Wipe Deposits)</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">या सदस्याचे सर्व ५० आठवड्यांचे हप्ते ० करा</div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnEditWipeMemberDeposits" style="color: var(--gold-400); border-color: rgba(245, 158, 11, 0.4); font-weight: 700;">
+              🧹 भरणा पुसा
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+          <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">रद्द करा</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitEditMember" style="font-weight: 800;">
+            💾 बदल जतन करा
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- मोडल २: साप्ताहिक हप्ता जमा नोंदवा (प्रशासक) -->
+  <div class="modal-overlay" id="collectPaymentModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>💰</span> साप्ताहिक हप्ता जमा नोंदवा
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <form id="collectPaymentForm">
+        <div class="modal-body">
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+            <div style="font-size: 1.15rem; font-weight: 800; color: #fff;" id="collectModalMemberName">सदस्याचे नाव</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);" id="collectModalMemberId">SKB-001</div>
+          </div>
+
+          <!-- थकबाकी सूचना (मुदत संपली असल्यास) -->
+          <div class="overdue-alert-banner" id="collectModalOverdueAlert" style="display: none;">
+            <span>⚠️</span>
+            <span><strong>थकबाकी हप्ता:</strong> नियमांनुसार लेट फी दंड लागू आहे.</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">आठवडा क्र.</label>
+              <input type="hidden" id="collectModalWeekNumber">
+              <div style="font-weight: 700; font-size: 1.1rem; color: var(--emerald-400); padding: 0.6rem 0;" id="collectModalWeekNumberDisplay">आठवडा १</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="collectModalAmount">हप्ता रक्कम (₹) *</label>
+              <input type="number" id="collectModalAmount" class="form-control" required min="1">
+            </div>
+          </div>
+
+          <!-- हप्ते कालावधी / आठवडे निवडा (Quick Week Multipliers) -->
+          <div class="form-group" style="margin-top: -0.25rem; margin-bottom: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label class="form-label" style="color: var(--text-secondary); margin-bottom: 0; font-size: 0.8rem;">
+                हप्ते कालावधी निवडा (आगाऊ भरणा):
+              </label>
+              <span id="collectModalWeeksBadge" class="status-pill status-paid" style="font-size: 0.72rem; padding: 0.15rem 0.5rem; background: rgba(16, 185, 129, 0.15); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.3);">१ आठवडा</span>
+            </div>
+            <div class="week-presets" id="collectModalWeekPresets">
+              <button type="button" class="week-preset-btn active" data-weeks="1">१ आठवडा (चालू)</button>
+              <button type="button" class="week-preset-btn" data-weeks="2">२ आठवडे (चालू + पुढील)</button>
+              <button type="button" class="week-preset-btn" data-weeks="3">३ आठवडे</button>
+              <button type="button" class="week-preset-btn" data-weeks="4">४ आठवडे</button>
+            </div>
+          </div>
+
+          <!-- हप्ता वाटप तपशील (Multi-Week Deposit Allocation Breakdown) -->
+          <div id="collectModalAllocationBreakdown" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1rem;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--emerald-400); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.35rem;">
+              <span>⚡</span> <span>हप्ता वाटप तपशील (या आठवड्यासह पुढील आठवडे जमा):</span>
+            </div>
+            <div id="collectModalAllocationList" style="font-size: 0.78rem; color: var(--text-primary); display: flex; flex-direction: column; gap: 0.3rem;">
+              <!-- Filled dynamically in UI -->
+            </div>
+          </div>
+
+          <!-- लेट फी दंड -->
+          <div class="form-group" style="background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.2); padding: 0.85rem; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label class="form-label" for="collectModalFineAmount" style="color: var(--rose-400); margin-bottom: 0;">
+                लेट फी दंड (₹) (प्रशासक ठरवतील)
+              </label>
+            </div>
+            <input type="number" id="collectModalFineAmount" class="form-control" value="0" min="0" step="10">
+            <div class="fine-presets">
+              <button type="button" class="fine-preset-btn" data-fine="0">माफ करा (₹०)</button>
+              <button type="button" class="fine-preset-btn active" data-fine="default">नियमित दंड</button>
+              <button type="button" class="fine-preset-btn" data-fine="100">₹१००</button>
+              <button type="button" class="fine-preset-btn" data-fine="200">₹२००</button>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.4rem;">
+              * दंड स्वतंत्रपणे नोंदवला जातो आणि तो मूळ ५०-आठवडे बचत लक्ष्यात मोजला जात नाही.
+            </div>
+          </div>
+
+          <!-- एकूण जमा रक्कम कार्ड -->
+          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(245, 158, 11, 0.1)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.15rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 700;">एकूण गोळा करावयाची रक्कम:</span>
+              <span style="font-size: 1.35rem; font-weight: 800; color: var(--emerald-400); font-family: var(--font-display);" id="collectModalTotalPayableDisplay">₹0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.35rem; font-size: 0.75rem; color: var(--text-muted);">
+              <span>बचत फंड प्रगती:</span>
+              <span id="collectModalRunningTotalDisplay" style="font-weight: 700; color: var(--gold-400);">₹0 ➔ ₹0</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="collectModalPaymentMode">पेमेंट पद्धत *</label>
+            <select id="collectModalPaymentMode" class="form-control">
+              <option value="UPI" selected>📱 UPI (Google Pay, PhonePe, Paytm)</option>
+              <option value="Cash">💵 रोख (Cash)</option>
+              <option value="Bank Transfer">🏦 बँक ट्रान्सफर</option>
+              <option value="Cheque">📜 चेक</option>
+            </select>
+          </div>
+
+          <!-- UPI आयडी फील्ड -->
+          <div class="form-group" id="collectModalUpiGroup" style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 1rem; border-radius: var(--radius-md);">
+            <label class="form-label" for="collectModalUpiId" style="color: var(--blue-400); font-weight: 700;">
+              UPI आयडी / ट्रान्झॅक्शन संदर्भ क्र. *
+            </label>
+            <input type="text" id="collectModalUpiId" class="form-control" placeholder="उदा. member@okaxis, 9890112233@upi, किंवा UTR क्र." required>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+              पेमेंट पाठवणाऱ्याचा UPI आयडी, PhonePe/GPay नंबर किंवा बँक संदर्भ क्रमांक टाका.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="collectModalNote">पेमेंट टीप (ऐच्छिक)</label>
+            <input type="text" id="collectModalNote" class="form-control" placeholder="उदा. गुगल पे द्वारे मिळाले / रोख मिळाले">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">रद्द करा</button>
+          <button type="submit" class="btn btn-primary">हप्ता जमा निश्चित करा</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- मोडल ३: सदस्य ५०-आठवडे पासबुक (प्रशासक दृश्य) -->
+  <div class="modal-overlay" id="passbookModal">
+    <div class="modal-container large">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>📖</span> सदस्य ५०-आठवडे पासबुक
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- पासबुक सायकल स्विचर -->
+        <div id="passbookCycleSwitcherContainer" style="display: none; margin-bottom: 1rem;"></div>
+
+        <div style="background: var(--bg-tertiary); padding: 1.25rem; border-radius: var(--radius-lg); margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div>
+              <div style="font-size: 1.35rem; font-weight: 800; color: #fff;" id="passbookModalMemberName">सदस्याचे नाव</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);" id="passbookModalMemberInfo">SKB-001 • फोन</div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="passbookBtnEditMember" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+              ✏️ एडिट करा
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="passbookBtnWipeDeposits" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: var(--gold-400); border-color: rgba(245, 158, 11, 0.4);" title="या सदस्याचा जमा भरणा डेटा पुसा (Wipe Deposits)">
+              🧹 भरणा पुसा
+            </button>
+          </div>
+          <div style="display: flex; gap: 1.5rem; text-align: right; flex-wrap: wrap;">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">साप्ताहिक हप्ता</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: var(--emerald-400);" id="passbookWeeklyAmt">₹0</div>
+            </div>
+            <div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">एकूण जमा</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: var(--gold-400);" id="passbookTotalPaid">₹0</div>
+            </div>
+            <div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">आठवडे जमा</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary);" id="passbookWeeksCompleted">0 / 50</div>
+            </div>
+            <div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">मॅच्युरिटी परतावा (+८%)</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: var(--emerald-400);" id="passbookMaturityPayout">₹0</div>
+            </div>
+            <div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">शिल्लक बाकी</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: var(--rose-400);" id="passbookRemainingAmt">₹0</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <span id="passbookMatrixTitle">५०-आठवडे बचत मॅट्रिक्स (पावती पाहण्यासाठी किंवा हप्ता नोंदवण्यासाठी क्लिक करा)</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">🟢 जमा • 🟡 चालू हप्ता • 🔴 थकबाकी • ⚪ प्रलंबित</span>
+        </div>
+
+        <div class="passbook-grid" id="passbookGridContainer">
+          <!-- ५० बॉक्स डायनॅमिकली भरले जातात -->
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" class="btn btn-gold" id="btnPassbookPayAll" style="font-weight: 800;">
+            ⚡ उर्वरित सर्व आठवडे एकाच वेळी भरा
+          </button>
+          <button type="button" class="btn btn-emerald" id="btnPassbookRestartPlan" style="display: none; font-weight: 800; background: linear-gradient(135deg, var(--emerald-600), var(--blue-600));">
+            🔄 नवीन प्लॅन सुरू करा (पुढील सायकल)
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnPassbookWipeDepositsFooter" style="color: var(--gold-400); border-color: rgba(245, 158, 11, 0.4); font-weight: 700;">
+            🧹 भरणा डेटा पुसा
+          </button>
+        </div>
+        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल ३.५: उर्वरित सर्व आठवडे एकाच वेळी भरा -->
+  <div class="modal-overlay" id="bulkPayModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(16, 185, 129, 0.2));">
+        <h3 class="modal-title" style="color: var(--gold-400);">
+          <span>⚡</span> उर्वरित सर्व आठवडे एकाच वेळी भरा
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <form id="bulkPayForm">
+        <div class="modal-body">
+          <div style="background: var(--bg-tertiary); padding: 1rem 1.15rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #fff;" id="bulkPayMemberName">सदस्याचे नाव</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);" id="bulkPayMemberMeta">SKB-001 • ₹1,000/आठवडा</div>
+            </div>
+            <span class="status-pill status-pending" id="bulkPayWeeksBadge" style="font-size: 0.8rem;">५० आठवडे बाकी</span>
+          </div>
+
+          <!-- एकरकमी पेमेंट व व्याज सारांश कार्ड -->
+          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(245, 158, 11, 0.14)); border: 1.5px solid var(--gold-400); border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 1.25rem; text-align: center;">
+            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">एकूण भरावी लागणारी एकरकमी रक्कम:</div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--emerald-400); font-family: var(--font-display); margin-bottom: 0.5rem;" id="bulkPayTotalAmountDisplay">₹50,000</div>
+            
+            <div style="display: inline-flex; gap: 1rem; background: rgba(0,0,0,0.4); padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1); font-size: 0.82rem; flex-wrap: wrap; justify-content: center;">
+              <div>
+                <span style="color: var(--text-muted);">शिल्लक आठवडे: </span>
+                <strong style="color: #fff;" id="bulkPayUnpaidCount">५० आठवडे</strong>
+              </div>
+              <div style="color: var(--gold-400);">•</div>
+              <div>
+                <span style="color: var(--emerald-400); font-weight: 700;" id="bulkPayBonusText">+८% बोनस: +₹४,०००</span>
+              </div>
+              <div style="color: var(--gold-400);">•</div>
+              <div>
+                <span style="color: var(--gold-400); font-weight: 800;" id="bulkPayTotalPayoutText">एकूण परतावा: ₹५४,०००</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="bulkPayPaymentMode">पेमेंट पद्धत *</label>
+            <select id="bulkPayPaymentMode" class="form-control">
+              <option value="UPI" selected>📱 UPI (Google Pay, PhonePe, Paytm)</option>
+              <option value="Cash">💵 रोख (Cash)</option>
+              <option value="Bank Transfer">🏦 बँक ट्रान्सफर</option>
+              <option value="Cheque">📜 चेक</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="bulkPayUpiGroup" style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 1rem; border-radius: var(--radius-md);">
+            <label class="form-label" for="bulkPayUpiId" style="color: var(--blue-400); font-weight: 700;">
+              UPI आयडी / ट्रान्झॅक्शन संदर्भ क्र. *
+            </label>
+            <input type="text" id="bulkPayUpiId" class="form-control" placeholder="उदा. member@okaxis, 9890112233@upi, किंवा UTR क्र." required>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+              या पेमेंटचा बँक संदर्भ क्रमांक किंवा UPI आयडी टाका.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="bulkPayNote">पेमेंट टीप (ऐच्छिक)</label>
+            <input type="text" id="bulkPayNote" class="form-control" placeholder="उदा. सर्व ५० आठवड्यांचे एकरकमी पेमेंट">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">रद्द करा</button>
+          <button type="submit" class="btn btn-gold" id="btnSubmitBulkPay" style="font-weight: 800;">
+            ⚡ सर्व आठवड्यांचे पेमेंट निश्चित करा
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- मोडल ४: डिजिटल पावती व WhatsApp शेअर -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>🧾</span> अधिकृत पेमेंट पावती
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body" id="receiptModalBody">
+        <!-- receiptManager द्वारे भरले जाते -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="window.receiptManager.printReceipt()">
+          🖨️ पावती प्रिंट करा
+        </button>
+        <button type="button" class="btn btn-primary" data-modal-close onclick="window.closeAllModals()">पूर्ण</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल ५: सदस्य डेटा व्यवस्थापन, भरणा साफ व डिलीट (प्रशासक) -->
+  <div class="modal-overlay" id="settleModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(245, 158, 11, 0.2));">
+        <h3 class="modal-title" style="color: var(--rose-400);">
+          <span>🗑️</span> सदस्य डेटा साफ व खाते व्यवस्थापन
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
+          <div>
+            <div style="font-size: 1.15rem; font-weight: 800; color: #fff;" id="settleMemberName">सदस्याचे नाव</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);" id="settleMemberId">SKB-001</div>
+          </div>
+          <span class="status-pill status-active" id="settleMemberStatusBadge">सक्रिय</span>
+        </div>
+
+        <div class="settlement-card" style="margin-bottom: 1.25rem;">
+          <div class="settlement-row">
+            <span>एकूण जमा आठवडे:</span>
+            <strong id="settleTotalWeeksPaid">० पैकी ५० आठवडे</strong>
+          </div>
+          <div class="settlement-row">
+            <span>आतापर्यंत एकूण भरलेली मूळ बचत:</span>
+            <strong style="color: var(--emerald-400);" id="settleTotalContributed">₹0</strong>
+          </div>
+        </div>
+
+        <!-- पर्याय १: केवळ भरणा डेटा रीसेट करा -->
+        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.5rem;">
+            <div>
+              <div style="font-weight: 800; color: var(--gold-400); font-size: 0.95rem;">
+                🔄 पर्याय १: सदस्याचा भरणा डेटा साफ करा (Reset Payments)
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.4;">
+                सदस्याचे खाते सक्रिय राहील, परंतु त्यांचे सर्व ५० आठवड्यांचे भरणा रेकॉर्ड्स आणि व्यवहार इतिहास शून्य (०) होतील.
+              </div>
+            </div>
+            <button type="button" class="btn btn-gold btn-sm" id="btnSettleResetPayments" style="white-space: nowrap; font-weight: 800; padding: 0.5rem 0.85rem;">
+              🔄 भरणा रीसेट करा
+            </button>
+          </div>
+        </div>
+
+        <!-- पर्याय २: सदस्य व सर्व डेटा कायमचा डिलीट करा -->
+        <div style="background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.35); border-radius: var(--radius-md); padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;">
+            <div>
+              <div style="font-weight: 800; color: var(--rose-400); font-size: 0.95rem;">
+                🗑️ पर्याय २: सदस्य व सर्व डेटा कायमचा डिलीट करा (Delete Member)
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.4;">
+                हा सदस्य, त्यांचे सर्व रेकॉर्ड्स, ५० आठवड्यांचा डेटा आणि खात्याचा इतिहास वेबसाइट व Firebase क्लाउड डेटाबेसमधून कायमचा नष्ट होईल.
+              </div>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" id="btnSettleDeleteCompletely" style="background: var(--rose-600); border-color: var(--rose-500); white-space: nowrap; font-weight: 800; padding: 0.5rem 0.85rem;">
+              🗑️ कायमचा डिलीट
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल ५.५: संपूर्ण वेबसाइट व डेटाबेस डेटा साफ करा (Master Factory Reset) -->
+  <div class="modal-overlay" id="masterClearDataModal">
+    <div class="modal-container" style="max-width: 580px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(244, 63, 94, 0.25), rgba(245, 158, 11, 0.2));">
+        <h3 class="modal-title" style="color: var(--rose-400);">
+          <span>⚠️</span> वेबसाइट व डेटाबेस डेटा साफ करा (Data Management)
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <div style="background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.35); border-radius: var(--radius-md); padding: 0.9rem 1rem; margin-bottom: 1.25rem;">
+          <p style="font-size: 0.85rem; color: #fb7185; margin: 0; line-height: 1.4;">
+            ⚠️ <strong>महत्त्वाची सूचना:</strong> येथून आपण वेबसाइट आणि Firebase क्लाउड डेटाबेसमधील डेटा साफ किंवा पूर्णपणे रिसेट करू शकता. कृपया योग्य पर्याय निवडा.
+          </p>
+        </div>
+
+        <!-- पर्याय १: सर्व सदस्यांचे केवळ भरणा रेकॉर्ड्स साफ करा -->
+        <div style="background: var(--bg-tertiary); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-md); padding: 1.1rem; margin-bottom: 1.25rem;">
+          <div style="font-weight: 800; color: var(--gold-400); font-size: 1rem; margin-bottom: 0.35rem;">
+            🔄 पर्याय १: केवळ सर्व सदस्यांचे हप्ते व व्यवहार साफ करा
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.85rem; line-height: 1.4;">
+            नोंदणीकृत सर्व सदस्यांची खाती, नावे व मोबाईल क्रमांक सुरक्षित राहतील; परंतु सर्व सदस्यांचे ५० आठवड्यांचे जमा हप्ते, पावत्या व व्यवहार इतिहास शून्य (०) होईल.
+          </p>
+          <button type="button" class="btn btn-gold btn-sm" id="btnMasterClearPaymentsOnly" style="font-weight: 800; width: 100%;">
+            🔄 सर्व सदस्यांचे हप्ते व व्यवहार साफ करा
+          </button>
+        </div>
+
+        <!-- पर्याय २: संपूर्ण फॅक्टरी रिसेट (सर्व सदस्य + डेटाबेस) -->
+        <div style="background: var(--bg-tertiary); border: 1px solid rgba(244, 63, 94, 0.45); border-radius: var(--radius-md); padding: 1.1rem;">
+          <div style="font-weight: 800; color: var(--rose-400); font-size: 1rem; margin-bottom: 0.35rem;">
+            🔥 पर्याय २: संपूर्ण वेबसाइट व डेटाबेस पूर्ण पुसा (Factory Reset)
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.85rem; line-height: 1.4;">
+            सर्व सदस्य, ५० आठवड्यांचे रेकॉर्ड्स, जुनी खाती, पावत्या आणि व्यवहार Firebase क्लाउड डेटाबेस व स्थानिक स्टोअरेजवरून कायमचे नष्ट होतील आणि नवीन कोरी सिस्टीम तयार होईल.
+          </p>
+
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label class="form-label" for="masterWipeConfirmInput" style="font-size: 0.8rem; color: var(--rose-400);">
+              पुष्टी करण्यासाठी खाली <strong>RESET</strong> किंवा <strong>नक्की</strong> लिहा:
+            </label>
+            <input type="text" id="masterWipeConfirmInput" class="form-control" placeholder="येथे RESET टाइप करा" style="border-color: rgba(244, 63, 94, 0.4); text-transform: uppercase;">
+          </div>
+
+          <button type="button" class="btn btn-danger btn-sm" id="btnMasterWipeEverything" style="background: var(--rose-600); border-color: var(--rose-500); font-weight: 800; width: 100%;">
+            🔥 संपूर्ण डेटाबेस व वेबसाइट स्वच्छ करा (Wipe All)
+          </button>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल ६: बीशी संस्था नियम व लेट फी दर (प्रशासक) -->
+  <div class="modal-overlay" id="adminSettingsModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>⚙️</span> बीशी संस्था नियम व लेट फी दर
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="adminPanelSettingsForm">
+          <div class="form-group">
+            <label class="form-label" for="adminPanelBishiName">बीशी / संस्थेचे नाव</label>
+            <input type="text" id="adminPanelBishiName" class="form-control" required>
+          </div>
+
+          <div class="form-group" style="background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.25); padding: 1.25rem; border-radius: var(--radius-md);">
+            <label class="form-label" for="adminPanelDefaultFine" style="color: var(--rose-400); font-weight: 700;">
+              प्रत्येक थकबाकी आठवड्याचा नियमित दंड (₹) *
+            </label>
+            <input type="number" id="adminPanelDefaultFine" class="form-control" min="0" step="10" required>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem;">
+              प्रशासकाने ठरवलेला दंड दर (उदा. ₹५०, ₹१००, ₹२००). थकबाकी पेमेंटच्या वेळी आपोआप सुचवला जातो.
+            </p>
+          </div>
+
+          <!-- मॅच्युरिटी व्याज दर सेटिंग -->
+          <div class="form-group" style="background: rgba(16, 185, 129, 0.07); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1.25rem; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: gap; gap: 0.5rem;">
+              <label class="form-label" for="adminPanelMaturityInterest" style="color: var(--emerald-400); font-weight: 700; margin-bottom: 0;">
+                ५०-आठवडे पूर्ण मॅच्युरिटी व्याज बोनस (%) *
+              </label>
+              <span class="status-pill status-paid" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">नियमित: ८%</span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <button type="button" class="btn btn-secondary" id="btnDecreaseInterest" style="padding: 0.6rem 1.15rem; font-size: 1.25rem; font-weight: 800; border-radius: var(--radius-md);" title="व्याज दर ०.५% ने कमी करा">
+                −
+              </button>
+              <div style="position: relative; flex: 1;">
+                <input type="number" id="adminPanelMaturityInterest" class="form-control" min="0" max="100" step="0.5" value="8" style="text-align: center; font-size: 1.25rem; font-weight: 800; color: var(--emerald-400); font-family: var(--font-mono);" required>
+              </div>
+              <button type="button" class="btn btn-secondary" id="btnIncreaseInterest" style="padding: 0.6rem 1.15rem; font-size: 1.25rem; font-weight: 800; border-radius: var(--radius-md);" title="व्याज दर ०.५% ने वाढवा">
+                +
+              </button>
+            </div>
+
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+              <button type="button" class="fine-preset-btn interest-preset-btn" data-rate="5">५%</button>
+              <button type="button" class="fine-preset-btn interest-preset-btn" data-rate="6">६%</button>
+              <button type="button" class="fine-preset-btn interest-preset-btn active" data-rate="8">८% (नियमित)</button>
+              <button type="button" class="fine-preset-btn interest-preset-btn" data-rate="10">१०%</button>
+              <button type="button" class="fine-preset-btn interest-preset-btn" data-rate="12">१२%</button>
+              <button type="button" class="fine-preset-btn interest-preset-btn" data-rate="15">१५%</button>
+            </div>
+
+            <div id="adminInterestCalcPreview" style="background: rgba(0, 0, 0, 0.35); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-secondary); border: 1px dashed rgba(255, 255, 255, 0.1);">
+              💡 <strong>₹५०,००० बचतीवर उदाहरण:</strong> <span style="color: var(--emerald-400); font-weight: 700;" id="previewInterestAdded">+₹४,००० व्याज (८%)</span> ➔ एकूण परतावा = <strong style="color: var(--gold-400);" id="previewTotalPayout">₹५४,०००</strong>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="adminPanelCurrency">चलन चिन्ह (Currency)</label>
+            <input type="text" id="adminPanelCurrency" class="form-control" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+            💾 सेटिंग्ज जतन करा
+          </button>
+
+          <div style="border-top: 1px dashed var(--border-color); padding-top: 1.15rem; margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; color: var(--rose-400); font-size: 0.88rem;">डेटा साफ व फॅक्टरी रिसेट (Data Management)</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">वेबसाइट व क्लाउड डेटाबेसमधील सर्व नोंदी किंवा हप्ते साफ करा</div>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('adminSettingsModal').classList.remove('active'); window.ui.openMasterClearDataModal();">
+              🗑️ डेटा साफ करा
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल ७: सर्व सदस्यांचा ठेवी इतिहास व खातावही (प्रशासक) -->
+  <div class="modal-overlay" id="adminTxnModal">
+    <div class="modal-container large">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>📋</span> सर्व सदस्यांच्या ठेवींचा तपशील व खातावही
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <div style="padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem; background: var(--bg-tertiary);">
+          <div style="display: flex; gap: 0.75rem; flex: 1; max-width: 480px;">
+            <input type="text" id="adminTxnSearchInput" class="form-control" placeholder="सदस्याचे नाव, आयडी किंवा पावती नंबर शोधा..." style="padding: 0.5rem 0.85rem; font-size: 0.88rem;">
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <select id="adminTxnModeFilter" class="form-control" style="width: auto; padding: 0.5rem 2rem 0.5rem 0.85rem; font-size: 0.88rem;">
+              <option value="all">सर्व पेमेंट पद्धती</option>
+              <option value="Cash">💵 फक्त रोख (Cash)</option>
+              <option value="UPI">📱 फक्त UPI</option>
+              <option value="Bank Transfer">🏦 बँक ट्रान्सफर</option>
+              <option value="Cheque">📜 चेक</option>
+              <option value="fines">⚠️ दंड भरलेले व्यवहार</option>
+            </select>
+            <button class="btn btn-gold btn-sm" onclick="window.exportManager.exportMasterLedgerCSV()">
+              📥 CSV डाउनलोड
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive" style="border: none; box-shadow: none; max-height: 420px; overflow-y: auto;">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>पावती क्र.</th>
+                <th>सदस्य तपशील</th>
+                <th>आठवडा क्र.</th>
+                <th>हप्ता रक्कम</th>
+                <th>लेट फी दंड</th>
+                <th>एकूण मिळालेली रक्कम</th>
+                <th>पेमेंट पद्धत</th>
+                <th>तारीख व वेळ</th>
+                <th style="text-align: right;">पावती</th>
+              </tr>
+            </thead>
+            <tbody id="adminTransactionsTableBody">
+              <!-- डायनॅमिकली भरले जाते -->
+            </tbody>
+          </table>
+        </div>
+
+        <div style="padding: 1rem 1.25rem; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div style="font-size: 0.85rem; color: var(--text-secondary);">
+            दाखवत आहे: <strong id="adminTxnFilteredCount" style="color: var(--text-primary);">0</strong> नोंदी
+          </div>
+          <div style="display: flex; gap: 1.5rem; font-size: 0.9rem;">
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">एकूण बचत: </span>
+              <strong id="adminTxnTotalDeposits" style="color: var(--emerald-400);">₹0</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">एकूण दंड: </span>
+              <strong id="adminTxnTotalFines" style="color: var(--rose-400);">₹0</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">एकूण जमा: </span>
+              <strong id="adminTxnGrossTotal" style="color: var(--gold-400);">₹0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल ८: ५०-आठवडे पूर्ण अलर्ट मोडल (प्रशासक) -->
+  <div class="modal-overlay" id="adminMilestoneCelebrationModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(16, 185, 129, 0.2));">
+        <h3 class="modal-title" style="color: var(--gold-400);">
+          <span>🏆</span> ५०-आठवडे पूर्ण अलर्ट!
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 1.75rem 1.5rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem; animation: pulse 1.5s infinite;">🌟 🏆 🎉</div>
+        <h3 style="font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 0.35rem;">
+          सदस्याचे ५०-आठवडे चक्र पूर्ण झाले!
+        </h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+          सदस्याने सर्व ५० आठवड्यांचे हप्ते भरले आहेत. एकूण बचतीवर <strong style="color: var(--emerald-400);">८% मॅच्युरिटी बोनस</strong> जोडला गेला आहे!
+        </p>
+
+        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 1.25rem; text-align: left;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+            <div>
+              <div style="font-size: 1.1rem; font-weight: 800; color: #fff;" id="adminAlertMemberName">सदस्याचे नाव</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);" id="adminAlertMemberId">SKB-001 • 📞 9890...</div>
+            </div>
+            <span class="status-pill status-completed">५० / ५० आठवडे पूर्ण</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">५०-आठवडे जमा बचत:</span>
+              <strong style="color: #fff;" id="adminAlertSavingsAmt">₹५०,०००</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--emerald-400); font-weight: 600;">+ ८% मॅच्युरिटी बोनस:</span>
+              <strong style="color: var(--emerald-400);" id="adminAlertInterestAmt">+₹४,०००</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.5rem; font-size: 1.05rem;">
+              <span style="color: var(--gold-400); font-weight: 800;">एकूण मॅच्युरिटी परतावा:</span>
+              <strong style="color: var(--gold-400); font-weight: 800;" id="adminAlertTotalPayout">₹५४,०००</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-emerald" id="btnAdminAlertDisbursePayout" style="flex: 1; font-weight: 800; background: var(--emerald-600); border-color: var(--emerald-500);">
+            💰 परतावा वाटप करा
+          </button>
+          <button class="btn btn-gold" id="btnAdminAlertViewReceipt" style="flex: 1;">
+            🧾 पावती पहा
+          </button>
+          <button class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()" style="flex: 1;">
+            बंद करा
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल १०: ५०-आठवडे मॅच्युरिटी परतावा वाटप (प्रशासक) -->
+  <div class="modal-overlay" id="payoutCompleteModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(245, 158, 11, 0.2));">
+        <h3 class="modal-title" style="color: var(--emerald-400);">
+          <span>💰</span> ५०-आठवडे मॅच्युरिटी परतावा वाटप करा
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <form id="payoutCompleteForm">
+        <div class="modal-body">
+          <div style="background: var(--bg-tertiary); padding: 1rem 1.15rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #fff;" id="payoutModalMemberName">सदस्याचे नाव</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);" id="payoutModalMemberMeta">SKB-001 • नॉमिनी: N/A</div>
+            </div>
+            <span class="status-pill status-completed" style="font-size: 0.8rem;">५० / ५० आठवडे पूर्ण</span>
+          </div>
+
+          <!-- मॅच्युरिटी वाटप रक्कम कार्ड -->
+          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(245, 158, 11, 0.16)); border: 1.5px solid var(--emerald-400); border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 1.25rem; text-align: center;">
+            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">एकूण वाटप करावयाची मॅच्युरिटी रक्कम:</div>
+            <div style="font-size: 2.1rem; font-weight: 800; color: var(--gold-400); font-family: var(--font-display); margin-bottom: 0.5rem;" id="payoutModalTotalDisplay">₹54,000</div>
+            
+            <div style="display: inline-flex; gap: 1rem; background: rgba(0,0,0,0.4); padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1); font-size: 0.82rem; flex-wrap: wrap; justify-content: center;">
+              <div>
+                <span style="color: var(--text-muted);">मूळ बचत (५० आठवडे): </span>
+                <strong style="color: #fff;" id="payoutModalSavingsAmount">₹५०,०००</strong>
+              </div>
+              <div style="color: var(--gold-400);">+</div>
+              <div>
+                <span style="color: var(--emerald-400); font-weight: 700;" id="payoutModalBonusText">८% व्याज बोनस: +₹४,०००</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="payoutPaymentMode">वाटप पद्धत *</label>
+            <select id="payoutPaymentMode" class="form-control">
+              <option value="Cash" selected>💵 रोख वाटप (Cash Handover)</option>
+              <option value="UPI Transfer">📱 UPI ट्रान्सफर (GPay / PhonePe / Paytm)</option>
+              <option value="Bank NEFT/RTGS">🏦 बँक ट्रान्सफर (NEFT / RTGS / IMPS)</option>
+              <option value="Cheque">📜 बँक चेक</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="payoutRefGroup" style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 1rem; border-radius: var(--radius-md);">
+            <label class="form-label" for="payoutReference" id="payoutRefLabel" style="color: var(--blue-400); font-weight: 700;">
+              संदर्भ क्र. / ट्रान्झॅक्शन आयडी / चेक क्र.
+            </label>
+            <input type="text" id="payoutReference" class="form-control" placeholder="उदा. UTR123456, चेक क्र. 987654, किंवा पावती क्र.">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+              बँक संदर्भ क्रमांक, चेक क्रमांक किंवा रोख पावती क्रमांक टाका.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="payoutNote">वाटप टीप / शेरा</label>
+            <input type="text" id="payoutNote" class="form-control" placeholder="उदा. ५० आठवडे पूर्ण परतावा प्रत्यक्ष वाटप केला">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">रद्द करा</button>
+          <button type="submit" class="btn btn-emerald" id="btnSubmitPayoutComplete" style="font-weight: 800; background: var(--emerald-500); border-color: var(--emerald-400);">
+            ✅ मॅच्युरिटी वाटप पूर्ण निश्चित करा
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- मोडल ११: अधिकृत ५०-आठवडे मॅच्युरिटी व्हाउचर -->
+  <div class="modal-overlay" id="payoutVoucherModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(16, 185, 129, 0.2));">
+        <h3 class="modal-title" style="color: var(--gold-400);">
+          <span>📜</span> अधिकृत ५०-आठवडे मॅच्युरिटी व्हाउचर
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body" id="payoutVoucherModalBody">
+        <!-- डायनॅमिकली भरले जाते -->
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary" onclick="window.receiptManager.printReceipt()">
+            🖨️ व्हाउचर प्रिंट करा
+          </button>
+          <button type="button" class="btn btn-emerald" id="btnVoucherRestartPlan" style="display: none; font-weight: 800; background: linear-gradient(135deg, var(--emerald-600), var(--blue-600));">
+            🔄 पुढील प्लॅन सुरू करा
+          </button>
+        </div>
+        <button type="button" class="btn btn-primary" data-modal-close onclick="window.closeAllModals()">पूर्ण</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल १२: नवीन बचत प्लॅन सुरू करा (नवीन सायकल) -->
+  <div class="modal-overlay" id="restartPlanModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2));">
+        <h3 class="modal-title" style="color: var(--emerald-400);">
+          <span>🔄</span> नवीन बचत प्लॅन सुरू करा (नवीन सायकल)
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <form id="restartPlanForm">
+        <input type="hidden" id="restartPlanMemberId" value="">
+        <div class="modal-body">
+          <!-- सदस्य माहिती व मागील सायकल जतन सूचना -->
+          <div style="background: var(--bg-tertiary); padding: 1rem 1.15rem; border-radius: var(--radius-md); margin-bottom: 1.15rem; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <div style="font-size: 1.15rem; font-weight: 800; color: #fff;" id="restartPlanMemberName">सदस्याचे नाव</div>
+              <span class="status-pill status-completed" id="restartPlanPrevCycleBadge">सायकल १ पूर्ण 🏆</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);" id="restartPlanMemberMeta">SKB-001 • 📞 फोन</div>
+            <div style="margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.82rem; color: var(--gold-400);">
+              📦 <strong>मागील सर्व ५० आठवड्यांचे पेमेंट तपशील, पावत्या आणि व्हाउचर सदस्य खात्यात कायमस्वरूपी सुरक्षित जतन केले आहेत.</strong>
+            </div>
+          </div>
+
+          <!-- नवीन सायकल साप्ताहिक हप्ता -->
+          <div class="form-group">
+            <label class="form-label">नवीन सायकलचा साप्ताहिक हप्ता (₹) *</label>
+            <div class="amount-presets" id="restartAmountPresets" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 0.65rem;">
+              <button type="button" class="preset-btn" data-amount="500">₹५०० / आठवडा</button>
+              <button type="button" class="preset-btn active" data-amount="1000">₹१,००० / आठवडा</button>
+              <button type="button" class="preset-btn" data-amount="2000">₹२,००० / आठवडा</button>
+              <button type="button" class="preset-btn" data-amount="5000">₹५,००० / आठवडा</button>
+            </div>
+            <input type="number" id="restartWeeklyAmount" class="form-control" value="1000" min="100" step="50" required>
+          </div>
+
+          <!-- नवीन सायकल लक्ष्य प्रिव्ह्यू -->
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px dashed rgba(16, 185, 129, 0.35); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.15rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">नवीन सायकलचे एकूण उद्दिष्ट</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);" id="restartTargetSub">५० आठवडे × ₹१,००० (+८% बोनस = ₹५४,०००)</div>
+            </div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: var(--emerald-400); font-family: var(--font-display);" id="restartTotalGoalPreview">₹५०,०००</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="restartStartWeek">नवीन सायकलचा सुरुवातीचा आठवडा</label>
+            <input type="number" id="restartStartWeek" class="form-control" value="1" min="1" max="50">
+          </div>
+
+          <!-- पहिला हप्ता आत्ताच जमा करा -->
+          <div style="background: var(--bg-tertiary); padding: 0.85rem 1rem; border-radius: var(--radius-md); margin-top: 0.5rem; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border-color);">
+            <div>
+              <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); cursor: pointer;" for="restartInitialDeposit">
+                नवीन सायकलचा पहिला आठवड्याचा हप्ता आत्ताच जमा करायचा आहे का?
+              </label>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">नवीन सायकलचा पहिला हप्ता लगेच जमा म्हणून नोंदवला जाईल</div>
+            </div>
+            <input type="checkbox" id="restartInitialDeposit" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--emerald-500);">
+          </div>
+
+          <div id="restartInitialDepositOptions" style="display: none; margin-top: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label" for="restartPaymentMode">पेमेंट पद्धत *</label>
+              <select id="restartPaymentMode" class="form-control">
+                <option value="Cash" selected>💵 रोख (Cash)</option>
+                <option value="UPI">📱 UPI / GPay / PhonePe</option>
+                <option value="Bank Transfer">🏦 बँक ट्रान्सफर (NEFT/IMPS)</option>
+                <option value="Cheque">📜 चेक (Cheque)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="restartUpiGroup" style="display: none; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+              <label class="form-label" for="restartUpiId" style="color: var(--blue-400); font-weight: 700;">
+                UPI आयडी / संदर्भ क्र. *
+              </label>
+              <input type="text" id="restartUpiId" class="form-control" placeholder="उदा. member@okaxis किंवा 9890112233@upi">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">रद्द करा</button>
+          <button type="submit" class="btn btn-primary" id="btnConfirmRestartPlan" style="background: linear-gradient(135deg, var(--emerald-600), var(--blue-600)); font-weight: 800;">
+            🚀 नवीन सायकल सुरू करा
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- मोडल १३: डेटा बॅकअप व एक्सपोर्ट (प्रशासक) -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>📊</span> डेटा बॅकअप व एक्सपोर्ट (CSV)
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; color: var(--text-primary);">चालू आठवड्याचे कलेक्शन पत्रक</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">निवडलेल्या आठवड्याच्या सर्व सदस्यांची CSV फाईल डाउनलोड करा</div>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnExportWeeklyCSV">CSV डाउनलोड करा</button>
+          </div>
+
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; color: var(--text-primary);">५०-आठवड्यांचे मास्टर खातावही</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">सर्व सदस्यांचे खाते, एकूण जमा बचत व शिल्लक रकमांची एक्सेल CSV</div>
+            </div>
+            <button class="btn btn-gold btn-sm" id="btnExportMasterCSV">मास्टर CSV डाउनलोड करा</button>
+          </div>
+
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; color: var(--text-primary);">संपूर्ण सिस्टम डेटा बॅकअप (JSON)</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">भविष्यात कधीही डेटा परत मिळवण्यासाठी सुरक्षित बॅकअप फाईल सेव्ह करा</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btnBackupJSON">बॅकअप JSON डाउनलोड करा</button>
+          </div>
+
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; color: var(--text-primary);">बॅकअप फाईलवरून डेटा पूर्ववत करा (Restore)</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">पूर्वी सेव्ह केलेली .json फाईल निवडून डेटा परत आणा</div>
+            </div>
+            <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+              फाईल निवडा
+              <input type="file" id="restoreFileInput" accept=".json" style="display: none;">
+            </label>
+          </div>
+
+          <div style="border-top: 1px dashed var(--border-color); padding-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; color: var(--rose-400);">सर्व डेटा नष्ट करा (Clear All Data)</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">सर्व सदस्य आणि पेमेंट इतिहास डिलीट करून नवीन सुरुवात करा</div>
+            </div>
+            <button class="btn btn-danger btn-sm" id="btnClearAllData">सर्व डेटा साफ करा</button>
+          </div>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल: Firebase रिअल-टाईम क्लाउड डेटाबेस व्यवस्थापन -->
+  <div class="modal-overlay" id="firebaseDbModal">
+    <div class="modal-container" style="max-width: 600px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));">
+        <h3 class="modal-title">
+          <span>🔥</span> Firebase क्लाउड डेटाबेस व्यवस्थापन
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.25rem;">
+        
+        <!-- क्लाउड स्टेटस कार्ड -->
+        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">कनेक्शन स्थिती</div>
+            <div id="fbModalStatus"><span style="color: var(--emerald-400); font-weight: 800;">🟢 कनेक्टेड (Live)</span></div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.82rem;">
+            <div>
+              <span style="color: var(--text-muted);">प्रोजेक्ट आयडी:</span>
+              <div style="font-weight: 700; color: var(--text-primary); font-family: var(--font-mono);" id="fbModalProject">sukhakarta-bishi</div>
+            </div>
+            <div>
+              <span style="color: var(--text-muted);">लेटन्सी / वेग:</span>
+              <div style="font-weight: 700; color: var(--emerald-400); font-family: var(--font-mono);" id="fbModalPing">-- ms</div>
+            </div>
+            <div>
+              <span style="color: var(--text-muted);">शेवटचा सिंक:</span>
+              <div style="font-weight: 700; color: var(--text-primary);" id="fbModalLastSync">आताच</div>
+            </div>
+            <div>
+              <span style="color: var(--text-muted);">क्लाउड नोंदी:</span>
+              <div style="font-weight: 700; color: var(--gold-400);" id="fbModalCounts">--</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- डेटाबेस ऑपरेशन्स बटणे -->
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.65rem;">
+          डेटाबेस ऑपरेशन्स व टूल्स
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
+          <!-- बटण १: क्लाउडवरून डेटा फेच करा -->
+          <button type="button" class="btn btn-secondary" style="display: flex; flex-direction: column; align-items: flex-start; padding: 0.85rem; gap: 0.25rem;" onclick="window.firebaseSyncManager.fetchStateAndApply()">
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--blue-400);">
+              <span>📥</span> डेटा फेच करा
+            </div>
+            <span style="font-size: 0.72rem; color: var(--text-muted); text-align: left;">क्लाउडवरील चालू डेटा रिफ्रेश करा</span>
+          </button>
+
+          <!-- बटण २: क्लाउडवर डेटा सिंक करा -->
+          <button type="button" class="btn btn-primary" style="display: flex; flex-direction: column; align-items: flex-start; padding: 0.85rem; gap: 0.25rem;" onclick="window.firebaseSyncManager.forceSyncNow()">
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+              <span>⚡</span> आता सिंक करा
+            </div>
+            <span style="font-size: 0.72rem; color: rgba(255,255,255,0.8); text-align: left;">स्थानिक डेटा क्लाउडवर तात्काळ पाठवा</span>
+          </button>
+
+          <!-- बटण ३: लेटन्सी व कनेक्शन पिंग -->
+          <button type="button" class="btn btn-secondary" style="display: flex; flex-direction: column; align-items: flex-start; padding: 0.85rem; gap: 0.25rem;" onclick="window.firebaseSyncManager.pingDatabase()">
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--emerald-400);">
+              <span>📡</span> लेटन्सी पिंग
+            </div>
+            <span style="font-size: 0.72rem; color: var(--text-muted); text-align: left;">डेटाबेस रिस्पॉन्स वेळ तपासा</span>
+          </button>
+
+          <!-- बटण ४: JSON बॅकअप -->
+          <button type="button" class="btn btn-secondary" style="display: flex; flex-direction: column; align-items: flex-start; padding: 0.85rem; gap: 0.25rem;" onclick="window.exportManager.backupJSON()">
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--gold-400);">
+              <span>💾</span> बॅकअप JSON
+            </div>
+            <span style="font-size: 0.72rem; color: var(--text-muted); text-align: left;">क्लाउड डेटा स्थानिक बॅकअप घ्या</span>
+          </button>
+        </div>
+
+        <!-- डेटाबेस रिसेट व नवीन तयार करणे -->
+        <div style="border-top: 1px dashed var(--border-color); padding-top: 0.9rem; margin-bottom: 1.15rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 700; color: var(--rose-400); font-size: 0.85rem;">डेटाबेस पूर्णपणे डिलीट व रिसेट करा</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Firebase मधील सर्व जुना डेटा नष्ट करून नवीन स्वच्छ कलेक्शन तयार करा</div>
+          </div>
+          <button type="button" class="btn btn-danger btn-sm" onclick="window.firebaseSyncManager.wipeAndRecreateDatabase()">
+            🔥 डेटाबेस रिसेट करा
+          </button>
+        </div>
+
+        <!-- थेट ॲक्टिव्हिटी लॉग -->
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem;">
+          क्लाउड ॲक्टिव्हिटी लॉग (Live Activity)
+        </div>
+        <div id="fbModalLogsList" style="background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; max-height: 140px; overflow-y: auto;">
+          <div style="color: var(--text-muted); font-size: 0.78rem;">लॉग्स लोड होत आहेत...</div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- टोस्ट नोटिफिकेशन्स कंटेनर -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Firebase Cloud SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <!-- Javascript Scripts -->
+  <script src="js/firebase.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/receipt.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

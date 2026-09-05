@@ -1,0 +1,578 @@
+/* ==========================================================================
+   SUKHAKARTA BISHI - MEMBER MANAGEMENT & 50-WEEK LEDGER
+   ========================================================================== */
+
+/* Members Table Card */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.custom-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.custom-table td {
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.custom-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.custom-table tbody tr:hover {
+  background: var(--bg-glass-hover);
+}
+
+.custom-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Member Info Cell */
+.member-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.member-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--emerald-400);
+  font-family: var(--font-display);
+  flex-shrink: 0;
+}
+
+.member-avatar.gold {
+  color: var(--gold-400);
+}
+
+.member-avatar.purple {
+  color: #c084fc;
+}
+
+.member-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.member-id {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.member-phone {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* Amount Badges */
+.amount-badge {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.amount-weekly {
+  color: var(--emerald-400);
+}
+
+.amount-total {
+  color: var(--gold-400);
+}
+
+.amount-remaining {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Payment Status Pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.status-paid {
+  background: var(--emerald-subtle);
+  color: var(--emerald-400);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-pending {
+  background: var(--gold-subtle);
+  color: var(--gold-400);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-overdue {
+  background: var(--rose-subtle);
+  color: var(--rose-400);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.status-completed {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--emerald-400);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+}
+
+.status-completed.interactive,
+button.status-completed {
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--emerald-600), var(--emerald-500));
+  color: #fff;
+  border: 1px solid var(--emerald-400);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  transition: all var(--transition-fast);
+}
+
+.status-completed.interactive:hover,
+button.status-completed:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.45);
+  filter: brightness(1.1);
+}
+
+.status-settled {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+/* Interactive 50-Week Matrix */
+.week-matrix-preview {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 220px;
+  overflow: hidden;
+  flex-wrap: wrap;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.week-matrix-preview:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.matrix-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  transition: transform var(--transition-fast);
+  cursor: pointer;
+}
+
+.matrix-dot:hover {
+  transform: scale(1.4);
+  z-index: 2;
+}
+
+.matrix-dot.paid {
+  background: var(--emerald-500);
+  border-color: var(--emerald-400);
+}
+
+.matrix-dot.current {
+  background: var(--gold-500);
+  border-color: var(--gold-400);
+}
+
+.matrix-dot.overdue {
+  background: var(--rose-500);
+  border-color: var(--rose-400);
+}
+
+/* Member Action Buttons */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* 50-Week Passbook Modal Grid */
+.passbook-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+@media (max-width: 640px) {
+  .passbook-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.passbook-week-box {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.passbook-week-box:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.passbook-week-box .box-wk-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.passbook-week-box .box-wk-amount {
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+}
+
+.passbook-week-box.paid {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: var(--emerald-400);
+}
+.passbook-week-box.paid .box-wk-title {
+  color: var(--emerald-400);
+}
+
+.passbook-week-box.has-extra {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(245, 158, 11, 0.18));
+  border: 1.5px solid var(--gold-400);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.passbook-week-box.has-extra .box-wk-amount {
+  color: var(--gold-400);
+}
+
+.matrix-dot.has-extra {
+  border: 1.5px solid var(--gold-400);
+  box-shadow: 0 0 5px rgba(245, 158, 11, 0.6);
+}
+
+.extra-amount-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--radius-sm);
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--gold-400);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  white-space: nowrap;
+}
+
+.passbook-week-box.current-due {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: var(--gold-500);
+  color: var(--gold-400);
+}
+.passbook-week-box.current-due .box-wk-title {
+  color: var(--gold-400);
+}
+
+.passbook-week-box.overdue {
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.4);
+  color: var(--rose-400);
+}
+
+.passbook-week-box.empty-week {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+.passbook-week-box.empty-week .box-wk-amount {
+  color: var(--text-muted);
+}
+.passbook-week-box.empty-week:hover {
+  opacity: 1;
+  border-color: rgba(244, 63, 94, 0.4);
+}
+
+.passbook-week-box.cleared {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--emerald-400);
+}
+.passbook-week-box.cleared .box-wk-title {
+  color: var(--emerald-400);
+}
+.passbook-week-box.cleared .box-wk-amount {
+  color: var(--emerald-400);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.matrix-dot.cleared {
+  background: var(--emerald-500);
+  opacity: 0.85;
+}
+
+.passbook-week-box.partial {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: var(--gold-400);
+}
+.passbook-week-box.partial .box-wk-title {
+  color: var(--gold-400);
+}
+.passbook-week-box.partial .box-wk-amount {
+  color: var(--gold-400);
+}
+.matrix-dot.partial {
+  background: #f59e0b;
+  box-shadow: 0 0 5px rgba(245, 158, 11, 0.6);
+}
+
+/* Fine preset button system */
+.fine-presets {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.fine-preset-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.fine-preset-btn:hover {
+  border-color: rgba(244, 63, 94, 0.4);
+  color: var(--rose-400);
+}
+
+.fine-preset-btn.active {
+  background: var(--rose-subtle);
+  border-color: var(--rose-500);
+  color: var(--rose-400);
+}
+
+.week-presets {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.week-preset-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.week-preset-btn:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  color: var(--emerald-400);
+}
+
+.week-preset-btn.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--emerald-500);
+  color: var(--emerald-400);
+  font-weight: 700;
+}
+
+.week-preset-btn.btn-prev {
+  border-color: rgba(244, 63, 94, 0.3);
+  color: var(--rose-400);
+  background: rgba(244, 63, 94, 0.05);
+}
+
+.week-preset-btn.btn-prev:hover {
+  border-color: var(--rose-500);
+  background: rgba(244, 63, 94, 0.12);
+}
+
+.week-preset-btn.btn-prev.active {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: var(--rose-500);
+  color: #fff;
+  font-weight: 700;
+}
+
+.week-preset-btn.btn-prev-recent {
+  border-color: rgba(245, 158, 11, 0.35);
+  color: var(--gold-400);
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.week-preset-btn.btn-prev-recent:hover {
+  border-color: var(--gold-500);
+  background: rgba(245, 158, 11, 0.14);
+}
+
+.week-preset-btn.btn-prev-recent.active {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: var(--gold-500);
+  color: #fff;
+  font-weight: 700;
+}
+
+.week-preset-btn.btn-recent {
+  border-color: rgba(59, 130, 246, 0.35);
+  color: var(--blue-400);
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.week-preset-btn.btn-recent:hover {
+  border-color: var(--blue-500);
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.week-preset-btn.btn-recent.active {
+  background: rgba(59, 130, 246, 0.22);
+  border-color: var(--blue-500);
+  color: #fff;
+  font-weight: 700;
+}
+
+.overdue-alert-banner {
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--rose-400);
+}
+
+/* Preset Amount Selector for Add Member */
+.amount-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.preset-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 0.5rem;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.preset-btn:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+}
+
+.preset-btn.active {
+  background: var(--emerald-subtle);
+  border-color: var(--emerald-500);
+  color: var(--emerald-400);
+  box-shadow: 0 0 10px var(--emerald-glow);
+}
+
+/* Member Settlement Summary Card */
+.settlement-card {
+  background: rgba(244, 63, 94, 0.05);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.settlement-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.settlement-row.total {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--gold-400);
+  border-bottom: none;
+  padding-top: 0.75rem;
+}
