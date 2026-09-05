@@ -793,6 +793,26 @@ class UIManager {
 
     const titleEl = document.getElementById('currentWeekDisplayTitle');
     if (titleEl) titleEl.textContent = `आठवडा ${currentWeek}`;
+
+    const dropdownSelect = document.getElementById('weekDropdownSelect');
+    if (dropdownSelect) {
+      dropdownSelect.innerHTML = '';
+      for (let w = 1; w <= 50; w++) {
+        const opt = document.createElement('option');
+        opt.value = w;
+        opt.textContent = w === currentWeek ? `आठवडा ${w} (चालू)` : `आठवडा ${w} / ५०`;
+        if (w === currentWeek) opt.selected = true;
+        dropdownSelect.appendChild(opt);
+      }
+      dropdownSelect.onchange = (e) => {
+        const selectedWk = Number(e.target.value);
+        if (selectedWk) {
+          window.bishiStore.setCurrentWeek(selectedWk);
+          this.renderAll();
+          this.showToast(`आठवडा ${selectedWk} कलेक्शन दृश्य उघडले`, 'info');
+        }
+      };
+    }
   }
 
   // --- साप्ताहिक कलेक्शन टेबल (प्रशासक) ---
