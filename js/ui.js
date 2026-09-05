@@ -1102,11 +1102,7 @@ class UIManager {
                 💰 जमा करा
               </button>
             `}
-            ${!stats.isFullyPaid ? `
-              <button class="btn btn-gold btn-sm" onclick="window.ui.openBulkPayModal('${member.id}')" title="उर्वरित सर्व ${stats.remainingWeeksCount} आठवडे एकाच वेळी भरा">
-                ⚡ सर्व भरा (${stats.remainingWeeksCount} आठवडे)
-              </button>
-            ` : (stats.isPayoutCompleted ? `
+            ${stats.isFullyPaid ? (stats.isPayoutCompleted ? `
               <button class="btn btn-gold btn-sm" onclick="window.receiptManager.showPayoutVoucherModal('${member.id}')" title="अधिकृत ५०-आठवडे मॅच्युरिटी व्हाउचर पहा">
                 📜 व्हाउचर
               </button>
@@ -1114,7 +1110,7 @@ class UIManager {
               <button class="btn btn-emerald btn-sm" onclick="window.ui.openPayoutCompleteModal('${member.id}')" title="सदस्याला ५०-आठवडे मॅच्युरिटी परतावा वाटप करा" style="background: var(--emerald-600); border-color: var(--emerald-500); font-weight: 800;">
                 💰 परतावा वाटप
               </button>
-            `)}
+            `) : ''}
             ${stats.canRestartPlan ? `
               <button class="btn btn-emerald btn-sm" onclick="window.ui.openRestartPlanModal('${member.id}')" title="पुढील सायकल सुरू करा" style="background: linear-gradient(135deg, var(--emerald-600), var(--blue-600)); color: #fff; font-weight: 800; border: none;">
                 🔄 नवीन प्लॅन
