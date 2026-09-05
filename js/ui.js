@@ -32,6 +32,30 @@ class UIManager {
     });
   }
 
+  toggleMobileDrawer() {
+    const drawer = document.getElementById('mobileNavDrawer');
+    const overlay = document.getElementById('mobileNavDrawerOverlay');
+    if (!drawer || !overlay) return;
+    const isOpen = drawer.classList.contains('active');
+    if (isOpen) {
+      this.closeMobileDrawer();
+    } else {
+      this.openMobileDrawer();
+    }
+  }
+
+  openMobileDrawer() {
+    document.getElementById('mobileNavDrawer')?.classList.add('active');
+    document.getElementById('mobileNavDrawerOverlay')?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeMobileDrawer() {
+    document.getElementById('mobileNavDrawer')?.classList.remove('active');
+    document.getElementById('mobileNavDrawerOverlay')?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
   // --- ऑथेंटिकेशन व भूमिका तपासणी ---
   checkAuthView() {
     const isAuth = window.authManager.isAuthenticated();
@@ -44,10 +68,18 @@ class UIManager {
     const btnOpenExport = document.getElementById('btnOpenExport');
     const btnOpenClearDataModal = document.getElementById('btnOpenClearDataModal');
 
+    const mobileBtnAddMember = document.getElementById('mobileBtnAddMember');
+    const mobileDrawerAdminMenu = document.getElementById('mobileDrawerAdminMenu');
+    const mobileDrawerCustomerMenu = document.getElementById('mobileDrawerCustomerMenu');
+    const mobileDrawerAvatar = document.getElementById('mobileDrawerAvatar');
+    const mobileDrawerUserName = document.getElementById('mobileDrawerUserName');
+    const mobileDrawerUserRole = document.getElementById('mobileDrawerUserRole');
+
     const dashboardView = document.getElementById('dashboardView');
     const customerPortalView = document.getElementById('customerPortalView');
 
     if (!isAuth) {
+      this.closeMobileDrawer();
       if (loginOverlay) loginOverlay.classList.remove('hidden');
       if (userProfileBadge) userProfileBadge.style.display = 'none';
       if (cloudStatusBadge) cloudStatusBadge.style.display = 'none';
@@ -56,6 +88,7 @@ class UIManager {
       if (btnOpenAddMember) btnOpenAddMember.style.display = 'none';
       if (btnOpenExport) btnOpenExport.style.display = 'none';
       if (btnOpenClearDataModal) btnOpenClearDataModal.style.display = 'none';
+      if (mobileBtnAddMember) mobileBtnAddMember.style.display = 'none';
       if (dashboardView) dashboardView.style.display = 'none';
       if (customerPortalView) customerPortalView.style.display = 'none';
     } else {
@@ -72,6 +105,13 @@ class UIManager {
         }
         const nameEl = document.getElementById('userBadgeName');
         if (nameEl) nameEl.textContent = cur.name || 'मुख्य प्रशासक';
+
+        if (mobileDrawerAvatar) mobileDrawerAvatar.textContent = '👑';
+        if (mobileDrawerUserName) mobileDrawerUserName.textContent = cur.name || 'मुख्य प्रशासक';
+        if (mobileDrawerUserRole) mobileDrawerUserRole.textContent = 'प्रशासक नियंत्रण पॅनल';
+        if (mobileDrawerAdminMenu) mobileDrawerAdminMenu.style.display = 'block';
+        if (mobileDrawerCustomerMenu) mobileDrawerCustomerMenu.style.display = 'none';
+        if (mobileBtnAddMember) mobileBtnAddMember.style.display = 'inline-flex';
 
         if (cloudStatusBadge) cloudStatusBadge.style.display = 'inline-flex';
         if (btnOpenAdminSettings) btnOpenAdminSettings.style.display = 'inline-flex';
@@ -93,6 +133,13 @@ class UIManager {
         }
         const nameEl = document.getElementById('userBadgeName');
         if (nameEl) nameEl.textContent = `${cur.name} (${cur.memberId})`;
+
+        if (mobileDrawerAvatar) mobileDrawerAvatar.textContent = '👤';
+        if (mobileDrawerUserName) mobileDrawerUserName.textContent = `${cur.name}`;
+        if (mobileDrawerUserRole) mobileDrawerUserRole.textContent = `सदस्य आयडी: ${cur.memberId}`;
+        if (mobileDrawerAdminMenu) mobileDrawerAdminMenu.style.display = 'none';
+        if (mobileDrawerCustomerMenu) mobileDrawerCustomerMenu.style.display = 'block';
+        if (mobileBtnAddMember) mobileBtnAddMember.style.display = 'none';
 
         if (cloudStatusBadge) cloudStatusBadge.style.display = 'none';
         if (btnOpenAdminSettings) btnOpenAdminSettings.style.display = 'none';
