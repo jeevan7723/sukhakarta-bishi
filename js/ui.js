@@ -27,9 +27,10 @@ class UIManager {
   }
 
   closeAllModals() {
-    document.querySelectorAll('.modal-overlay').forEach(m => {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => {
       m.classList.remove('active');
     });
+    this.closeMobileDrawer();
   }
 
   toggleMobileDrawer() {
@@ -2859,12 +2860,25 @@ class UIManager {
       this.renderAll();
     });
 
-    // मोडल बंद करणे (Universal Delegated Modal Close + Escape Key)
+    // मोडल व मोबाईल ड्रॉवर बंद करणे (Universal Delegated Modal & Drawer Close)
     document.addEventListener('click', (e) => {
+      // ड्रॉवर क्लोज बटण किंवा ड्रॉवर ओव्हरले
+      if (e.target.closest('#btnMobileDrawerClose, .drawer-close-btn, #mobileNavDrawerOverlay')) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.closeMobileDrawer();
+        return;
+      }
+
       const closeBtn = e.target.closest('.modal-close, [data-modal-close], .btn-close');
       if (closeBtn) {
         e.preventDefault();
         e.stopPropagation();
+        const drawer = closeBtn.closest('.mobile-nav-drawer');
+        if (drawer) {
+          this.closeMobileDrawer();
+          return;
+        }
         const modal = closeBtn.closest('.modal-overlay') || document.querySelector('.modal-overlay.active');
         if (modal) {
           modal.classList.remove('active');
@@ -2878,17 +2892,34 @@ class UIManager {
       if (e.target.classList && e.target.classList.contains('modal-overlay')) {
         e.target.classList.remove('active');
       }
+      if (e.target.id === 'mobileNavDrawerOverlay') {
+        this.closeMobileDrawer();
+      }
     }, true);
 
-    // Keyboard 'Escape' की दाबल्यावर मोडल बंद करणे
+    // Keyboard 'Escape' की दाबल्यावर मोडल किंवा ड्रॉवर बंद करणे
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
         this.closeAllModals();
+        this.closeMobileDrawer();
       }
+    });
+
+    // थेट मोबाईल ड्रॉवर बटण इव्हेंट बाईंडिंग
+    document.getElementById('btnMobileDrawerClose')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.closeMobileDrawer();
+    });
+
+    document.getElementById('mobileNavDrawerOverlay')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.closeMobileDrawer();
     });
 
     // ग्लोबल फंक्शन बाईंडिंग
     window.closeAllModals = () => this.closeAllModals();
+    window.closeMobileDrawer = () => this.closeMobileDrawer();
 
     // थीम टॉगल
     document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
