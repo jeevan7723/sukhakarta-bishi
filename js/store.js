@@ -24,7 +24,8 @@ const defaultState = {
   },
   members: [],
   settledMembers: [],
-  transactions: []
+  transactions: [],
+  loans: []
 };
 
 class BishiStore {
@@ -66,6 +67,9 @@ class BishiStore {
     }
     if (!Array.isArray(this.state.transactions)) {
       this.state.transactions = [];
+    }
+    if (!Array.isArray(this.state.loans)) {
+      this.state.loans = [];
     }
     if (this.state.meta.defaultFineAmount === undefined) {
       this.state.meta.defaultFineAmount = 50;
@@ -375,6 +379,9 @@ class BishiStore {
 
     // व्यवहार खातावहीमधून सर्व नोंदी काढून टाकणे
     this.state.transactions = (this.state.transactions || []).filter(t => (t.memberId || '').toUpperCase() !== cleanId);
+
+    // या सदस्याचे सर्व कर्ज रेकॉर्ड्स काढून टाकणे
+    this.state.loans = (this.state.loans || []).filter(l => (l.memberId || '').toUpperCase() !== cleanId);
 
     this.saveState();
     return removedMember || true;
@@ -809,6 +816,483 @@ class BishiStore {
   }
 
   // ==========================================================================
+  // 💳 सदस्य कर्ज व्यवस्थापन व ३% व्याज इंजिन (Loan Management & 3% Interest Engine)
+  // (केवळ प्रशासकास कर्ज वाटप व परतफेड नोंदणीचे अधिकार • सदस्यांसाठी केवळ दृश्य)
+  // ==========================================================================
+
+  // युनिक कर्ज आयडी जनरेट करणे (उदा. LN-SKB-001-01)
+  generateLoanId(memberId = 'SKB-001') {
+    const cleanMemberId = String(memberId).trim().toUpperCase();
+    const existingLoans = this.state.loans || [];
+    const memberLoansCount = existingLoans.filter(l => (l.memberId || '').toUpperCase() === cleanMemberId).length;
+    const suffix = String(memberLoansCount + 1).padStart(2, '0');
+    return `LN-${cleanMemberId}-${suffix}`;
+  }
+
+  // सर्व कर्जे मिळवणे
+  getLoans() {
+    return this.state.loans || [];
+  }
+
+  // विशिष्ट सदस्याची कर्जे मिळवणे
+  getMemberLoans(memberId) {
+    if (!memberId) return [];
+    const clean = String(memberId).trim().toUpperCase();
+    return (this.state.loans || []).filter(l => (l.memberId || '').toUpperCase() === clean);
+  }
+
+  // विशिष्ट कर्ज शोधणे
+  getLoan(loanId) {
+    if (!loanId) return null;
+    const clean = String(loanId).trim().toUpperCase();
+    let match = (this.state.loans || []).find(l => (l.id || '').toUpperCase() === clean);
+    if (match) return match;
+    match = (this.state.loans || []).find(l => 
+      (l.receiptNo || '').toUpperCase() === clean ||
+      (`DISB-${l.id}`).toUpperCase() === clean ||
+      clean.startsWith(`DISB-${(l.id || '').toUpperCase()}`) ||
+      clean.includes((l.id || '').toUpperCase())
+    );
+    return match || null;
+  }
+
+  // ३% व्याज व मुदत गणना इंजिन (3% Interest After 4 Weeks Periodic Calculation Engine)
+  // नियम: पहिल्या ४ आठवड्यांत ०% व्याज; दर ४ आठवड्यांनी ३% व्याज गोळा केले जाते (Periodic 4-week Interest Collection).
+  calculateLoanDetails(loan, targetWeekOrDate = null) {
+    if (!loan) return null;
+
+    const principal = Math.max(0, Number(loan.principalAmount) || 0);
+    const interestRate = Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : 3);
+    const cycleWeeks = Number(loan.gracePeriodWeeks !== undefined ? loan.gracePeriodWeeks : 4);
+    const isPaid = loan.status === 'paid';
+    const totalInterestPaid = Number(loan.totalInterestPaid || 0);
+    const interestPayments = Array.isArray(loan.interestPayments) ? loan.interestPayments : [];
+
+    let elapsedWeeks = 0;
+    let daysElapsed = 0;
+    let targetWeek = null;
+
+    if (isPaid && loan.paidWeek !== undefined && loan.paidWeek !== null && loan.issueWeek) {
+      elapsedWeeks = Math.max(0, Number(loan.paidWeek) - Number(loan.issueWeek));
+      targetWeek = Number(loan.paidWeek);
+      if (loan.issueDate && loan.paidDate) {
+        const d1 = new Date(loan.issueDate).getTime();
+        const d2 = new Date(loan.paidDate).getTime();
+        daysElapsed = Math.max(0, Math.floor((d2 - d1) / (1000 * 60 * 60 * 24)));
+      } else {
+        daysElapsed = elapsedWeeks * 7;
+      }
+    } else {
+      if (typeof targetWeekOrDate === 'number') {
+        targetWeek = targetWeekOrDate;
+      } else if (targetWeekOrDate instanceof Date && loan.issueDate) {
+        const issueTime = new Date(loan.issueDate).getTime();
+        const targetTime = targetWeekOrDate.getTime();
+        daysElapsed = Math.max(0, Math.floor((targetTime - issueTime) / (1000 * 60 * 60 * 24)));
+        elapsedWeeks = Math.floor(daysElapsed / 7);
+      } else {
+        targetWeek = this.state.meta.currentWeek || 1;
+      }
+
+      if (targetWeek !== null) {
+        const issueWk = Number(loan.issueWeek) || 1;
+        elapsedWeeks = Math.max(0, targetWeek - issueWk);
+        if (loan.issueDate) {
+          const issueTime = new Date(loan.issueDate).getTime();
+          const nowTime = Date.now();
+          const actualDays = Math.max(0, Math.floor((nowTime - issueTime) / (1000 * 60 * 60 * 24)));
+          daysElapsed = Math.max(elapsedWeeks * 7, actualDays);
+        } else {
+          daysElapsed = elapsedWeeks * 7;
+        }
+      }
+    }
+
+    // चालू ४-आठवडे व्याज सायकल गणना (Weeks elapsed since last interest payment or disbursement)
+    const baseInterestWeek = Number(loan.lastInterestPaidWeek || loan.issueWeek || 1);
+    const currentCycleElapsedWeeks = Math.max(0, (targetWeek !== null ? targetWeek : (this.state.meta.currentWeek || 1)) - baseInterestWeek);
+    const nextInterestDueWeek = baseInterestWeek + cycleWeeks;
+    const is4WeekInterestDue = !isPaid && currentCycleElapsedWeeks >= cycleWeeks;
+    const isGracePeriodActive = !isPaid && currentCycleElapsedWeeks < cycleWeeks;
+    const remainingGraceWeeks = isGracePeriodActive ? Math.max(0, cycleWeeks - currentCycleElapsedWeeks) : 0;
+    const isInterestApplicable = !isPaid && currentCycleElapsedWeeks >= cycleWeeks;
+
+    // ३% व्याज रक्कम (१ सायकल = ४ आठवडे)
+    const singleCycleInterestAmount = Math.round(principal * (interestRate / 100));
+    const completedUnpaidCycles = Math.max(0, Math.floor(currentCycleElapsedWeeks / cycleWeeks));
+
+    let currentCycleAccruedInterest = 0;
+    if (isPaid && loan.interestPaid !== undefined) {
+      currentCycleAccruedInterest = Number(loan.interestPaid) || 0;
+    } else if (isInterestApplicable) {
+      currentCycleAccruedInterest = completedUnpaidCycles * singleCycleInterestAmount;
+    }
+
+    const totalPayable = principal + currentCycleAccruedInterest;
+    const repaidAmount = isPaid ? (Number(loan.repaidAmount) || totalPayable) : (Number(loan.repaidAmount) || 0);
+    const remainingBalance = isPaid ? 0 : totalPayable;
+    const currentCycleNumber = interestPayments.length + 1;
+
+    return {
+      id: loan.id,
+      memberId: loan.memberId,
+      memberName: loan.memberName,
+      principal,
+      interestRate,
+      gracePeriod: cycleWeeks,
+      cycleWeeks,
+      elapsedWeeks,
+      daysElapsed,
+      baseInterestWeek,
+      currentCycleElapsedWeeks,
+      nextInterestDueWeek,
+      is4WeekInterestDue,
+      isGracePeriodActive,
+      remainingGraceWeeks,
+      isInterestApplicable,
+      singleCycleInterestAmount,
+      completedUnpaidCycles,
+      interestAmount: currentCycleAccruedInterest,
+      totalInterestPaidSoFar: totalInterestPaid,
+      interestPaymentsCount: interestPayments.length,
+      currentCycleNumber,
+      totalPayable,
+      repaidAmount,
+      remainingBalance,
+      status: isPaid ? 'paid' : 'active',
+      isPaid,
+      paidDate: loan.paidDate || null,
+      paidWeek: loan.paidWeek || null,
+      lastInterestPaidWeek: loan.lastInterestPaidWeek || loan.issueWeek || 1,
+      lastInterestPaidDate: loan.lastInterestPaidDate || loan.issueDate || null,
+      interestPayments
+    };
+  }
+
+  // सदस्यास नवीन कर्ज देणे (Issue Loan - केवळ प्रशासक)
+  issueLoan(data) {
+    if (window.authManager && !window.authManager.isAdmin()) {
+      console.warn('Unauthorized attempt to issue loan: Admin login required');
+      return { success: false, message: 'केवळ प्रशासक सदस्यास कर्ज देऊ शकतात.' };
+    }
+
+    const member = this.getMember(data.memberId);
+    if (!member) {
+      return { success: false, message: 'सदस्य सापडला नाही.' };
+    }
+
+    const principal = Math.max(100, Number(data.principalAmount) || 0);
+    if (principal <= 0) {
+      return { success: false, message: 'कृपया वैध कर्ज रक्कम टाका.' };
+    }
+
+    const issueWeek = Number(data.issueWeek) || this.state.meta.currentWeek || 1;
+    const issueDate = data.issueDate || new Date().toISOString().split('T')[0];
+    const loanId = this.generateLoanId(member.id);
+    const disbMode = data.disbursementMode || 'Cash';
+    const disbUpi = (data.disbursementUpiId || '').trim();
+    const loanNotes = (data.notes || '').trim();
+
+    const newLoan = {
+      id: loanId,
+      memberId: member.id,
+      memberName: member.name,
+      memberPhone: member.phone,
+      principalAmount: principal,
+      issueWeek: issueWeek,
+      issueDate: issueDate,
+      lastInterestPaidWeek: issueWeek,
+      lastInterestPaidDate: issueDate,
+      interestRatePercent: 3,
+      gracePeriodWeeks: 4,
+      status: 'active',
+      repaidAmount: 0,
+      interestPaid: 0,
+      totalInterestPaid: 0,
+      interestPayments: [],
+      paidDate: null,
+      paidWeek: null,
+      disbursementMode: disbMode,
+      disbursementUpiId: disbUpi,
+      notes: loanNotes,
+      createdAt: Date.now()
+    };
+
+    if (!Array.isArray(this.state.loans)) {
+      this.state.loans = [];
+    }
+    this.state.loans.unshift(newLoan);
+
+    // कर्ज वाटप व्यवहार खातावहीत नोंदवणे
+    this.state.transactions.unshift({
+      id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      memberId: member.id,
+      memberName: member.name,
+      cycleNumber: member.currentCycle || 1,
+      weekNumber: issueWeek,
+      type: 'loan_disbursed',
+      loanId: loanId,
+      depositAmount: 0,
+      loanDisbursedAmount: principal,
+      totalAmount: principal,
+      date: new Date().toISOString(),
+      paymentMode: disbMode,
+      upiId: disbUpi,
+      receiptNo: `DISB-${loanId}`,
+      note: loanNotes ? `कर्ज वाटप: ${loanNotes} (दर ४ आठवड्यांनी ३% व्याज संकलन)` : `सदस्यास कर्ज वाटप: ₹${principal.toLocaleString('en-IN')} (दर ४ आठवड्यांनी ३% व्याज संकलन)`
+    });
+
+    this.saveState();
+    return { success: true, loan: newLoan, message: `सदस्य ${member.name} यांना ₹${principal.toLocaleString('en-IN')} कर्ज यशस्वीरीत्या वाटप करण्यात आले.` };
+  }
+
+  // ४ आठवड्यांचे ३% व्याज जमा नोंदवणे (Pay/Collect 4-Week Loan Interest - केवळ प्रशासक)
+  payLoanInterest(loanId, paymentData = {}) {
+    if (window.authManager && !window.authManager.isAdmin()) {
+      console.warn('Unauthorized attempt to pay loan interest: Admin login required');
+      return { success: false, message: 'केवळ प्रशासक कर्ज व्याज जमा नोंदवू शकतात.' };
+    }
+
+    const loan = this.getLoan(loanId);
+    if (!loan) {
+      return { success: false, message: 'कर्ज रेकॉर्ड सापडला नाही.' };
+    }
+
+    if (loan.status === 'paid') {
+      return { success: false, message: 'हे कर्ज आधीच पूर्ण भरलेले आहे.' };
+    }
+
+    const details = this.calculateLoanDetails(loan);
+    const suggestedInterest = details.singleCycleInterestAmount || Math.round(loan.principalAmount * 0.03);
+    const amount = paymentData.amount !== undefined ? Math.max(1, Number(paymentData.amount)) : (details.interestAmount > 0 ? details.interestAmount : suggestedInterest);
+    
+    const paidDate = paymentData.paidDate || new Date().toISOString().split('T')[0];
+    const paidWeek = Number(paymentData.paidWeek) || this.state.meta.currentWeek || (loan.lastInterestPaidWeek || loan.issueWeek || 1) + 4;
+    const paymentMode = paymentData.paymentMode || 'Cash';
+    const upiId = (paymentData.upiId || '').trim();
+    const notes = (paymentData.notes || '').trim();
+
+    if (!Array.isArray(loan.interestPayments)) {
+      loan.interestPayments = [];
+    }
+
+    const currentCycleNum = loan.interestPayments.length + 1;
+    const receiptNo = `INT-REC-${loan.id}-C${currentCycleNum}-${Date.now().toString().slice(-4)}`;
+
+    const interestPaymentRecord = {
+      id: receiptNo,
+      cycleNumber: currentCycleNum,
+      amount: amount,
+      paidWeek: paidWeek,
+      paidDate: paidDate,
+      paymentMode: paymentMode,
+      upiId: upiId,
+      receiptNo: receiptNo,
+      notes: notes || `४ आठवड्यांचे ३% कर्ज व्याज जमा (चक्र ${currentCycleNum})`,
+      createdAt: Date.now()
+    };
+
+    loan.interestPayments.push(interestPaymentRecord);
+    loan.totalInterestPaid = (Number(loan.totalInterestPaid) || 0) + amount;
+    loan.lastInterestPaidWeek = paidWeek;
+    loan.lastInterestPaidDate = paidDate;
+
+    const member = this.getMember(loan.memberId);
+    const cycleNum = member ? (member.currentCycle || 1) : 1;
+
+    // व्याज जमा व्यवहार खातावहीत नोंदवणे
+    this.state.transactions.unshift({
+      id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      memberId: loan.memberId,
+      memberName: loan.memberName,
+      cycleNumber: cycleNum,
+      weekNumber: paidWeek,
+      type: 'loan_interest_payment',
+      loanId: loan.id,
+      depositAmount: 0,
+      loanInterestAmount: amount,
+      totalAmount: amount,
+      date: new Date().toISOString(),
+      paymentMode: paymentMode,
+      upiId: upiId,
+      receiptNo: receiptNo,
+      note: notes ? `४ आठवड्यांचे कर्ज व्याज जमा (चक्र ${currentCycleNum}): ${notes}` : `कर्ज ${loan.id} चे ४ आठवड्यांचे ३% व्याज जमा: ₹${amount.toLocaleString('en-IN')} (चक्र ${currentCycleNum})`
+    });
+
+    this.saveState();
+    return {
+      success: true,
+      loan,
+      payment: interestPaymentRecord,
+      receiptNo,
+      amount,
+      currentCycleNum,
+      message: `कर्ज ${loan.id} चे ४ आठवड्यांचे ₹${amount.toLocaleString('en-IN')} व्याज यशस्वीरीत्या जमा झाले.`
+    };
+  }
+
+  // संपूर्ण कर्ज परतफेड जमा नोंदवणे (Mark Loan as Fully Paid / Settlement - केवळ प्रशासक)
+  markLoanPaid(loanId, paymentData = {}) {
+    if (window.authManager && !window.authManager.isAdmin()) {
+      console.warn('Unauthorized attempt to mark loan paid: Admin login required');
+      return { success: false, message: 'केवळ प्रशासक कर्ज परतफेड नोंदवू शकतात.' };
+    }
+
+    const loan = this.getLoan(loanId);
+    if (!loan) {
+      return { success: false, message: 'कर्ज रेकॉर्ड सापडला नाही.' };
+    }
+
+    if (loan.status === 'paid') {
+      return { success: false, message: 'हे कर्ज आधीच पूर्ण भरलेले आहे.' };
+    }
+
+    const details = this.calculateLoanDetails(loan);
+    const principalPaid = loan.principalAmount;
+    const interestPaid = paymentData.interestAmount !== undefined ? Math.max(0, Number(paymentData.interestAmount)) : details.interestAmount;
+    const totalRepaid = paymentData.repaidAmount !== undefined ? Math.max(0, Number(paymentData.repaidAmount)) : (principalPaid + interestPaid);
+    
+    const paidDate = paymentData.paidDate || new Date().toISOString().split('T')[0];
+    const paidWeek = Number(paymentData.paidWeek) || this.state.meta.currentWeek || 1;
+    const paymentMode = paymentData.paymentMode || 'Cash';
+    const upiId = (paymentData.upiId || '').trim();
+    const receiptNo = `LOAN-REC-${loan.id}-${Date.now().toString().slice(-4)}`;
+    const note = (paymentData.notes || '').trim();
+
+    loan.status = 'paid';
+    loan.paidDate = paidDate;
+    loan.paidWeek = paidWeek;
+    loan.repaidAmount = totalRepaid;
+    loan.interestPaid = interestPaid;
+    loan.totalInterestPaid = (Number(loan.totalInterestPaid) || 0) + interestPaid;
+    loan.paymentMode = paymentMode;
+    loan.upiId = upiId;
+    loan.receiptNo = receiptNo;
+    loan.settlementNotes = note;
+
+    const member = this.getMember(loan.memberId);
+    const cycleNum = member ? (member.currentCycle || 1) : 1;
+
+    // कर्ज परतफेड व्यवहार खातावहीत नोंदवणे
+    this.state.transactions.unshift({
+      id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      memberId: loan.memberId,
+      memberName: loan.memberName,
+      cycleNumber: cycleNum,
+      weekNumber: paidWeek,
+      type: 'loan_repayment',
+      loanId: loan.id,
+      depositAmount: 0,
+      loanRepaidAmount: totalRepaid,
+      loanInterestAmount: interestPaid,
+      totalAmount: totalRepaid,
+      date: new Date().toISOString(),
+      paymentMode: paymentMode,
+      upiId: upiId,
+      receiptNo: receiptNo,
+      note: note || `कर्ज परतफेड पूर्ण: मूळ मुद्दल ₹${principalPaid.toLocaleString('en-IN')}${interestPaid > 0 ? ` + चालू चक्र व्याज ₹${interestPaid.toLocaleString('en-IN')}` : ' (व्याज क्लिअर)'} = एकूण जमा ₹${totalRepaid.toLocaleString('en-IN')}`
+    });
+
+    this.saveState();
+    return { success: true, loan, receiptNo, totalRepaid, interestPaid, message: `कर्ज ${loan.id} ची ₹${totalRepaid.toLocaleString('en-IN')} संपूर्ण परतफेड यशस्वीरीत्या जमा नोंदवली गेली.` };
+  }
+
+  // कर्ज रद्द / डिलीट करणे (Cancel Loan - केवळ प्रशासक)
+  cancelLoan(loanId) {
+    if (window.authManager && !window.authManager.isAdmin()) {
+      return { success: false, message: 'केवळ प्रशासक कर्ज रद्द करू शकतात.' };
+    }
+    const clean = String(loanId).trim().toUpperCase();
+    const index = (this.state.loans || []).findIndex(l => (l.id || '').toUpperCase() === clean);
+    if (index === -1) return { success: false, message: 'कर्ज सापडले नाही.' };
+
+    const [removed] = this.state.loans.splice(index, 1);
+    this.state.transactions = (this.state.transactions || []).filter(t => (t.loanId || '').toUpperCase() !== clean);
+
+    this.saveState();
+    return { success: true, removedLoan: removed, message: 'कर्ज नोंद यशस्वीरीत्या काढून टाकली.' };
+  }
+
+  // सदस्यनिहाय कर्ज सारांश (Member Loan Summary)
+  getMemberLoanSummary(memberId) {
+    const memberLoans = this.getMemberLoans(memberId);
+    let totalBorrowed = 0;
+    let totalRepaid = 0;
+    let totalInterestCollected = 0;
+    let activePrincipal = 0;
+    let activeInterest = 0;
+    let activeTotalDue = 0;
+    let activeLoansList = [];
+    let paidLoansList = [];
+
+    memberLoans.forEach(loan => {
+      const details = this.calculateLoanDetails(loan);
+      totalBorrowed += details.principal;
+      totalInterestCollected += (Number(loan.totalInterestPaid) || 0);
+
+      if (loan.status === 'paid') {
+        totalRepaid += details.repaidAmount;
+        paidLoansList.push({ loan, details });
+      } else {
+        activePrincipal += details.principal;
+        activeInterest += details.interestAmount;
+        activeTotalDue += details.remainingBalance;
+        activeLoansList.push({ loan, details });
+      }
+    });
+
+    return {
+      memberId,
+      totalLoansCount: memberLoans.length,
+      activeLoansCount: activeLoansList.length,
+      paidLoansCount: paidLoansList.length,
+      totalBorrowed,
+      totalRepaid,
+      totalInterestCollected,
+      activePrincipal,
+      activeInterest,
+      totalDue: activeTotalDue,
+      activeLoans: activeLoansList,
+      paidLoans: paidLoansList,
+      allLoans: memberLoans
+    };
+  }
+
+  // सदस्य एकूण देय रक्कम गणना (Weekly Bishi Deposit + Active Loan Due)
+  calculateMemberOverallDue(member) {
+    if (!member) return null;
+    const memberStats = this.calculateMemberStats(member);
+    const loanSummary = this.getMemberLoanSummary(member.id);
+
+    const weeklyBishiDeposit = memberStats.isFullyPaid ? 0 : memberStats.weeklyAmount;
+    const totalWeeklyBishiDue = memberStats.isFullyPaid 
+      ? 0 
+      : Math.max(weeklyBishiDeposit, (memberStats.overdueWeeksCount || 0) * weeklyBishiDeposit);
+    const overdueBishiDeposit = Math.max(0, totalWeeklyBishiDue - weeklyBishiDeposit);
+
+    const loanPrincipalDue = loanSummary.activePrincipal;
+    const loanInterestDue = loanSummary.activeInterest;
+    const totalLoanDue = loanSummary.totalDue;
+
+    const grandTotalDue = totalWeeklyBishiDue + totalLoanDue;
+
+    return {
+      memberId: member.id,
+      memberName: member.name,
+      weeklyBishiDeposit,
+      overdueBishiDeposit,
+      totalWeeklyBishiDue,
+      isBishiFullyPaid: memberStats.isFullyPaid,
+      loanPrincipalDue,
+      loanInterestDue,
+      totalLoanDue,
+      activeLoansCount: loanSummary.activeLoansCount,
+      activeLoans: loanSummary.activeLoans,
+      grandTotalDue
+    };
+  }
+
+  // ==========================================================================
   // 📊 आकडेवारी व गणना इंजिन (Stats & Calculation Engine)
   // ==========================================================================
 
@@ -949,6 +1433,31 @@ class BishiStore {
     const overallProgressPercent = Math.min(100, Math.round((totalAllTimeCollected / (totalFundTarget || 1)) * 100));
     const weekProgressPercent = Math.min(100, Math.round((weekCollectedAmount / (weekExpectedAmount || 1)) * 100));
 
+    // कर्ज आकडेवारी (Loans Statistics)
+    const allLoans = this.state.loans || [];
+    let totalLoansDisbursed = 0;
+    let totalActiveLoansPrincipal = 0;
+    let totalActiveLoansInterestAccrued = 0;
+    let totalLoanInterestCollected = 0;
+    let totalLoansRepaidAmount = 0;
+    let activeLoansCount = 0;
+    let repaidLoansCount = 0;
+
+    allLoans.forEach(loan => {
+      const details = this.calculateLoanDetails(loan);
+      if (loan.status === 'paid') {
+        repaidLoansCount++;
+        totalLoansRepaidAmount += Number(loan.repaidAmount || (loan.principalAmount + (loan.interestPaid || 0)));
+        totalLoanInterestCollected += Number(loan.totalInterestPaid !== undefined ? loan.totalInterestPaid : (loan.interestPaid || 0));
+      } else {
+        activeLoansCount++;
+        totalActiveLoansPrincipal += details.principal;
+        totalActiveLoansInterestAccrued += details.interestAmount;
+        totalLoanInterestCollected += Number(loan.totalInterestPaid || 0);
+      }
+      totalLoansDisbursed += Number(loan.principalAmount) || 0;
+    });
+
     return {
       currentWeek,
       totalMembers: activeMembers.length,
@@ -964,7 +1473,16 @@ class BishiStore {
       weekPendingCount: activeMembers.length - weekPaidCount,
       completedMembersCount,
       overallProgressPercent,
-      weekProgressPercent
+      weekProgressPercent,
+      // Loans Stats
+      totalLoansDisbursed,
+      totalActiveLoansPrincipal,
+      totalActiveLoansInterestAccrued,
+      totalLoanInterestCollected,
+      totalLoansRepaidAmount,
+      activeLoansCount,
+      repaidLoansCount,
+      totalLoansCount: allLoans.length
     };
   }
 

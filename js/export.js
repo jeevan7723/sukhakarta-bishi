@@ -279,6 +279,77 @@ class ExportManager {
     window.ui?.showToast(`${member.name} यांचे पासबुक स्टेटमेंट डाउनलोड झाले!`, 'success');
   }
 
+  // --- सर्व सदस्यांचे कर्ज तपशील पत्रक (Loans Master CSV Export) ---
+  exportLoansCSV() {
+    const store = window.bishiStore;
+    const loans = store.getLoans();
+    const currency = store.state.meta.currency || '₹';
+    const todayFormatted = this.formatDate(new Date().toISOString());
+
+    const csv = [];
+    csv.push([this.escapeCSV(`${store.state.meta.bishiName} - सर्व सदस्य कर्ज खातावही व परतफेड ताळेबंद`)]);
+    csv.push([this.escapeCSV(`तारीख: ${todayFormatted}`)]);
+    csv.push([]);
+
+    // Header
+    csv.push([
+      this.escapeCSV('कर्ज क्र. (Loan ID)'),
+      this.escapeCSV('सदस्य आयडी'),
+      this.escapeCSV('सदस्याचे नाव'),
+      this.escapeCSV('मोबाईल नंबर'),
+      this.escapeCSV(`मूळ कर्ज (${currency})`),
+      this.escapeCSV('वाटप आठवडा'),
+      this.escapeCSV('वाटप तारीख'),
+      this.escapeCSV('कालावधी (आठवडे)'),
+      this.escapeCSV('सवलत स्थिती'),
+      this.escapeCSV(`३% व्याज (${currency})`),
+      this.escapeCSV(`एकूण देय/परतफेड (${currency})`),
+      this.escapeCSV('कर्ज स्थिती'),
+      this.escapeCSV('परतफेड तारीख'),
+      this.escapeCSV('परतफेड आठवडा'),
+      this.escapeCSV('पेमेंट पद्धत'),
+      this.escapeCSV('पावती क्र.'),
+      this.escapeCSV('टीप')
+    ].join(','));
+
+    if (loans.length === 0) {
+      csv.push([this.escapeCSV('कोणतेही कर्ज रेकॉर्ड उपलब्ध नाही')].join(','));
+    } else {
+      loans.forEach(loan => {
+        const details = store.calculateLoanDetails(loan);
+        const isPaid = loan.status === 'paid';
+        const graceStatus = details.isGracePeriodActive 
+          ? `सवलतीत (${details.remainingGraceWeeks} आठवडे बाकी)` 
+          : (isPaid ? (loan.interestPaid > 0 ? '३% व्याज आकारले' : '०% सवलतीत पूर्ण') : '४ आठवड्यांच्या पुढे (३% व्याज लागू)');
+
+        csv.push([
+          this.escapeCSV(loan.id),
+          this.escapeCSV(loan.memberId),
+          this.escapeCSV(loan.memberName),
+          this.escapeCSV(loan.memberPhone || '-'),
+          details.principal,
+          loan.issueWeek || 1,
+          this.escapeCSV(this.formatDate(loan.issueDate)),
+          details.elapsedWeeks,
+          this.escapeCSV(graceStatus),
+          isPaid ? (Number(loan.interestPaid) || 0) : details.interestAmount,
+          isPaid ? (Number(loan.repaidAmount) || details.totalPayable) : details.totalPayable,
+          this.escapeCSV(isPaid ? 'पूर्ण भरले (Paid)' : 'सक्रिय बाकी (Active)'),
+          this.escapeCSV(loan.paidDate ? this.formatDate(loan.paidDate) : '-'),
+          loan.paidWeek ? loan.paidWeek : '-',
+          this.escapeCSV((isPaid ? loan.paymentMode : loan.disbursementMode) || '-'),
+          this.escapeCSV((isPaid ? loan.receiptNo : `DISB-${loan.id}`) || '-'),
+          this.escapeCSV(loan.settlementNotes || loan.notes || '-')
+        ].join(','));
+      });
+    }
+
+    const csvString = csv.join('\r\n');
+    const fileName = `सुखकर्ता_बीशी_कर्ज_खातावही_${new Date().toISOString().split('T')[0]}.csv`;
+    this.downloadFile(csvString, fileName, 'text/csv;charset=utf-8;');
+    window.ui?.showToast('कर्ज खातावही CSV यशस्वीरीत्या डाउनलोड झाली!', 'success');
+  }
+
   // --- संपूर्ण डेटाबेस बॅकअप (JSON Backup) ---
   backupJSON() {
     const jsonStr = window.bishiStore.exportJSON();

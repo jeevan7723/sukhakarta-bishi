@@ -3304,6 +3304,11 @@ button.status-completed:hover {
           📋 खातावही
         </button>
 
+        <!-- सदस्य कर्ज व्यवस्थापन (प्रशासक) -->
+        <button class="btn btn-secondary" id="btnOpenAdminLoans" title="सदस्य कर्ज व्यवस्थापन व ३% व्याज खातावही" style="display: none;">
+          💳 कर्ज व्यवस्थापन
+        </button>
+
         <!-- एक्सपोर्ट व बॅकअप (प्रशासक) -->
         <button class="btn btn-secondary" id="btnOpenExport" onclick="document.getElementById('exportModal').classList.add('active')" title="डेटा बॅकअप व एक्सपोर्ट">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -3394,6 +3399,14 @@ button.status-completed:hover {
             <div class="drawer-item-text">
               <span class="drawer-item-title">सर्व सदस्यांची खातावही</span>
               <span class="drawer-item-sub">सर्व जमा व लेट फी व्यवहारांचा थेट इतिहास</span>
+            </div>
+          </button>
+
+          <button type="button" class="drawer-menu-item" onclick="window.ui.closeMobileDrawer(); window.ui.openAdminLoansModal();">
+            <span class="drawer-item-icon">💳</span>
+            <div class="drawer-item-text">
+              <span class="drawer-item-title">सदस्य कर्ज व्यवस्थापन</span>
+              <span class="drawer-item-sub">कर्ज वाटप, ३% व्याज व परतफेड खातावही</span>
             </div>
           </button>
 
@@ -3809,6 +3822,87 @@ button.status-completed:hover {
           </div>
         </section>
 
+        <!-- ==========================================================================
+             सदस्य कर्ज व एकूण देय रक्कम कार्ड (Customer Loans & Weekly Total Due Card)
+             ========================================================================== -->
+        <section class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(245, 158, 11, 0.08)); border: 1.5px solid rgba(59, 130, 246, 0.3);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.35rem;">💳</span>
+                <h3 style="font-size: 1.25rem; color: #fff; margin: 0;">माझे कर्ज व चालू हप्ता तपशील</h3>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+                आपल्या नावावरील कर्ज, ३% व्याज स्थिती आणि या आठवड्यात भरावी लागणारी एकूण देय रक्कम.
+              </p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-secondary); background: rgba(0, 0, 0, 0.35); padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              🔒 केवळ प्रशासक कर्ज वाटप व परतफेड नोंदवू शकतात
+            </div>
+          </div>
+
+          <!-- एकूण या आठवड्यात देय रक्कम बॅनर (Total You Have to Pay) -->
+          <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(16, 185, 129, 0.15)); border: 1.5px solid var(--gold-400); border-radius: var(--radius-md); padding: 1.15rem 1.35rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">
+                  📅 या आठवड्यात एकूण देय रक्कम (Total You Have to Pay):
+                </span>
+                <div style="font-size: 1.75rem; font-weight: 800; color: var(--gold-400); font-family: var(--font-display); margin-top: 0.2rem;" id="custTotalOverallDueDisplay">
+                  ₹0
+                </div>
+              </div>
+              <div style="display: flex; gap: 1rem; align-items: center; background: rgba(0, 0, 0, 0.4); padding: 0.65rem 1.15rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.1); flex-wrap: wrap;">
+                <div>
+                  <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">साप्ताहिक बीशी हप्ता:</span>
+                  <div style="font-weight: 700; color: var(--emerald-400); font-size: 0.95rem;" id="custDueWeeklyBishi">₹0</div>
+                </div>
+                <div style="font-weight: 800; color: var(--gold-400);" id="custDueLoanPrincipalPlus">+</div>
+                <div id="custDueLoanPrincipalBox">
+                  <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">सक्रिय कर्ज मुद्दल:</span>
+                  <div style="font-weight: 700; color: var(--blue-400); font-size: 0.95rem;" id="custDueLoanPrincipal">₹0</div>
+                </div>
+                <div style="font-weight: 800; color: var(--gold-400); display: none;" id="custDueLoanInterestPlus">+</div>
+                <div id="custDueLoanInterestBox" style="display: none;">
+                  <span style="font-size: 0.72rem; color: var(--rose-400); text-transform: uppercase; font-weight: 700;">३% व्याज (४ आठवडे पूर्ण):</span>
+                  <div style="font-weight: 700; color: var(--rose-400); font-size: 0.95rem;" id="custDueLoanInterest">₹0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- सदस्य सक्रिय कर्ज यादी / तपशील कंटेनर -->
+          <div id="custActiveLoansContainer">
+            <!-- डायनॅमिकली भरले जाते -->
+          </div>
+
+          <!-- सदस्य मागील कर्ज इतिहास टेबल -->
+          <div style="margin-top: 1.25rem;" id="custLoanHistorySection">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem;">
+              📜 कर्ज व्यवहार इतिहास व पावत्या
+            </div>
+            <div class="table-responsive" style="border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+              <table class="custom-table" style="margin-bottom: 0;">
+                <thead>
+                  <tr>
+                    <th>कर्ज क्र.</th>
+                    <th>मूळ रक्कम</th>
+                    <th>वाटप तारीख</th>
+                    <th>कालावधी</th>
+                    <th>३% व्याज स्थिती</th>
+                    <th>एकूण परतफेड</th>
+                    <th>स्थिती</th>
+                    <th style="text-align: right;">पावती</th>
+                  </tr>
+                </thead>
+                <tbody id="custLoansTableBody">
+                  <!-- डायनॅमिकली भरले जाते -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
         <!-- ५०-आठवडे पासबुक ग्रिड -->
         <section class="glass-card" style="margin-bottom: 2rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
@@ -3895,7 +3989,7 @@ button.status-completed:hover {
               <button type="button" class="preset-btn" data-amount="2000">₹२,००० / आठवडा</button>
               <button type="button" class="preset-btn" data-amount="5000">₹५,००० / आठवडा</button>
             </div>
-            <input type="number" id="addMemberWeeklyAmount" class="form-control" value="1000" min="100" step="50" required>
+            <input type="number" id="addMemberWeeklyAmount" class="form-control" value="1000" min="10" step="any" required>
           </div>
 
           <!-- ५०-आठवडे एकूण लक्ष्य प्रिव्ह्यू कार्ड -->
@@ -4004,7 +4098,7 @@ button.status-completed:hover {
               <button type="button" class="preset-btn" data-amount="2000">₹२,००० / आठवडा</button>
               <button type="button" class="preset-btn" data-amount="5000">₹५,००० / आठवडा</button>
             </div>
-            <input type="number" id="editMemberWeeklyAmount" class="form-control" value="1000" min="100" step="50" required>
+            <input type="number" id="editMemberWeeklyAmount" class="form-control" value="1000" min="10" step="any" required>
           </div>
 
           <!-- ५०-आठवडे एकूण लक्ष्य प्रिव्ह्यू कार्ड -->
@@ -4075,6 +4169,15 @@ button.status-completed:hover {
             <span><strong>थकबाकी हप्ता:</strong> नियमांनुसार लेट फी दंड लागू आहे.</span>
           </div>
 
+          <!-- कर्ज व्याज सूचना (४ आठवड्यांचे व्याज देय असल्यास) -->
+          <div class="overdue-alert-banner" id="collectModalLoanInterestAlert" style="display: none; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.45); color: var(--gold-400); margin-bottom: 1rem; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span>💰</span>
+              <span><strong id="collectModalLoanInterestText">कर्ज व्याज देय:</strong> या सदस्याचे ४-आठवड्यांचे ३% कर्ज व्याज देय आहे.</span>
+            </div>
+            <button type="button" class="btn btn-gold btn-sm" id="btnCollectModalPayInterest" style="font-size: 0.72rem; padding: 0.2rem 0.5rem; font-weight: 800; white-space: nowrap;">व्याज जमा करा</button>
+          </div>
+
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
               <label class="form-label">आठवडा क्र.</label>
@@ -4120,7 +4223,7 @@ button.status-completed:hover {
                 लेट फी दंड (₹) (प्रशासक ठरवतील)
               </label>
             </div>
-            <input type="number" id="collectModalFineAmount" class="form-control" value="0" min="0" step="10">
+            <input type="number" id="collectModalFineAmount" class="form-control" value="0" min="0" step="any">
             <div class="fine-presets">
               <button type="button" class="fine-preset-btn" data-fine="0">माफ करा (₹०)</button>
               <button type="button" class="fine-preset-btn active" data-fine="default">नियमित दंड</button>
@@ -4501,7 +4604,7 @@ button.status-completed:hover {
             <label class="form-label" for="adminPanelDefaultFine" style="color: var(--rose-400); font-weight: 700;">
               प्रत्येक थकबाकी आठवड्याचा नियमित दंड (₹) *
             </label>
-            <input type="number" id="adminPanelDefaultFine" class="form-control" min="0" step="10" required>
+            <input type="number" id="adminPanelDefaultFine" class="form-control" min="0" step="any" required>
             <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem;">
               प्रशासकाने ठरवलेला दंड दर (उदा. ₹५०, ₹१००, ₹२००). थकबाकी पेमेंटच्या वेळी आपोआप सुचवला जातो.
             </p>
@@ -4521,7 +4624,7 @@ button.status-completed:hover {
                 −
               </button>
               <div style="position: relative; flex: 1;">
-                <input type="number" id="adminPanelMaturityInterest" class="form-control" min="0" max="100" step="0.5" value="8" style="text-align: center; font-size: 1.25rem; font-weight: 800; color: var(--emerald-400); font-family: var(--font-mono);" required>
+                <input type="number" id="adminPanelMaturityInterest" class="form-control" min="0" max="100" step="any" value="8" style="text-align: center; font-size: 1.25rem; font-weight: 800; color: var(--emerald-400); font-family: var(--font-mono);" required>
               </div>
               <button type="button" class="btn btn-secondary" id="btnIncreaseInterest" style="padding: 0.6rem 1.15rem; font-size: 1.25rem; font-weight: 800; border-radius: var(--radius-md);" title="व्याज दर ०.५% ने वाढवा">
                 +
@@ -4641,6 +4744,375 @@ button.status-completed:hover {
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
       </div>
+    </div>
+  </div>
+
+  <!-- मोडल ७.५: सर्व सदस्य कर्ज खातावही व व्यवस्थापन (केवळ प्रशासक) -->
+  <div class="modal-overlay" id="adminLoansModal">
+    <div class="modal-container large" style="max-width: 960px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.2));">
+        <h3 class="modal-title" style="color: var(--blue-400);">
+          <span>💳</span> सदस्य कर्ज व्यवस्थापन व ३% व्याज खातावही (Admin Only)
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <!-- कर्ज सारांश KPI कार्ड्स -->
+        <div style="padding: 1.15rem 1.25rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;" class="admin-loans-kpi-grid">
+          <div style="background: var(--bg-card); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">एकूण कर्ज वाटप</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--gold-400); font-family: var(--font-display);" id="adminLoansTotalDisbursed">₹0</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);" id="adminLoansTotalCount">0 कर्जे</div>
+          </div>
+          <div style="background: var(--bg-card); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); border: 1px solid rgba(244, 63, 94, 0.3);">
+            <div style="font-size: 0.72rem; color: var(--rose-400); text-transform: uppercase; font-weight: 700;">सक्रिय कर्ज बाकी मुद्दल</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--rose-400); font-family: var(--font-display);" id="adminLoansActivePrincipal">₹0</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);" id="adminLoansActiveCount">0 चालू कर्जे</div>
+          </div>
+          <div style="background: var(--bg-card); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); border: 1px solid rgba(16, 185, 129, 0.3);">
+            <div style="font-size: 0.72rem; color: var(--emerald-400); text-transform: uppercase; font-weight: 700;">गोळा झालेले ३% व्याज</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--emerald-400); font-family: var(--font-display);" id="adminLoansInterestCollected">₹0</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">४ आठवड्यांनंतर ३% व्याज</div>
+          </div>
+          <div style="background: var(--bg-card); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); border: 1px solid rgba(59, 130, 246, 0.3);">
+            <div style="font-size: 0.72rem; color: var(--blue-400); text-transform: uppercase; font-weight: 700;">एकूण परत मिळालेली रक्कम</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--blue-400); font-family: var(--font-display);" id="adminLoansTotalRepaid">₹0</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);" id="adminLoansRepaidCount">0 परतफेड पूर्ण</div>
+          </div>
+        </div>
+
+        <!-- कर्ज टूलबार व ॲक्शन बटणे -->
+        <div style="padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem; background: var(--bg-secondary);">
+          <div style="display: flex; gap: 0.75rem; flex: 1; max-width: 420px;">
+            <input type="text" id="adminLoansSearchInput" class="form-control" placeholder="सदस्याचे नाव, आयडी किंवा कर्ज क्र. शोधा..." style="padding: 0.45rem 0.85rem; font-size: 0.85rem;">
+          </div>
+          <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <select id="adminLoansStatusFilter" class="form-control" style="width: auto; padding: 0.45rem 2rem 0.45rem 0.85rem; font-size: 0.85rem;">
+              <option value="all">सर्व कर्जे (All)</option>
+              <option value="active" selected>🟡 फक्त सक्रिय बाकी कर्जे</option>
+              <option value="paid">✅ फक्त पूर्ण परतफेड झालेली</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="window.ui.openGiveLoanModal()" style="font-weight: 700;">
+              ➕ नवीन कर्ज द्या
+            </button>
+            <button class="btn btn-gold btn-sm" onclick="window.exportManager.exportLoansCSV()">
+              📥 CSV डाउनलोड
+            </button>
+          </div>
+        </div>
+
+        <!-- कर्ज टेबल -->
+        <div class="table-responsive" style="border: none; box-shadow: none; max-height: 420px; overflow-y: auto;">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>कर्ज क्र.</th>
+                <th>सदस्य तपशील</th>
+                <th>मूळ कर्ज</th>
+                <th>वाटप आठवडा/तारीख</th>
+                <th>कालावधी</th>
+                <th>३% व्याज स्थिती</th>
+                <th>एकूण बाकी/परतफेड</th>
+                <th>स्थिती</th>
+                <th style="text-align: right;">क्रिया</th>
+              </tr>
+            </thead>
+            <tbody id="adminLoansTableBody">
+              <!-- डायनॅमिकली भरले जाते -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 0.78rem; color: var(--text-muted);">
+          💡 <strong>नियम:</strong> पहिल्या ४ आठवड्यांपर्यंत ०% व्याज • ४ आठवड्यांनंतर ३% व्याज आकारले जाते.
+        </div>
+        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल ७.६: नवीन कर्ज द्या (केवळ प्रशासक) -->
+  <div class="modal-overlay" id="giveLoanModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(16, 185, 129, 0.25));">
+        <h3 class="modal-title" style="color: var(--blue-400);">
+          <span>➕</span> सदस्यास नवीन कर्ज द्या (प्रशासक)
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <form id="giveLoanForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="giveLoanMemberSelect">सदस्य निवडा *</label>
+            <select id="giveLoanMemberSelect" class="form-control" required>
+              <option value="">-- सदस्य निवडा --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="giveLoanAmount">कर्ज रक्कम (₹) *</label>
+            <div class="amount-presets" id="giveLoanAmountPresets">
+              <button type="button" class="preset-btn" data-amount="5000">₹५,०००</button>
+              <button type="button" class="preset-btn active" data-amount="10000">₹१०,०००</button>
+              <button type="button" class="preset-btn" data-amount="20000">₹२०,०००</button>
+              <button type="button" class="preset-btn" data-amount="50000">₹५०,०००</button>
+            </div>
+            <input type="number" id="giveLoanAmount" class="form-control" value="10000" min="100" step="any" required>
+          </div>
+
+          <!-- व्याज नियम सूचना कार्ड -->
+          <div style="background: rgba(59, 130, 246, 0.08); border: 1.5px dashed rgba(59, 130, 246, 0.35); border-radius: var(--radius-md); padding: 0.9rem 1.1rem; margin-bottom: 1.15rem;">
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--blue-400); font-size: 0.88rem; margin-bottom: 0.25rem;">
+              <span>ℹ️</span> <span>कर्ज व व्याज नियमावली:</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+              • <strong>पहिल्या ४ आठवड्यांत (Grace Period):</strong> <span style="color: var(--emerald-400); font-weight: 700;">०% व्याज</span> (फक्त मूळ रक्कम परतफेड).<br>
+              • <strong>४ आठवड्यांनंतर:</strong> <span style="color: var(--gold-400); font-weight: 700;">३% व्याज</span> लागू होईल (उदा. ₹१०,००० वर +₹३०० व्याज).
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="giveLoanIssueWeek">वाटप आठवडा</label>
+              <input type="number" id="giveLoanIssueWeek" class="form-control" min="1" max="50" value="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="giveLoanIssueDate">वाटप तारीख</label>
+              <input type="date" id="giveLoanIssueDate" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="giveLoanPaymentMode">वितरण पद्धत (Disbursement Mode) *</label>
+            <select id="giveLoanPaymentMode" class="form-control">
+              <option value="Cash" selected>💵 रोख (Cash Handover)</option>
+              <option value="UPI">📱 UPI (Google Pay, PhonePe, Paytm)</option>
+              <option value="Bank Transfer">🏦 बँक ट्रान्सफर (NEFT/IMPS)</option>
+              <option value="Cheque">📜 चेक</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="giveLoanUpiGroup" style="display: none; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+            <label class="form-label" for="giveLoanUpiId" style="color: var(--blue-400); font-weight: 700;">
+              UPI आयडी / बँक ट्रान्झॅक्शन संदर्भ क्र.
+            </label>
+            <input type="text" id="giveLoanUpiId" class="form-control" placeholder="उदा. member@okaxis किंवा UTR क्र.">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="giveLoanNotes">टीप / कारणांचा तपशील (ऐच्छिक)</label>
+            <input type="text" id="giveLoanNotes" class="form-control" placeholder="उदा. वैयक्तिक/घरगुती गरज">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">रद्द करा</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 800;">
+            💳 कर्ज वाटप निश्चित करा
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- मोडल ७.७: कर्ज परतफेड जमा नोंदवा (केवळ प्रशासक) -->
+  <div class="modal-overlay" id="markLoanPaidModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(245, 158, 11, 0.25));">
+        <h3 class="modal-title" style="color: var(--emerald-400);">
+          <span>💰</span> कर्ज परतफेड जमा नोंदवा (प्रशासक)
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <form id="markLoanPaidForm">
+        <div class="modal-body">
+          <input type="hidden" id="markLoanPaidId">
+          
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.15rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #fff;" id="markLoanPaidMemberName">सदस्याचे नाव</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);" id="markLoanPaidMemberMeta">SKB-001 • कर्ज क्र.: LN-001</div>
+            </div>
+            <span class="status-pill status-active" id="markLoanPaidStatusBadge">सक्रिय कर्ज</span>
+          </div>
+
+          <!-- परतफेड व ३% व्याज गणना कार्ड -->
+          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(245, 158, 11, 0.14)); border: 1.5px solid var(--emerald-400); border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.78rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">एकूण जमा करावयाची परतफेड रक्कम:</div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--emerald-400); font-family: var(--font-display); margin-bottom: 0.5rem;" id="markLoanPaidTotalDisplay">₹10,000</div>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.82rem; background: rgba(0,0,0,0.35); padding: 0.65rem 0.9rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.08);">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">मूळ कर्ज रक्कम:</span>
+                <strong style="color: #fff;" id="markLoanPaidPrincipalDisplay">₹10,000</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">कालावधी:</span>
+                <span style="color: var(--text-primary); font-weight: 600;" id="markLoanPaidDurationDisplay">२ आठवडे (सवलत कालावधीत)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.35rem;">
+                <span style="color: var(--gold-400); font-weight: 700;">३% व्याज (४ आठवड्यांनंतर):</span>
+                <strong style="color: var(--gold-400);" id="markLoanPaidInterestDisplay">₹0 (०% सवलत)</strong>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="markLoanPaidAmountInput">जमा करावयाची रक्कम (₹) *</label>
+              <input type="number" id="markLoanPaidAmountInput" class="form-control" required min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="markLoanPaidInterestInput">व्याज रक्कम (₹) *</label>
+              <input type="number" id="markLoanPaidInterestInput" class="form-control" value="0" min="0">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="markLoanPaidWeek">परतफेड आठवडा</label>
+              <input type="number" id="markLoanPaidWeek" class="form-control" min="1" max="50">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="markLoanPaidDate">परतफेड तारीख</label>
+              <input type="date" id="markLoanPaidDate" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="markLoanPaidMode">पेमेंट पद्धत *</label>
+            <select id="markLoanPaidMode" class="form-control">
+              <option value="Cash" selected>💵 रोख (Cash)</option>
+              <option value="UPI">📱 UPI (Google Pay, PhonePe, Paytm)</option>
+              <option value="Bank Transfer">🏦 बँक ट्रान्सफर</option>
+              <option value="Cheque">📜 चेक</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="markLoanPaidUpiGroup" style="display: none; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+            <label class="form-label" for="markLoanPaidUpiId" style="color: var(--blue-400); font-weight: 700;">
+              UPI आयडी / बँक ट्रान्झॅक्शन संदर्भ क्र.
+            </label>
+            <input type="text" id="markLoanPaidUpiId" class="form-control" placeholder="उदा. member@okaxis किंवा UTR क्र.">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="markLoanPaidNotes">परतफेड टीप (ऐच्छिक)</label>
+            <input type="text" id="markLoanPaidNotes" class="form-control" placeholder="उदा. पूर्ण कर्ज परतफेड रोख मिळाली">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">रद्द करा</button>
+          <button type="submit" class="btn btn-emerald" style="font-weight: 800; background: var(--emerald-600); border-color: var(--emerald-500);">
+            ✅ कर्ज परतफेड जमा निश्चित करा
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- मोडल ७.८: ४-आठवडे कर्ज व्याज जमा नोंदवा (केवळ प्रशासक) -->
+  <div class="modal-overlay" id="payLoanInterestModal">
+    <div class="modal-container">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(16, 185, 129, 0.25));">
+        <h3 class="modal-title" style="color: var(--gold-400);">
+          <span>💰</span> ४-आठवडे कर्ज व्याज जमा नोंदवा (प्रशासक)
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <form id="payLoanInterestForm">
+        <div class="modal-body">
+          <input type="hidden" id="payLoanInterestLoanId">
+          
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.15rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #fff;" id="payLoanInterestMemberName">सदस्याचे नाव</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);" id="payLoanInterestMemberMeta">SKB-001 • कर्ज क्र.: LN-001</div>
+            </div>
+            <span class="status-pill status-paid" id="payLoanInterestCycleBadge" style="background: rgba(245, 158, 11, 0.15); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.35);">
+              चक्र १ व्याज (३%)
+            </span>
+          </div>
+
+          <!-- व्याज गणना कार्ड -->
+          <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(16, 185, 129, 0.12)); border: 1.5px solid var(--gold-400); border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.78rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">जमा करावयाची ४-आठवड्यांची ३% व्याज रक्कम:</div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--gold-400); font-family: var(--font-display); margin-bottom: 0.5rem;" id="payLoanInterestAmountDisplay">₹300</div>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.82rem; background: rgba(0,0,0,0.35); padding: 0.65rem 0.9rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.08);">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">मूळ सक्रिय कर्ज मुद्दल:</span>
+                <strong style="color: #fff;" id="payLoanInterestPrincipalDisplay">₹10,000</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">मागील व्याज भरणा / वाटप:</span>
+                <span style="color: var(--text-primary); font-weight: 600;" id="payLoanInterestLastPaidDisplay">आठवडा १</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">कालावधी / स्थिती:</span>
+                <span style="color: var(--gold-400); font-weight: 700;" id="payLoanInterestDurationDisplay">४ आठवडे पूर्ण (३% व्याज देय)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.35rem;">
+                <span style="color: var(--text-muted);">आतापर्यंत जमा एकूण व्याज:</span>
+                <strong style="color: var(--emerald-400);" id="payLoanInterestTotalPaidDisplay">₹0</strong>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="payLoanInterestAmountInput">जमा व्याज रक्कम (₹) *</label>
+              <input type="number" id="payLoanInterestAmountInput" class="form-control" required min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="payLoanInterestWeek">व्याज भरणा आठवडा *</label>
+              <select id="payLoanInterestWeek" class="form-control" required></select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="payLoanInterestDate">भरणा तारीख *</label>
+              <input type="date" id="payLoanInterestDate" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="payLoanInterestMode">पेमेंट पद्धत *</label>
+              <select id="payLoanInterestMode" class="form-control">
+                <option value="Cash" selected>💵 रोख (Cash)</option>
+                <option value="UPI">📱 UPI (Google Pay, PhonePe, Paytm)</option>
+                <option value="Bank Transfer">🏦 बँक ट्रान्सफर</option>
+                <option value="Cheque">📜 चेक</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" id="payLoanInterestUpiGroup" style="display: none; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+            <label class="form-label" for="payLoanInterestUpiId" style="color: var(--blue-400); font-weight: 700;">
+              UPI आयडी / ट्रान्झॅक्शन संदर्भ क्र.
+            </label>
+            <input type="text" id="payLoanInterestUpiId" class="form-control" placeholder="उदा. member@okaxis किंवा UTR क्र.">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="payLoanInterestNotes">टीप / शेरा (ऐच्छिक)</label>
+            <input type="text" id="payLoanInterestNotes" class="form-control" placeholder="उदा. ४ आठवड्यांचे ३% व्याज रोख मिळाले">
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <button type="button" class="btn btn-sm" id="btnPayLoanModalSendReminder" style="background: #25d366; color: #000; font-weight: 700; border: none;" title="सदस्याला WhatsApp वर व्याज भरणा स्मरणपत्र पाठवा">
+            💬 WhatsApp स्मरणपत्र पाठवा
+          </button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">रद्द करा</button>
+            <button type="submit" class="btn btn-gold" style="font-weight: 800; background: var(--gold-500); border-color: var(--gold-400); color: #000;">
+              💰 व्याज जमा निश्चित करा
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -4833,7 +5305,7 @@ button.status-completed:hover {
               <button type="button" class="preset-btn" data-amount="2000">₹२,००० / आठवडा</button>
               <button type="button" class="preset-btn" data-amount="5000">₹५,००० / आठवडा</button>
             </div>
-            <input type="number" id="restartWeeklyAmount" class="form-control" value="1000" min="100" step="50" required>
+            <input type="number" id="restartWeeklyAmount" class="form-control" value="1000" min="10" step="any" required>
           </div>
 
           <!-- नवीन सायकल लक्ष्य प्रिव्ह्यू -->

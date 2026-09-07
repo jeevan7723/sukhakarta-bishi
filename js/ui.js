@@ -65,6 +65,7 @@ class UIManager {
     const cloudStatusBadge = document.getElementById('cloudStatusBadge');
     const btnOpenAdminSettings = document.getElementById('btnOpenAdminSettings');
     const btnOpenTxnLog = document.getElementById('btnOpenTxnLog');
+    const btnOpenAdminLoans = document.getElementById('btnOpenAdminLoans');
     const btnOpenAddMember = document.getElementById('btnOpenAddMember');
     const btnOpenExport = document.getElementById('btnOpenExport');
     const btnOpenClearDataModal = document.getElementById('btnOpenClearDataModal');
@@ -86,6 +87,7 @@ class UIManager {
       if (cloudStatusBadge) cloudStatusBadge.style.display = 'none';
       if (btnOpenAdminSettings) btnOpenAdminSettings.style.display = 'none';
       if (btnOpenTxnLog) btnOpenTxnLog.style.display = 'none';
+      if (btnOpenAdminLoans) btnOpenAdminLoans.style.display = 'none';
       if (btnOpenAddMember) btnOpenAddMember.style.display = 'none';
       if (btnOpenExport) btnOpenExport.style.display = 'none';
       if (btnOpenClearDataModal) btnOpenClearDataModal.style.display = 'none';
@@ -117,6 +119,7 @@ class UIManager {
         if (cloudStatusBadge) cloudStatusBadge.style.display = 'inline-flex';
         if (btnOpenAdminSettings) btnOpenAdminSettings.style.display = 'inline-flex';
         if (btnOpenTxnLog) btnOpenTxnLog.style.display = 'inline-flex';
+        if (btnOpenAdminLoans) btnOpenAdminLoans.style.display = 'inline-flex';
         if (btnOpenAddMember) btnOpenAddMember.style.display = 'inline-flex';
         if (btnOpenExport) btnOpenExport.style.display = 'inline-flex';
         if (btnOpenClearDataModal) btnOpenClearDataModal.style.display = 'inline-flex';
@@ -145,6 +148,7 @@ class UIManager {
         if (cloudStatusBadge) cloudStatusBadge.style.display = 'none';
         if (btnOpenAdminSettings) btnOpenAdminSettings.style.display = 'none';
         if (btnOpenTxnLog) btnOpenTxnLog.style.display = 'none';
+        if (btnOpenAdminLoans) btnOpenAdminLoans.style.display = 'none';
         if (btnOpenAddMember) btnOpenAddMember.style.display = 'none';
         if (btnOpenExport) btnOpenExport.style.display = 'none';
         if (btnOpenClearDataModal) btnOpenClearDataModal.style.display = 'none';
@@ -532,19 +536,57 @@ class UIManager {
       const cycleTxns = memberTxns.filter(t => (Number(t.cycleNumber) || 1) === this.customerViewCycle);
 
       if (cycleTxns.length > 0) {
-        recordsToDisplay = cycleTxns.map(t => ({
-          receiptNo: t.receiptNo || `REC-${member.id}-W${t.weekNumber || 1}`,
-          cycleNumber: Number(t.cycleNumber) || this.customerViewCycle,
-          weekNumber: t.weekNumber,
-          isPayout: t.type === 'payout',
-          depositAmount: Number(t.depositAmount || t.amount || 0),
-          fineAmount: Number(t.fineAmount || 0),
-          totalAmount: Number(t.totalAmount || (Number(t.depositAmount || t.amount || 0) + Number(t.fineAmount || 0))),
-          paymentMode: t.paymentMode || 'Cash',
-          upiId: t.upiId || '',
-          date: t.date || t.paidDate,
-          notes: t.note || t.notes || ''
-        }));
+        recordsToDisplay = cycleTxns.map(t => {
+          const isLoanDisb = t.type === 'loan_disbursed';
+          const isLoanInt = t.type === 'loan_interest_payment';
+          const isLoanRep = t.type === 'loan_repayment';
+          const isPayout = t.type === 'payout';
+
+          let depAmt = 0;
+          let fineAmt = 0;
+          let totAmt = 0;
+
+          if (isLoanDisb) {
+            depAmt = Number(t.loanDisbursedAmount || t.totalAmount || 0);
+            fineAmt = 0;
+            totAmt = depAmt;
+          } else if (isLoanInt) {
+            depAmt = 0;
+            fineAmt = Number(t.loanInterestAmount || t.totalAmount || 0);
+            totAmt = fineAmt;
+          } else if (isLoanRep) {
+            depAmt = Number(t.loanRepaidAmount || t.totalAmount || 0);
+            fineAmt = Number(t.loanInterestAmount || 0);
+            totAmt = Number(t.totalAmount || (depAmt + fineAmt));
+          } else if (isPayout) {
+            totAmt = Number(t.totalAmount || 0);
+            depAmt = totAmt;
+            fineAmt = 0;
+          } else {
+            depAmt = Number(t.depositAmount || t.amount || 0);
+            fineAmt = Number(t.fineAmount || 0);
+            totAmt = Number(t.totalAmount || (depAmt + fineAmt));
+          }
+
+          return {
+            receiptNo: t.receiptNo || `REC-${member.id}-W${t.weekNumber || 1}`,
+            cycleNumber: Number(t.cycleNumber) || this.customerViewCycle,
+            weekNumber: t.weekNumber,
+            type: t.type || 'deposit',
+            loanId: t.loanId,
+            isPayout,
+            isLoanDisb,
+            isLoanInt,
+            isLoanRep,
+            depositAmount: depAmt,
+            fineAmount: fineAmt,
+            totalAmount: totAmt,
+            paymentMode: t.paymentMode || 'Cash',
+            upiId: t.upiId || '',
+            date: t.date || t.paidDate,
+            notes: t.note || t.notes || ''
+          };
+        });
       } else {
         // Fallback: derive from viewWeeks (supports active cycle & archived past cycles)
         const paidWeeks = (viewWeeks || []).filter(w => (w.status === 'paid' && Number(w.amountPaid || 0) > 0) || Number(w.amountPaid || 0) > 0 || w.status === 'partial');
@@ -557,6 +599,9 @@ class UIManager {
             cycleNumber: this.customerViewCycle,
             weekNumber: w.weekNumber,
             isPayout: false,
+            isLoanDisb: false,
+            isLoanInt: false,
+            isLoanRep: false,
             depositAmount: depAmt,
             fineAmount: fineAmt,
             totalAmount: depAmt + fineAmt,
@@ -574,6 +619,9 @@ class UIManager {
             cycleNumber: this.customerViewCycle,
             weekNumber: 50,
             isPayout: true,
+            isLoanDisb: false,
+            isLoanInt: false,
+            isLoanRep: false,
             depositAmount: Number(pastCycleData.payoutDetails.amount || pastCycleData.stats?.maturityTotalPayout || 0),
             fineAmount: 0,
             totalAmount: Number(pastCycleData.payoutDetails.amount || pastCycleData.stats?.maturityTotalPayout || 0),
@@ -608,8 +656,11 @@ class UIManager {
           const fineAmt = rec.fineAmount;
           const totalRec = rec.totalAmount;
           const isPayout = rec.isPayout;
+          const isLoanDisb = rec.isLoanDisb;
+          const isLoanInt = rec.isLoanInt;
+          const isLoanRep = rec.isLoanRep;
           const txnCycle = rec.cycleNumber;
-          const isExtraDeposit = !isPayout && depAmt > member.weeklyAmount && (rec.weekNumber || 0) > 0;
+          const isExtraDeposit = !isPayout && !isLoanDisb && !isLoanInt && !isLoanRep && depAmt > member.weeklyAmount && (rec.weekNumber || 0) > 0;
           const extraDepositAmt = isExtraDeposit ? (depAmt - member.weeklyAmount) : 0;
 
           // Format Marathi Date
@@ -629,27 +680,65 @@ class UIManager {
             }
           }
 
+          let statusPillHtml = '';
+          let depAmtHtml = '';
+          let fineAmtHtml = '';
+          let totalRecHtml = '';
+          let receiptBtnHtml = '';
+
+          if (isLoanDisb) {
+            statusPillHtml = `<span class="status-pill" style="font-size: 0.72rem; background: rgba(59, 130, 246, 0.15); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.35); font-weight: 700;">💳 कर्ज वाटप (W${rec.weekNumber || 1})</span>`;
+            depAmtHtml = `<span style="color: var(--blue-400); font-weight: 700;">${currency}${depAmt.toLocaleString('en-IN')}</span>`;
+            fineAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
+            totalRecHtml = `<span style="color: var(--blue-400); font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
+            receiptBtnHtml = `<button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${rec.loanId || rec.receiptNo?.replace('DISB-', '')}')" title="कर्ज व्हाऊचर पहा">📄 व्हाऊचर</button>`;
+          } else if (isLoanInt) {
+            statusPillHtml = `<span class="status-pill status-overdue" style="font-size: 0.72rem; background: rgba(245, 158, 11, 0.15); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 700;">💰 कर्ज व्याज (W${rec.weekNumber || 1})</span>`;
+            depAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
+            fineAmtHtml = `<span style="color: var(--gold-400); font-weight: 700;">+${currency}${fineAmt.toLocaleString('en-IN')} (३%)</span>`;
+            totalRecHtml = `<span style="color: var(--gold-400); font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
+            receiptBtnHtml = `<button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanInterestReceiptModal('${rec.loanId}', '${rec.receiptNo}')" title="व्याज पावती पहा">🧾 पावती</button>`;
+          } else if (isLoanRep) {
+            statusPillHtml = `<span class="status-pill status-paid" style="font-size: 0.72rem; font-weight: 700;">✅ कर्ज परतफेड (W${rec.weekNumber || 1})</span>`;
+            depAmtHtml = `<span style="color: var(--emerald-400); font-weight: 700;">मुद्दल: ${currency}${depAmt.toLocaleString('en-IN')}</span>`;
+            fineAmtHtml = fineAmt > 0 ? `<span style="color: var(--gold-400); font-weight: 700;">+${currency}${fineAmt.toLocaleString('en-IN')}</span>` : `<span style="color: var(--text-muted);">₹०</span>`;
+            totalRecHtml = `<span style="color: var(--emerald-400); font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
+            receiptBtnHtml = `<button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${rec.loanId}')" title="कर्ज परतफेड पावती पहा">🧾 पावती</button>`;
+          } else if (isPayout) {
+            statusPillHtml = `<span class="status-pill status-completed" style="font-weight: 700;">🏆 मॅच्युरिटी वाटप</span>`;
+            depAmtHtml = `<span style="color: var(--gold-400); font-weight: 700;">${currency}${depAmt.toLocaleString('en-IN')}</span>`;
+            fineAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
+            totalRecHtml = `<span style="color: var(--gold-400); font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
+            receiptBtnHtml = `<button type="button" class="btn btn-gold btn-sm" onclick="window.receiptManager.showPayoutVoucherModal('${member.id}', ${txnCycle})" title="व्हाउचर पहा व प्रिंट करा">📜 व्हाउचर</button>`;
+          } else {
+            statusPillHtml = `<span class="status-pill status-paid">आठवडा ${rec.weekNumber || 1} / ५०</span>`;
+            depAmtHtml = `
+              <span style="color: var(--emerald-400); font-weight: 700;">${currency}${depAmt.toLocaleString('en-IN')}</span>
+              ${isExtraDeposit ? `<div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">(नियमित ${currency}${member.weeklyAmount} + ⭐ ${currency}${extraDepositAmt} जादा)</div>` : ''}
+            `;
+            fineAmtHtml = `<span style="color: ${fineAmt > 0 ? 'var(--rose-400)' : 'var(--text-muted)'}; font-weight: 600;">${fineAmt > 0 ? `+${currency}${fineAmt.toLocaleString('en-IN')}` : '₹0'}</span>`;
+            totalRecHtml = `<span style="color: #fff; font-weight: 800; font-size: 0.95rem;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
+            receiptBtnHtml = `<button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${member.id}', ${rec.weekNumber || 1}, ${txnCycle})" title="पावती पहा व प्रिंट करा">🧾 पावती</button>`;
+          }
+
           tr.innerHTML = `
             <td style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--gold-400); font-weight: 600;">
               ${rec.receiptNo}
             </td>
             <td>
               <span class="status-pill" style="font-size: 0.7rem; background: rgba(59, 130, 246, 0.15); color: var(--blue-400); margin-right: 0.3rem;">C${txnCycle}</span>
-              ${isPayout 
-                ? '<span class="status-pill status-completed" style="font-weight: 700;">🏆 मॅच्युरिटी वाटप</span>' 
-                : `<span class="status-pill status-paid">आठवडा ${rec.weekNumber || 1} / ५०</span>`}
+              ${statusPillHtml}
               ${isExtraDeposit ? `<span class="extra-amount-pill" style="margin-left: 0.3rem;">⭐ +${currency}${extraDepositAmt.toLocaleString('en-IN')} जादा</span>` : ''}
               ${rec.notes ? `<div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">${rec.notes}</div>` : ''}
             </td>
-            <td style="color: ${isPayout ? 'var(--gold-400)' : 'var(--emerald-400)'}; font-weight: 700;">
-              ${currency}${depAmt.toLocaleString('en-IN')}
-              ${isExtraDeposit ? `<div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">(नियमित ${currency}${member.weeklyAmount} + ⭐ ${currency}${extraDepositAmt} जादा)</div>` : ''}
+            <td>
+              ${depAmtHtml}
             </td>
-            <td style="color: ${fineAmt > 0 ? 'var(--rose-400)' : 'var(--text-muted)'}; font-weight: 600;">
-              ${fineAmt > 0 ? `+${currency}${fineAmt.toLocaleString('en-IN')}` : '₹0'}
+            <td>
+              ${fineAmtHtml}
             </td>
-            <td style="color: #fff; font-weight: 800; font-size: 0.95rem;">
-              ${currency}${totalRec.toLocaleString('en-IN')}
+            <td>
+              ${totalRecHtml}
             </td>
             <td>
               <span class="mode-tag ${(rec.paymentMode || 'cash').toLowerCase()}">${rec.paymentMode || 'Cash'}</span>
@@ -659,18 +748,198 @@ class UIManager {
               ${formattedDate}
             </td>
             <td style="text-align: right;">
-              ${isPayout ? `
-                <button type="button" class="btn btn-gold btn-sm" onclick="window.receiptManager.showPayoutVoucherModal('${member.id}', ${txnCycle})" title="व्हाउचर पहा व प्रिंट करा">
-                  📜 व्हाउचर
-                </button>
-              ` : `
-                <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${member.id}', ${rec.weekNumber || 1}, ${txnCycle})" title="पावती पहा व प्रिंट करा">
-                  🧾 पावती
-                </button>
-              `}
+              ${receiptBtnHtml}
             </td>
           `;
           historyTbody.appendChild(tr);
+        });
+      }
+    }
+
+    // ==========================================================================
+    // सदस्य कर्ज व चालू हप्ता तपशील (Customer Loan Breakdown & Total You Have to Pay)
+    // ==========================================================================
+    const overallDue = window.bishiStore.calculateMemberOverallDue(member);
+    const loanSummary = window.bishiStore.getMemberLoanSummary(member.id);
+
+    const totalOverallDueDisplay = document.getElementById('custTotalOverallDueDisplay');
+    if (totalOverallDueDisplay) totalOverallDueDisplay.textContent = `${currency}${(overallDue?.grandTotalDue || 0).toLocaleString('en-IN')}`;
+
+    const custDueWeeklyBishi = document.getElementById('custDueWeeklyBishi');
+    if (custDueWeeklyBishi) custDueWeeklyBishi.textContent = `${currency}${(overallDue?.totalWeeklyBishiDue || 0).toLocaleString('en-IN')}`;
+
+    const custDueLoanPrincipal = document.getElementById('custDueLoanPrincipal');
+    const custDueLoanPrincipalBox = document.getElementById('custDueLoanPrincipalBox');
+    const custDueLoanPrincipalPlus = document.getElementById('custDueLoanPrincipalPlus');
+    if (custDueLoanPrincipal) {
+      custDueLoanPrincipal.textContent = `${currency}${(overallDue?.loanPrincipalDue || 0).toLocaleString('en-IN')}`;
+    }
+    if (custDueLoanPrincipalBox && custDueLoanPrincipalPlus) {
+      if ((overallDue?.loanPrincipalDue || 0) > 0) {
+        custDueLoanPrincipalBox.style.display = 'block';
+        custDueLoanPrincipalPlus.style.display = 'block';
+      } else {
+        custDueLoanPrincipalBox.style.display = 'none';
+        custDueLoanPrincipalPlus.style.display = 'none';
+      }
+    }
+
+    const custDueLoanInterest = document.getElementById('custDueLoanInterest');
+    const custDueLoanInterestBox = document.getElementById('custDueLoanInterestBox');
+    const custDueLoanInterestPlus = document.getElementById('custDueLoanInterestPlus');
+    if (custDueLoanInterestBox && custDueLoanInterestPlus) {
+      // व्याज फक्त ४ आठवडे पूर्ण झाल्यावरच (loanInterestDue > 0) दाखवले जाईल
+      if (overallDue && overallDue.loanInterestDue > 0) {
+        custDueLoanInterestBox.style.display = 'block';
+        custDueLoanInterestPlus.style.display = 'block';
+        if (custDueLoanInterest) {
+          custDueLoanInterest.textContent = `+${currency}${overallDue.loanInterestDue.toLocaleString('en-IN')}`;
+        }
+      } else {
+        custDueLoanInterestBox.style.display = 'none';
+        custDueLoanInterestPlus.style.display = 'none';
+      }
+    }
+
+    // सदस्य सक्रिय कर्ज कंटेनर
+    const activeLoansContainer = document.getElementById('custActiveLoansContainer');
+    if (activeLoansContainer) {
+      if (!loanSummary || loanSummary.activeLoansCount === 0) {
+        activeLoansContainer.innerHTML = `
+          <div style="background: var(--bg-tertiary); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; color: var(--text-muted);">
+            <div style="font-size: 1.5rem; margin-bottom: 0.35rem;">💳</div>
+            <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">सध्या कोणतेही सक्रिय कर्ज बाकी नाही</div>
+            <div style="font-size: 0.8rem; margin-top: 0.2rem;">आपले कर्ज खाते पूर्णपणे क्लिअर आहे.</div>
+          </div>
+        `;
+      } else {
+        activeLoansContainer.innerHTML = '';
+        loanSummary.activeLoans.forEach(({ loan, details }) => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 0.85rem;';
+          
+          let cycleStatusHtml = '';
+          if (details.isGracePeriodActive) {
+            cycleStatusHtml = `<span class="status-pill status-paid" style="background: rgba(16, 185, 129, 0.15); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.35);">🟢 चक्र ${details.currentCycleNumber}: सवलतीत (०% व्याज • ${details.remainingGraceWeeks} आठवडे बाकी)</span>`;
+          } else {
+            cycleStatusHtml = `<span class="status-pill status-overdue" style="background: rgba(245, 158, 11, 0.15); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.35);">⚠️ चक्र ${details.currentCycleNumber}: ४ आठवडे पूर्ण (+${currency}${details.interestAmount.toLocaleString('en-IN')} ३% व्याज देय)</span>`;
+          }
+
+          const hasPastInterest = Array.isArray(loan.interestPayments) && loan.interestPayments.length > 0;
+          let pastInterestHtml = '';
+          if (hasPastInterest) {
+            pastInterestHtml = `
+              <div style="margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color);">
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
+                  💰 जमा केलेल्या ४-आठवडे व्याजाच्या पावत्या (${loan.interestPayments.length} भरणा):
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                  ${loan.interestPayments.map((p, idx) => `
+                    <div style="background: var(--bg-card); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-sm); padding: 0.35rem 0.65rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                      <span style="color: var(--gold-400); font-weight: 700;">चक्र ${p.cycleNumber || (idx + 1)}: ${currency}${Number(p.amount).toLocaleString('en-IN')}</span>
+                      <span style="color: var(--text-muted); font-size: 0.7rem;">(W${p.paidWeek || '-'})</span>
+                      <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.7rem;" onclick="window.receiptManager.showLoanInterestReceiptModal('${loan.id}', '${p.id}')">
+                        🧾 पावती
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }
+
+          card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+              <div>
+                <span style="font-family: var(--font-mono); font-weight: 700; color: var(--gold-400); font-size: 0.88rem;">${loan.id}</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.4rem;">(वाटप आठवडा ${loan.issueWeek || 1} • ${loan.issueDate || '-'})</span>
+              </div>
+              <div>${cycleStatusHtml}</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; font-size: 0.85rem; margin-bottom: 0.85rem;">
+              <div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">मूळ कर्ज मुद्दल</div>
+                <div style="font-weight: 800; color: #fff; font-size: 1.05rem;">${currency}${details.principal.toLocaleString('en-IN')}</div>
+              </div>
+              <div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">कालावधी (एकूण / चालू चक्र)</div>
+                <div style="font-weight: 700; color: var(--text-primary);">${details.elapsedWeeks} आठवडे (चालू: ${details.currentCycleElapsedWeeks}/४ आठवडे)</div>
+              </div>
+              <div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">पुढील व्याज देय आठवडा</div>
+                <div style="font-weight: 700; color: var(--blue-400);">आठवडा ${details.nextInterestDueWeek}</div>
+              </div>
+              <div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">चालू चक्र देय व्याज</div>
+                <div style="font-weight: 700; color: ${details.interestAmount > 0 ? 'var(--rose-400)' : 'var(--emerald-400)'};">${details.interestAmount > 0 ? `+${currency}${details.interestAmount.toLocaleString('en-IN')} (३% लागू)` : '₹० (४ आठवड्यांपर्यंत ०% सवलत)'}</div>
+              </div>
+              <div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">एकूण देय परतफेड</div>
+                <div style="font-weight: 800; color: var(--gold-400); font-size: 1.05rem;">${currency}${details.totalPayable.toLocaleString('en-IN')}${details.interestAmount === 0 ? ' (फक्त मुद्दल)' : ''}</div>
+              </div>
+            </div>
+
+            ${pastInterestHtml}
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-color); padding-top: 0.65rem; margin-top: 0.65rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="font-size: 0.75rem; color: var(--text-muted);">
+                🔒 <em>केवळ मुख्य प्रशासक ४-आठवडे व्याज व कर्ज परतफेड जमा करू शकतात.</em>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${loan.id}')" title="कर्ज पावती / व्हाउचर पहा">
+                🧾 कर्ज वाटप व्हाऊचर पहा
+              </button>
+            </div>
+          `;
+          activeLoansContainer.appendChild(card);
+        });
+      }
+    }
+
+    // सदस्य मागील कर्ज इतिहास टेबल
+    const custLoansTableBody = document.getElementById('custLoansTableBody');
+    if (custLoansTableBody) {
+      custLoansTableBody.innerHTML = '';
+      if (!loanSummary || loanSummary.allLoans.length === 0) {
+        custLoansTableBody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">
+              कोणतेही कर्ज रेकॉर्ड उपलब्ध नाही
+            </td>
+          </tr>
+        `;
+      } else {
+        loanSummary.allLoans.forEach(loan => {
+          const details = window.bishiStore.calculateLoanDetails(loan);
+          const isPaid = loan.status === 'paid';
+          const interestCount = Array.isArray(loan.interestPayments) ? loan.interestPayments.length : 0;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--gold-400); font-weight: 700;">${loan.id}</td>
+            <td style="font-weight: 700; color: #fff;">${currency}${details.principal.toLocaleString('en-IN')}</td>
+            <td style="font-size: 0.82rem; color: var(--text-secondary);">W${loan.issueWeek || 1} • ${loan.issueDate || '-'}</td>
+            <td style="font-size: 0.82rem;">${details.elapsedWeeks} आठवडे</td>
+            <td style="font-size: 0.82rem; color: ${details.interestAmount > 0 ? 'var(--rose-400)' : 'var(--emerald-400)'}; font-weight: 600;">
+              ${isPaid 
+                ? (loan.interestPaid > 0 ? `+${currency}${loan.interestPaid.toLocaleString('en-IN')} (३%)` : '₹० (सवलतीत)') 
+                : (details.interestAmount > 0 ? `+${currency}${details.interestAmount.toLocaleString('en-IN')} (३% देय)` : '₹० (४ आठवडे सवलतीत)')}
+              ${interestCount > 0 ? `<div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 700;">(${interestCount} चक्र व्याज जमा)</div>` : ''}
+            </td>
+            <td style="font-weight: 800; color: ${isPaid ? 'var(--emerald-400)' : 'var(--gold-400)'};">
+              ${currency}${(isPaid ? (Number(loan.repaidAmount) || details.totalPayable) : details.totalPayable).toLocaleString('en-IN')}
+            </td>
+            <td>
+              ${isPaid 
+                ? `<span class="status-pill status-paid">✅ भरले (${loan.paidDate || '-'})</span>` 
+                : `<span class="status-pill status-active">🟡 सक्रिय</span>`}
+            </td>
+            <td style="text-align: right;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${loan.id}')" title="पावती पहा व प्रिंट करा">
+                🧾 पावती
+              </button>
+            </td>
+          `;
+          custLoansTableBody.appendChild(tr);
         });
       }
     }
@@ -937,6 +1206,7 @@ class UIManager {
 
     members.forEach(member => {
       const stats = window.bishiStore.calculateMemberStats(member);
+      const loanSummary = window.bishiStore.getMemberLoanSummary(member.id);
       const weekData = member.weeks.find(w => w.weekNumber === currentWeek) || { status: 'pending', amountPaid: 0, finePaid: 0 };
       const paidAmt = Number(weekData.amountPaid || 0);
       const isFullPaidThisWeek = weekData.status === 'paid' && paidAmt >= stats.weeklyAmount;
@@ -986,6 +1256,12 @@ class UIManager {
       });
       miniMatrixHTML += '</div>';
 
+      const hasActiveLoan = loanSummary && loanSummary.activeLoansCount > 0;
+      const firstActiveLoan = hasActiveLoan ? loanSummary.activeLoans[0] : null;
+      const isInterestDueThisWeek = hasActiveLoan && loanSummary.activeInterest > 0;
+      const isGraceActive = hasActiveLoan && !isInterestDueThisWeek && firstActiveLoan?.details?.isGracePeriodActive;
+      const hasPaidInterestRecently = hasActiveLoan && Array.isArray(firstActiveLoan.loan.interestPayments) && firstActiveLoan.loan.interestPayments.some(p => p.paidWeek === currentWeek);
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
@@ -997,6 +1273,12 @@ class UIManager {
               <div class="member-name">
                 <span onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer;" title="पासबुक पहा">${member.name}</span>
                 ${(member.currentCycle && member.currentCycle > 1) ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.4rem; background: rgba(59, 130, 246, 0.2); color: var(--blue-400); border: 1px solid var(--blue-400);">सायकल ${member.currentCycle}</span>` : ''}
+                ${hasActiveLoan ? `
+                  <button type="button" class="status-pill" onclick="event.stopPropagation(); window.ui.openAdminLoansModal()" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(59, 130, 246, 0.18); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.4); font-weight:700; cursor:pointer;" title="सक्रिय मुद्दल: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}${loanSummary.activeInterest > 0 ? ` (+३% व्याज: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')})` : ''} • कर्ज व्यवस्थापन पहा">💳 कर्ज: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}</button>
+                  ${isInterestDueThisWeek ? `
+                    <button type="button" class="status-pill status-overdue interactive" onclick="event.stopPropagation(); window.ui.openPayLoanInterestModal('${firstActiveLoan.loan.id}')" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(245, 158, 11, 0.22); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.6); font-weight:800; cursor:pointer;" title="४ आठवड्यांचे ३% व्याज देय आहे (+${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}) • व्याज जमा करा">💰 ३% व्याज देय: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}</button>
+                  ` : ''}
+                ` : ''}
                 ${stats.isFullyPaid ? `<button type="button" class="status-pill status-completed interactive" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-size:0.68rem; padding:0.15rem 0.5rem; margin-left:0.35rem; font-weight:800;" title="५०-आठवडे मॅच्युरिटी व्हाउचर पहा">पूर्ण 🏆</button>` : ''}
               </div>
               <div class="member-phone">📞 ${member.phone} • <span class="member-id">${member.id}</span></div>
@@ -1048,6 +1330,27 @@ class UIManager {
               ${isOverdue && defaultFine > 0 ? `• <span style="color: #fb7185; font-weight: 700;">+${currency}${defaultFine} दंड</span>` : ''}
             </div>
           `}
+
+          ${hasActiveLoan ? `
+            <div style="margin-top: 0.35rem; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+              ${isInterestDueThisWeek ? `
+                <button type="button" class="status-pill status-overdue interactive" onclick="event.stopPropagation(); window.ui.openPayLoanInterestModal('${firstActiveLoan.loan.id}')" style="font-size: 0.7rem; padding: 0.18rem 0.5rem; background: rgba(245, 158, 11, 0.22); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.6); font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;" title="या आठवड्यात ४-आठवड्यांचे ३% कर्ज व्याज देय आहे • व्याज जमा करण्यासाठी क्लिक करा">
+                  💰 ३% कर्ज व्याज देय: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}
+                </button>
+                <button type="button" class="btn btn-sm" onclick="event.stopPropagation(); window.receiptManager.sendLoanInterestPendingReminder('${firstActiveLoan.loan.id}')" style="background: #25d366; color: #000; font-size: 0.68rem; padding: 0.15rem 0.45rem; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem;" title="सदस्याला WhatsApp वर व्याज भरणा स्मरणपत्र पाठवा">
+                  💬 मेसेज
+                </button>
+              ` : hasPaidInterestRecently ? `
+                <span class="status-pill status-paid interactive" onclick="event.stopPropagation(); window.receiptManager.showLoanInterestReceiptModal('${firstActiveLoan.loan.id}')" style="font-size: 0.68rem; padding: 0.15rem 0.45rem; background: rgba(16, 185, 129, 0.15); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.35); font-weight: 700; cursor: pointer;" title="या आठवड्यात ३% कर्ज व्याज जमा झाले आहे • पावती पहा">
+                  ✓ कर्ज व्याज जमा
+                </span>
+              ` : isGraceActive ? `
+                <span class="status-pill" style="font-size: 0.68rem; padding: 0.15rem 0.45rem; background: rgba(16, 185, 129, 0.1); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.25);" title="कर्ज ४ आठवड्यांच्या सवलतीत आहे. आठवडा ${firstActiveLoan.details.nextInterestDueWeek} ला ३% व्याज लागू होईल.">
+                  ⏳ कर्ज सवलतीत (W${firstActiveLoan.details.nextInterestDueWeek} ला देय)
+                </span>
+              ` : ''}
+            </div>
+          ` : ''}
         </td>
 
         <td>
@@ -1069,6 +1372,11 @@ class UIManager {
           <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">
             ${stats.isFullyPaid ? `<button type="button" class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-size:0.75rem; padding:0.2rem 0.6rem; background: var(--emerald-600); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:800;" title="५०-आठवडे मॅच्युरिटी व्हाउचर पहा">🎉 पूर्ण झाले (व्हाउचर)</button>` : `पुढील आठवडा ${stats.nextDueWeek}: <span style="color: var(--gold-400);">${currency}${stats.nextDueAmount.toLocaleString('en-IN')}</span>`}
           </div>
+          ${isInterestDueThisWeek ? `
+            <div style="font-size: 0.74rem; color: var(--gold-400); font-weight: 700; margin-top: 0.2rem;">
+              + 💰 कर्ज व्याज: ${currency}${loanSummary.activeInterest.toLocaleString('en-IN')} (एकूण: ${currency}${(stats.nextDueAmount + loanSummary.activeInterest).toLocaleString('en-IN')})
+            </div>
+          ` : ''}
           <div class="amount-remaining">
             लक्ष्य: ${currency}${stats.totalTarget.toLocaleString('en-IN')} <span style="font-size: 0.68rem; color: var(--text-muted);">(+${stats.maturityInterestPercent}% = ${currency}${stats.projectedMaturityTotal.toLocaleString('en-IN')})</span>
           </div>
@@ -1102,6 +1410,14 @@ class UIManager {
                 💰 जमा करा
               </button>
             `}
+            ${isInterestDueThisWeek ? `
+              <button class="btn btn-gold btn-sm" onclick="window.ui.openPayLoanInterestModal('${firstActiveLoan.loan.id}')" style="background: var(--gold-500); color: #000; font-weight: 800; border-color: var(--gold-400);" title="४ आठवड्यांचे ३% व्याज जमा करा (+${currency}${loanSummary.activeInterest})">
+                💰 व्याज जमा (+${currency}${loanSummary.activeInterest})
+              </button>
+              <button class="btn btn-sm" onclick="window.receiptManager.sendLoanInterestPendingReminder('${firstActiveLoan.loan.id}')" style="background: #25d366; color: #000; font-weight: 700; border: none;" title="सदस्याला WhatsApp वर व्याज भरणा स्मरणपत्र पाठवा">
+                💬 व्याज मेसेज
+              </button>
+            ` : ''}
             ${stats.isFullyPaid ? (stats.isPayoutCompleted ? `
               <button class="btn btn-gold btn-sm" onclick="window.receiptManager.showPayoutVoucherModal('${member.id}')" title="अधिकृत ५०-आठवडे मॅच्युरिटी व्हाउचर पहा">
                 📜 व्हाउचर
@@ -1116,6 +1432,9 @@ class UIManager {
                 🔄 नवीन प्लॅन
               </button>
             ` : ''}
+            <button class="btn btn-secondary btn-sm" style="color: var(--blue-400); border-color: rgba(59, 130, 246, 0.4);" onclick="window.ui.openGiveLoanModal('${member.id}')" title="सदस्यास कर्ज द्या">
+              💳 कर्ज
+            </button>
             <button class="btn btn-secondary btn-sm" onclick="window.ui.openPassbookModal('${member.id}')" title="संपूर्ण ५०-आठवडे पासबुक">
               📖 पासबुक
             </button>
@@ -1291,6 +1610,28 @@ class UIManager {
     const overdueAlert = document.getElementById('collectModalOverdueAlert');
     if (overdueAlert) {
       overdueAlert.style.display = isPastDue ? 'flex' : 'none';
+    }
+
+    const loanSummary = window.bishiStore.getMemberLoanSummary(member.id);
+    const loanInterestAlert = document.getElementById('collectModalLoanInterestAlert');
+    const loanInterestText = document.getElementById('collectModalLoanInterestText');
+    const btnPayInterest = document.getElementById('btnCollectModalPayInterest');
+
+    if (loanInterestAlert && loanSummary) {
+      if (loanSummary.activeInterest > 0 && loanSummary.activeLoansCount > 0) {
+        loanInterestAlert.style.display = 'flex';
+        if (loanInterestText) {
+          loanInterestText.textContent = `४-आठवड्यांचे ३% कर्ज व्याज देय: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}`;
+        }
+        if (btnPayInterest) {
+          btnPayInterest.onclick = () => {
+            document.getElementById('collectPaymentModal')?.classList.remove('active');
+            window.ui.openPayLoanInterestModal(loanSummary.activeLoans[0].loan.id);
+          };
+        }
+      } else {
+        loanInterestAlert.style.display = 'none';
+      }
     }
 
     const modeSelect = document.getElementById('collectModalPaymentMode');
@@ -2484,11 +2825,30 @@ class UIManager {
 
     let totalDeposits = 0;
     let totalFines = 0;
+    let grossTotal = 0;
     txns.forEach(t => {
-      totalDeposits += Number(t.depositAmount || t.amount || 0);
-      totalFines += Number(t.fineAmount || 0);
+      if (t.type === 'loan_disbursed') {
+        grossTotal += Number(t.loanDisbursedAmount || t.totalAmount || 0);
+      } else if (t.type === 'loan_interest_payment') {
+        const intAmt = Number(t.loanInterestAmount || t.totalAmount || 0);
+        totalFines += intAmt;
+        grossTotal += intAmt;
+      } else if (t.type === 'loan_repayment') {
+        const repAmt = Number(t.loanRepaidAmount || t.totalAmount || 0);
+        const intAmt = Number(t.loanInterestAmount || 0);
+        totalDeposits += repAmt;
+        totalFines += intAmt;
+        grossTotal += Number(t.totalAmount || (repAmt + intAmt));
+      } else if (t.type === 'payout') {
+        grossTotal += Number(t.totalAmount || 0);
+      } else {
+        const dep = Number(t.depositAmount || t.amount || 0);
+        const fine = Number(t.fineAmount || 0);
+        totalDeposits += dep;
+        totalFines += fine;
+        grossTotal += Number(t.totalAmount || (dep + fine));
+      }
     });
-    const grossTotal = totalDeposits + totalFines;
 
     const countEl = document.getElementById('adminTxnFilteredCount');
     if (countEl) countEl.textContent = txns.length;
@@ -2520,35 +2880,88 @@ class UIManager {
       else if (mode.includes('bank')) modeCls = 'bank';
       else if (mode.includes('cheque')) modeCls = 'cheque';
 
-      const depAmt = Number(t.depositAmount || t.amount || 0);
-      const fineAmt = Number(t.fineAmount || 0);
-      const totalRec = depAmt + fineAmt;
-
       const member = window.bishiStore.getMember(t.memberId);
       const phone = member ? member.phone : '';
       const memberWeekly = member ? Number(member.weeklyAmount) : 1000;
-      const isExtraDeposit = depAmt > memberWeekly && t.type !== 'payout' && (t.weekNumber || 0) > 0;
-      const extraDepositAmt = isExtraDeposit ? (depAmt - memberWeekly) : 0;
+
+      let statusPillHtml = '';
+      let depAmtHtml = '';
+      let fineAmtHtml = '';
+      let totalRecHtml = '';
+      let receiptBtnHtml = '';
+
+      if (t.type === 'loan_disbursed') {
+        const amt = Number(t.loanDisbursedAmount || t.totalAmount || 0);
+        statusPillHtml = `<span class="status-pill" style="font-size: 0.72rem; background: rgba(59, 130, 246, 0.15); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.35); font-weight: 700;">💳 कर्ज वाटप (W${t.weekNumber || 1})</span>`;
+        depAmtHtml = `<span style="color: var(--blue-400); font-weight: 800;">${currency}${amt.toLocaleString('en-IN')}</span>`;
+        fineAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
+        totalRecHtml = `<span style="color: var(--blue-400); font-weight: 800;">${currency}${amt.toLocaleString('en-IN')}</span>`;
+        receiptBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${t.loanId || t.receiptNo?.replace('DISB-', '')}')" title="कर्ज व्हाऊचर पहा">📄 व्हाऊचर</button>`;
+      } else if (t.type === 'loan_interest_payment') {
+        const intAmt = Number(t.loanInterestAmount || t.totalAmount || 0);
+        statusPillHtml = `<span class="status-pill status-overdue" style="font-size: 0.72rem; background: rgba(245, 158, 11, 0.15); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 700;">💰 कर्ज व्याज (चक्र ${t.cycleNumber || 1} • W${t.weekNumber || 1})</span>`;
+        depAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
+        fineAmtHtml = `<span style="color: var(--gold-400); font-weight: 700;">+${currency}${intAmt.toLocaleString('en-IN')} (३%)</span>`;
+        totalRecHtml = `<span style="color: var(--gold-400); font-weight: 800;">${currency}${intAmt.toLocaleString('en-IN')}</span>`;
+        receiptBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanInterestReceiptModal('${t.loanId}', '${t.receiptNo || t.id}')" title="व्याज पावती पहा">🧾 पावती</button>`;
+      } else if (t.type === 'loan_repayment') {
+        const repAmt = Number(t.loanRepaidAmount || t.totalAmount || 0);
+        const intAmt = Number(t.loanInterestAmount || 0);
+        const tot = Number(t.totalAmount || (repAmt + intAmt));
+        statusPillHtml = `<span class="status-pill status-paid" style="font-size: 0.72rem; font-weight: 700;">✅ कर्ज परतफेड (W${t.weekNumber || 1})</span>`;
+        depAmtHtml = `<span style="color: var(--emerald-400); font-weight: 800;">मुद्दल: ${currency}${repAmt.toLocaleString('en-IN')}</span>`;
+        fineAmtHtml = intAmt > 0 ? `<span style="color: var(--gold-400); font-weight: 700;">+${currency}${intAmt.toLocaleString('en-IN')}</span>` : `<span style="color: var(--text-muted);">₹०</span>`;
+        totalRecHtml = `<span style="color: var(--emerald-400); font-weight: 800;">${currency}${tot.toLocaleString('en-IN')}</span>`;
+        receiptBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${t.loanId}')" title="कर्ज परतफेड पावती पहा">🧾 पावती</button>`;
+      } else if (t.type === 'payout') {
+        const tot = Number(t.totalAmount || 0);
+        statusPillHtml = `<span class="status-pill status-completed" style="font-size: 0.72rem; font-weight: 700;">🏆 मॅच्युरिटी वाटप</span>`;
+        depAmtHtml = `<span style="color: var(--gold-400); font-weight: 800;">${currency}${tot.toLocaleString('en-IN')}</span>`;
+        fineAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
+        totalRecHtml = `<span style="color: var(--gold-400); font-weight: 800;">${currency}${tot.toLocaleString('en-IN')}</span>`;
+        receiptBtnHtml = `<button class="btn btn-gold btn-sm" onclick="window.receiptManager.showPayoutVoucherModal('${t.memberId}', ${t.cycleNumber || 1})" title="व्हाउचर पहा">📜 व्हाउचर</button>`;
+      } else {
+        const depAmt = Number(t.depositAmount || t.amount || 0);
+        const fineAmt = Number(t.fineAmount || 0);
+        const totalRec = Number(t.totalAmount || (depAmt + fineAmt));
+        const isExtraDeposit = depAmt > memberWeekly && (t.weekNumber || 0) > 0;
+        const extraDepositAmt = isExtraDeposit ? (depAmt - memberWeekly) : 0;
+
+        statusPillHtml = `
+          <span class="status-pill status-paid" style="font-size: 0.75rem;">आठवडा ${t.weekNumber} / ५०</span>
+          ${isExtraDeposit ? `<span class="extra-amount-pill" style="margin-top: 0.2rem;">⭐ +${currency}${extraDepositAmt} जादा</span>` : ''}
+        `;
+        depAmtHtml = `
+          <span style="color: var(--emerald-400); font-weight: 800;">${currency}${depAmt.toLocaleString('en-IN')}</span>
+          ${isExtraDeposit ? `<div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">(नियमित ${currency}${memberWeekly} + ⭐ ${currency}${extraDepositAmt})</div>` : ''}
+        `;
+        fineAmtHtml = `<span style="color: var(--rose-400); font-weight: 700;">${fineAmt > 0 ? `+${currency}${fineAmt}` : '₹0'}</span>`;
+        totalRecHtml = `<span style="color: #fff; font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
+        receiptBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${t.memberId}', ${t.weekNumber})" title="पावती पहा / प्रिंट करा">🧾 पावती</button>`;
+      }
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary);">
           <strong>${t.receiptNo || t.id}</strong>
+          ${t.note ? `<div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-sans); margin-top: 0.2rem;">${t.note}</div>` : ''}
         </td>
         <td>
           <div style="font-weight: 700; color: var(--text-primary);">${t.memberName}</div>
           <div style="font-size: 0.75rem; color: var(--text-muted);">${t.memberId} ${phone ? `• 📞 ${phone}` : ''}</div>
         </td>
         <td>
-          <span class="status-pill status-paid" style="font-size: 0.75rem;">आठवडा ${t.weekNumber} / ५०</span>
-          ${isExtraDeposit ? `<span class="extra-amount-pill" style="margin-top: 0.2rem;">⭐ +${currency}${extraDepositAmt} जादा</span>` : ''}
+          ${statusPillHtml}
         </td>
-        <td style="color: var(--emerald-400); font-weight: 800;">
-          ${currency}${depAmt.toLocaleString('en-IN')}
-          ${isExtraDeposit ? `<div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">(नियमित ${currency}${memberWeekly} + ⭐ ${currency}${extraDepositAmt})</div>` : ''}
+        <td>
+          ${depAmtHtml}
         </td>
-        <td style="color: var(--rose-400); font-weight: 700;">${fineAmt > 0 ? `+${currency}${fineAmt}` : '₹0'}</td>
-        <td style="color: #fff; font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</td>
+        <td>
+          ${fineAmtHtml}
+        </td>
+        <td>
+          ${totalRecHtml}
+        </td>
         <td>
           <span class="mode-tag ${modeCls}">${t.paymentMode || 'Cash'}</span>
           ${t.upiId ? `<div style="font-size: 0.72rem; color: var(--blue-400); font-weight: 600; margin-top: 0.25rem; font-family: var(--font-mono);">UPI: ${t.upiId}</div>` : ''}
@@ -2558,12 +2971,12 @@ class UIManager {
           <span style="font-size: 0.72rem; color: var(--text-muted);">${new Date(t.date).toLocaleTimeString('hi-IN', {hour:'2-digit', minute:'2-digit'})}</span>
         </td>
         <td style="text-align: right; white-space: nowrap;">
-          <button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${t.memberId}', ${t.weekNumber})" title="पावती पहा / प्रिंट करा">
-            🧾 पावती
-          </button>
-          <button class="btn btn-danger btn-sm" onclick="window.ui.handleUndoPayment('${t.memberId}', ${t.weekNumber})" title="पेमेंट रद्द करा">
-            ✕
-          </button>
+          ${receiptBtnHtml}
+          ${t.type === 'deposit' || !t.type ? `
+            <button class="btn btn-danger btn-sm" onclick="window.ui.handleUndoPayment('${t.memberId}', ${t.weekNumber})" title="पेमेंट रद्द करा">
+              ✕
+            </button>
+          ` : ''}
         </td>
       `;
       tbody.appendChild(tr);
@@ -2600,6 +3013,531 @@ class UIManager {
     if (interestInput) interestInput.value = rate;
     this.updateInterestPreview(rate);
     document.getElementById('adminPanelCurrency').value = meta.currency || '₹';
+  }
+
+  // ==========================================================================
+  // 💳 सदस्य कर्ज व्यवस्थापन (Admin Loan Controller & Ledger)
+  // ==========================================================================
+
+  openAdminLoansModal() {
+    if (!window.authManager.isAdmin()) {
+      this.showToast('केवळ प्रशासक कर्ज व्यवस्थापन पाहू शकतात', 'error');
+      return;
+    }
+    this.adminLoansSearchQuery = '';
+    this.adminLoansStatusFilter = 'all';
+    const searchInput = document.getElementById('adminLoansSearchInput');
+    if (searchInput) searchInput.value = '';
+    const statusSelect = document.getElementById('adminLoansStatusFilter');
+    if (statusSelect) statusSelect.value = 'all';
+
+    this.renderAdminLoansModal();
+    document.getElementById('adminLoansModal')?.classList.add('active');
+  }
+
+  renderAdminLoansModal() {
+    const stats = window.bishiStore.getDashboardStats();
+    const currency = window.bishiStore.state.meta.currency || '₹';
+
+    // KPI कार्ड्स
+    const disbEl = document.getElementById('adminLoansTotalDisbursed');
+    if (disbEl) disbEl.textContent = `${currency}${(stats.totalLoansDisbursed || 0).toLocaleString('en-IN')}`;
+
+    const activePrincEl = document.getElementById('adminLoansActivePrincipal');
+    if (activePrincEl) activePrincEl.textContent = `${currency}${(stats.totalActiveLoansPrincipal || 0).toLocaleString('en-IN')}`;
+
+    const repaidEl = document.getElementById('adminLoansTotalRepaid');
+    if (repaidEl) repaidEl.textContent = `${currency}${(stats.totalLoansRepaidAmount || 0).toLocaleString('en-IN')}`;
+
+    const intCollectedEl = document.getElementById('adminLoansInterestCollected');
+    if (intCollectedEl) intCollectedEl.textContent = `${currency}${(stats.totalLoanInterestCollected || 0).toLocaleString('en-IN')}`;
+
+    const tbody = document.getElementById('adminLoansTableBody');
+    if (!tbody) return;
+
+    let loans = window.bishiStore.state.loans || [];
+
+    // Filter by Status
+    const statusFilter = document.getElementById('adminLoansStatusFilter')?.value || this.adminLoansStatusFilter || 'all';
+    if (statusFilter === 'active') {
+      loans = loans.filter(l => l.status === 'active');
+    } else if (statusFilter === 'paid') {
+      loans = loans.filter(l => l.status === 'paid');
+    }
+
+    // Filter by Search Query
+    const query = (document.getElementById('adminLoansSearchInput')?.value || this.adminLoansSearchQuery || '').toLowerCase().trim();
+    if (query) {
+      loans = loans.filter(l => 
+        (l.memberName || '').toLowerCase().includes(query) ||
+        (l.memberId || '').toLowerCase().includes(query) ||
+        (l.id || '').toLowerCase().includes(query) ||
+        (l.memberPhone || '').includes(query)
+      );
+    }
+
+    if (loans.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💳</div>
+            <div style="font-weight: 700; color: var(--text-primary); font-size: 1rem;">कोणतीही कर्ज नोंद सापडली नाही</div>
+            <p style="font-size: 0.85rem; margin-top: 0.25rem;">नवीन कर्ज देण्यासाठी 'नवीन कर्ज द्या' बटणावर क्लिक करा.</p>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = '';
+    loans.forEach(loan => {
+      const details = window.bishiStore.calculateLoanDetails(loan);
+      const isPaid = loan.status === 'paid';
+      const tr = document.createElement('tr');
+
+      let graceHtml = '';
+      if (isPaid) {
+        graceHtml = loan.interestPaid > 0 
+          ? `<span style="color: var(--rose-400); font-weight: 700;">+${currency}${loan.interestPaid.toLocaleString('en-IN')} (३% व्याज)</span>` 
+          : `<span style="color: var(--emerald-400); font-weight: 700;">₹० (०% सवलतीत पूर्ण)</span>`;
+      } else if (details.isGracePeriodActive) {
+        graceHtml = `<span class="status-pill status-paid" style="font-size: 0.72rem; background: rgba(16, 185, 129, 0.15); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.35);">🟢 चक्र ${details.currentCycleNumber}: सवलतीत (०% व्याज • ${details.remainingGraceWeeks} आठवडे बाकी)</span>`;
+      } else {
+        graceHtml = `<span class="status-pill status-overdue" style="font-size: 0.72rem; background: rgba(245, 158, 11, 0.15); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.35);">⚠️ चक्र ${details.currentCycleNumber}: +${currency}${details.interestAmount.toLocaleString('en-IN')} (४ आठवडे पूर्ण - ३% व्याज देय)</span>`;
+      }
+
+      const totalInterestCollectedOnLoan = Number(loan.totalInterestPaid || 0);
+      const interestPaymentsList = Array.isArray(loan.interestPayments) ? loan.interestPayments : [];
+
+      tr.innerHTML = `
+        <td style="font-family: var(--font-mono); font-weight: 700; color: var(--gold-400); font-size: 0.82rem;">
+          ${loan.id}
+        </td>
+        <td>
+          <div style="font-weight: 700; color: #fff;">${loan.memberName}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">${loan.memberId} • 📞 ${loan.memberPhone || '-'}</div>
+        </td>
+        <td style="font-weight: 800; color: #fff; font-size: 0.95rem;">
+          ${currency}${details.principal.toLocaleString('en-IN')}
+        </td>
+        <td style="font-size: 0.82rem; color: var(--text-secondary);">
+          <div>वाटप: W${loan.issueWeek || 1}</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">${loan.issueDate || '-'}</div>
+        </td>
+        <td style="font-size: 0.82rem;">
+          <div>${details.elapsedWeeks} आठवडे एकूण</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">चालू: ${details.currentCycleElapsedWeeks}/४ आठवडे</div>
+        </td>
+        <td>
+          ${graceHtml}
+          ${totalInterestCollectedOnLoan > 0 ? `<div style="font-size: 0.7rem; color: var(--emerald-400); font-weight: 700; margin-top: 0.2rem;">💰 जमा व्याज: ${currency}${totalInterestCollectedOnLoan.toLocaleString('en-IN')} (${interestPaymentsList.length} चक्र)</div>` : ''}
+        </td>
+        <td style="font-weight: 800; color: ${isPaid ? 'var(--emerald-400)' : 'var(--gold-400)'}; font-size: 0.95rem;">
+          ${currency}${(isPaid ? (Number(loan.repaidAmount) || details.totalPayable) : details.totalPayable).toLocaleString('en-IN')}
+          ${!isPaid && details.isGracePeriodActive ? `<div style="font-size: 0.7rem; color: var(--emerald-400); font-weight: 600;">(फक्त मुद्दल)</div>` : ''}
+          ${!isPaid && !details.isGracePeriodActive ? `<div style="font-size: 0.7rem; color: var(--rose-400); font-weight: 700;">(+३% व्याज)</div>` : ''}
+        </td>
+        <td>
+          ${isPaid 
+            ? `<span class="status-pill status-paid">✅ भरले (${loan.paidDate || '-'})</span>` 
+            : `<span class="status-pill status-active">🟡 सक्रिय बाकी</span>`}
+        </td>
+        <td style="text-align: right;">
+          <div style="display: flex; gap: 0.35rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+            ${!isPaid ? `
+              ${!details.isGracePeriodActive ? `
+                <button type="button" class="btn btn-gold btn-sm" onclick="window.ui.openPayLoanInterestModal('${loan.id}')" title="४ आठवड्यांचे ३% व्याज जमा करा (+₹${details.interestAmount})" style="background: var(--gold-500); color: #000; font-weight: 800; border-color: var(--gold-400);">
+                  💰 व्याज जमा (+${currency}${details.interestAmount})
+                </button>
+                <button type="button" class="btn btn-sm" onclick="window.receiptManager.sendLoanInterestPendingReminder('${loan.id}')" style="background: #25d366; color: #000; font-weight: 700; border: none;" title="सदस्याला WhatsApp वर व्याज भरणा मेसेज पाठवा">
+                  💬 मेसेज
+                </button>
+              ` : `
+                <span class="status-pill status-paid" style="font-size: 0.72rem; padding: 0.25rem 0.5rem; background: rgba(16, 185, 129, 0.12); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.3);" title="पहिल्या ४ आठवड्यांत ०% व्याज सवलत आहे. आठवडा ${details.nextInterestDueWeek} ला ३% व्याज देय होईल.">
+                  ⏳ सवलतीत (W${details.nextInterestDueWeek} ला देय)
+                </span>
+              `}
+              <button type="button" class="btn btn-emerald btn-sm" onclick="window.ui.openMarkLoanPaidModal('${loan.id}')" title="संपूर्ण कर्ज परतफेड नोंदवा">
+                ✅ कर्ज फेड
+              </button>
+            ` : ''}
+            ${interestPaymentsList.length > 0 ? `
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanInterestReceiptModal('${loan.id}')" title="व्याज पावती पहा">
+                🧾 व्याज पावती
+              </button>
+            ` : ''}
+            <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${loan.id}')" title="कर्ज पावती / व्हाऊचर पहा">
+              📄 व्हाऊचर
+            </button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="window.ui.handleCancelLoan('${loan.id}')" title="कर्ज नोंद रद्द करा">
+              ✕
+            </button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  openGiveLoanModal(memberId = null) {
+    if (!window.authManager.isAdmin()) {
+      this.showToast('केवळ प्रशासक सदस्यास कर्ज देऊ शकतात', 'error');
+      return;
+    }
+
+    const select = document.getElementById('giveLoanMemberSelect');
+    if (select) {
+      select.innerHTML = '<option value="">-- सदस्य निवडा --</option>';
+      const activeMembers = window.bishiStore.getMembers().filter(m => m.status === 'active' || m.status === 'completed');
+      activeMembers.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = `${m.name} (${m.id} • ${m.phone})`;
+        if (memberId && m.id === memberId) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    const issueWeekInput = document.getElementById('giveLoanIssueWeek');
+    if (issueWeekInput) issueWeekInput.value = window.bishiStore.state.meta.currentWeek || 1;
+
+    const issueDateInput = document.getElementById('giveLoanIssueDate');
+    if (issueDateInput) issueDateInput.value = new Date().toISOString().split('T')[0];
+
+    const amountInput = document.getElementById('giveLoanAmount');
+    if (amountInput) amountInput.value = 10000;
+
+    const notesInput = document.getElementById('giveLoanNotes');
+    if (notesInput) notesInput.value = '';
+
+    const upiGroup = document.getElementById('giveLoanUpiGroup');
+    if (upiGroup) upiGroup.style.display = 'none';
+    const upiInput = document.getElementById('giveLoanUpiId');
+    if (upiInput) upiInput.value = '';
+
+    const modeSelect = document.getElementById('giveLoanPaymentMode');
+    if (modeSelect) modeSelect.value = 'Cash';
+
+    // Amount preset active state
+    document.querySelectorAll('#giveLoanAmountPresets .preset-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.amount === '10000');
+    });
+
+    document.getElementById('giveLoanModal')?.classList.add('active');
+  }
+
+  handleGiveLoanSubmit(e) {
+    e.preventDefault();
+    if (!window.authManager.isAdmin()) {
+      this.showToast('केवळ प्रशासक सदस्यास कर्ज देऊ शकतात', 'error');
+      return;
+    }
+
+    const memberId = document.getElementById('giveLoanMemberSelect')?.value;
+    if (!memberId) {
+      this.showToast('कृपया सदस्य निवडा', 'warning');
+      return;
+    }
+
+    const principalAmount = Number(document.getElementById('giveLoanAmount')?.value) || 0;
+    if (principalAmount <= 0) {
+      this.showToast('कृपया वैध कर्ज रक्कम टाका', 'warning');
+      return;
+    }
+
+    const issueWeek = Number(document.getElementById('giveLoanIssueWeek')?.value) || window.bishiStore.state.meta.currentWeek || 1;
+    const issueDate = document.getElementById('giveLoanIssueDate')?.value || new Date().toISOString().split('T')[0];
+    const disbursementMode = document.getElementById('giveLoanPaymentMode')?.value || 'Cash';
+    const disbursementUpiId = document.getElementById('giveLoanUpiId')?.value || '';
+    const notes = document.getElementById('giveLoanNotes')?.value || '';
+
+    const res = window.bishiStore.issueLoan({
+      memberId,
+      principalAmount,
+      issueWeek,
+      issueDate,
+      disbursementMode,
+      disbursementUpiId,
+      notes
+    });
+
+    if (res.success) {
+      document.getElementById('giveLoanModal')?.classList.remove('active');
+      this.renderAll();
+      this.renderAdminLoansModal();
+      this.showToast(res.message, 'success');
+      if (res.loan) {
+        setTimeout(() => {
+          window.receiptManager.showLoanReceiptModal(res.loan.id);
+        }, 300);
+      }
+    } else {
+      this.showToast(res.message || 'कर्ज वाटप अयशस्वी', 'error');
+    }
+  }
+
+  // --- ४-आठवडे कर्ज व्याज जमा मोडल उघडणे (Admin Pay Loan Interest Modal) ---
+  openPayLoanInterestModal(loanId) {
+    if (!window.authManager.isAdmin()) {
+      this.showToast('केवळ प्रशासक कर्ज व्याज जमा नोंदवू शकतात', 'error');
+      return;
+    }
+
+    const loan = window.bishiStore.getLoan(loanId);
+    if (!loan) {
+      this.showToast('कर्ज तपशील सापडला नाही', 'error');
+      return;
+    }
+
+    const details = window.bishiStore.calculateLoanDetails(loan);
+    const currency = window.bishiStore.state.meta.currency || '₹';
+    const suggestedInterest = details.singleCycleInterestAmount || Math.round(details.principal * 0.03);
+    const interestToPay = details.interestAmount > 0 ? details.interestAmount : suggestedInterest;
+    const currentCycleNum = (loan.interestPayments ? loan.interestPayments.length : 0) + 1;
+
+    document.getElementById('payLoanInterestLoanId').value = loan.id;
+    document.getElementById('payLoanInterestMemberName').textContent = loan.memberName;
+    document.getElementById('payLoanInterestMemberMeta').textContent = `${loan.memberId} • कर्ज क्र.: ${loan.id} (वाटप: W${loan.issueWeek || 1} • ${loan.issueDate || '-'})`;
+    
+    const badge = document.getElementById('payLoanInterestCycleBadge');
+    if (badge) {
+      if (details.isGracePeriodActive) {
+        badge.className = 'status-pill status-paid';
+        badge.textContent = `चक्र ${currentCycleNum}: सवलत चालू (आठवडा ${details.nextInterestDueWeek} ला ३% देय)`;
+      } else {
+        badge.className = 'status-pill status-overdue';
+        badge.textContent = `चक्र ${currentCycleNum}: ४ आठवडे पूर्ण (३% देय)`;
+      }
+    }
+
+    document.getElementById('payLoanInterestAmountDisplay').textContent = `${currency}${interestToPay.toLocaleString('en-IN')}`;
+    document.getElementById('payLoanInterestPrincipalDisplay').textContent = `${currency}${details.principal.toLocaleString('en-IN')}`;
+    document.getElementById('payLoanInterestLastPaidDisplay').textContent = `आठवडा ${loan.lastInterestPaidWeek || loan.issueWeek || 1} (${loan.lastInterestPaidDate || loan.issueDate || '-'})`;
+    
+    let durationText = `${details.currentCycleElapsedWeeks} आठवडे `;
+    if (details.isGracePeriodActive) {
+      durationText += `(🟢 सवलतीत: ${details.remainingGraceWeeks} आठवडे बाकी)`;
+    } else {
+      durationText += `(⚠️ ४ आठवडे पूर्ण • ३% व्याज देय)`;
+    }
+    document.getElementById('payLoanInterestDurationDisplay').textContent = durationText;
+    document.getElementById('payLoanInterestTotalPaidDisplay').textContent = `${currency}${(loan.totalInterestPaid || 0).toLocaleString('en-IN')}`;
+
+    const amtInput = document.getElementById('payLoanInterestAmountInput');
+    if (amtInput) amtInput.value = interestToPay;
+
+    // फक्त ४-आठवड्यांचे पूर्ण सायकल आठवडेच ड्रॉपडाउनमध्ये दाखवा (सर्व आठवडे दाखवू नका)
+    const weekSelect = document.getElementById('payLoanInterestWeek');
+    if (weekSelect) {
+      weekSelect.innerHTML = '';
+      const baseWeek = Number(loan.lastInterestPaidWeek || loan.issueWeek || 1);
+      const milestoneWeeks = [];
+      for (let w = baseWeek + 4; w <= 50; w += 4) {
+        milestoneWeeks.push(w);
+      }
+      if (milestoneWeeks.length === 0 || !milestoneWeeks.includes(details.nextInterestDueWeek)) {
+        milestoneWeeks.unshift(details.nextInterestDueWeek);
+      }
+      const currentWk = Number(window.bishiStore.state.meta.currentWeek || 1);
+      if (currentWk >= baseWeek + 4 && !milestoneWeeks.includes(currentWk)) {
+        milestoneWeeks.push(currentWk);
+        milestoneWeeks.sort((a, b) => a - b);
+      }
+
+      milestoneWeeks.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w;
+        opt.textContent = `आठवडा ${w} (४ आठवडे पूर्ण चक्र)`;
+        if (w === details.nextInterestDueWeek || (currentWk >= baseWeek + 4 && w === currentWk)) {
+          opt.selected = true;
+        }
+        weekSelect.appendChild(opt);
+      });
+    }
+
+    const dateInput = document.getElementById('payLoanInterestDate');
+    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+    const modeSelect = document.getElementById('payLoanInterestMode');
+    if (modeSelect) modeSelect.value = 'Cash';
+
+    const upiGroup = document.getElementById('payLoanInterestUpiGroup');
+    if (upiGroup) upiGroup.style.display = 'none';
+    const upiInput = document.getElementById('payLoanInterestUpiId');
+    if (upiInput) upiInput.value = '';
+
+    const notesInput = document.getElementById('payLoanInterestNotes');
+    if (notesInput) notesInput.value = `४ आठवड्यांचे ३% व्याज जमा (चक्र ${currentCycleNum})`;
+
+    const btnSendReminder = document.getElementById('btnPayLoanModalSendReminder');
+    if (btnSendReminder) {
+      btnSendReminder.onclick = () => {
+        window.receiptManager.sendLoanInterestPendingReminder(loan.id);
+      };
+    }
+
+    document.getElementById('payLoanInterestModal')?.classList.add('active');
+  }
+
+  handlePayLoanInterestSubmit(e) {
+    e.preventDefault();
+    if (!window.authManager.isAdmin()) {
+      this.showToast('केवळ प्रशासक कर्ज व्याज जमा नोंदवू शकतात', 'error');
+      return;
+    }
+
+    const loanId = document.getElementById('payLoanInterestLoanId')?.value;
+    const amount = Number(document.getElementById('payLoanInterestAmountInput')?.value) || 0;
+    const paidWeek = Number(document.getElementById('payLoanInterestWeek')?.value) || window.bishiStore.state.meta.currentWeek || 1;
+    const paidDate = document.getElementById('payLoanInterestDate')?.value || new Date().toISOString().split('T')[0];
+    const paymentMode = document.getElementById('payLoanInterestMode')?.value || 'Cash';
+    const upiId = document.getElementById('payLoanInterestUpiId')?.value || '';
+    const notes = document.getElementById('payLoanInterestNotes')?.value || '';
+
+    if (amount <= 0) {
+      this.showToast('कृपया योग्य व्याज रक्कम टाका', 'warning');
+      return;
+    }
+
+    const res = window.bishiStore.payLoanInterest(loanId, {
+      amount,
+      paidWeek,
+      paidDate,
+      paymentMode,
+      upiId,
+      notes
+    });
+
+    if (res.success) {
+      document.getElementById('payLoanInterestModal')?.classList.remove('active');
+      this.renderAll();
+      this.renderAdminLoansModal();
+      this.showToast(res.message, 'success');
+      setTimeout(() => {
+        window.receiptManager.showLoanInterestReceiptModal(loanId, res.receiptNo);
+      }, 300);
+    } else {
+      this.showToast(res.message || 'व्याज नोंद अयशस्वी', 'error');
+    }
+  }
+
+  openMarkLoanPaidModal(loanId) {
+    if (!window.authManager.isAdmin()) {
+      this.showToast('केवळ प्रशासक कर्ज परतफेड नोंदवू शकतात', 'error');
+      return;
+    }
+
+    const loan = window.bishiStore.getLoan(loanId);
+    if (!loan) {
+      this.showToast('कर्ज तपशील सापडला नाही', 'error');
+      return;
+    }
+
+    const details = window.bishiStore.calculateLoanDetails(loan);
+    const currency = window.bishiStore.state.meta.currency || '₹';
+
+    document.getElementById('markLoanPaidId').value = loan.id;
+    document.getElementById('markLoanPaidMemberName').textContent = loan.memberName;
+    document.getElementById('markLoanPaidMemberMeta').textContent = `${loan.memberId} • कर्ज क्र.: ${loan.id} (वाटप: W${loan.issueWeek || 1} • ${loan.issueDate || '-'})`;
+    
+    document.getElementById('markLoanPaidTotalDisplay').textContent = `${currency}${details.totalPayable.toLocaleString('en-IN')}`;
+    document.getElementById('markLoanPaidPrincipalDisplay').textContent = `${currency}${details.principal.toLocaleString('en-IN')}`;
+    
+    let durationText = `${details.elapsedWeeks} आठवडे (${details.daysElapsed} दिवस) `;
+    if (details.isGracePeriodActive) {
+      durationText += `(🟢 ०% सवलतीत: ${details.remainingGraceWeeks} आठवडे बाकी)`;
+    } else {
+      durationText += `(⚠️ ४ आठवड्यांच्या पुढे)`;
+    }
+    document.getElementById('markLoanPaidDurationDisplay').textContent = durationText;
+
+    if (details.interestAmount > 0) {
+      document.getElementById('markLoanPaidInterestDisplay').textContent = `+${currency}${details.interestAmount.toLocaleString('en-IN')} (३% व्याज)`;
+    } else {
+      document.getElementById('markLoanPaidInterestDisplay').textContent = `₹० (०% सवलतीत)`;
+    }
+
+    const amtInput = document.getElementById('markLoanPaidAmountInput');
+    if (amtInput) amtInput.value = details.totalPayable;
+
+    const intInput = document.getElementById('markLoanPaidInterestInput');
+    if (intInput) intInput.value = details.interestAmount;
+
+    const weekInput = document.getElementById('markLoanPaidWeek');
+    if (weekInput) weekInput.value = window.bishiStore.state.meta.currentWeek || 1;
+
+    const dateInput = document.getElementById('markLoanPaidDate');
+    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+    const modeSelect = document.getElementById('markLoanPaidMode');
+    if (modeSelect) modeSelect.value = 'Cash';
+
+    const upiGroup = document.getElementById('markLoanPaidUpiGroup');
+    if (upiGroup) upiGroup.style.display = 'none';
+    const upiInput = document.getElementById('markLoanPaidUpiId');
+    if (upiInput) upiInput.value = '';
+
+    const notesInput = document.getElementById('markLoanPaidNotes');
+    if (notesInput) notesInput.value = '';
+
+    document.getElementById('markLoanPaidModal')?.classList.add('active');
+  }
+
+  handleMarkLoanPaidSubmit(e) {
+    e.preventDefault();
+    if (!window.authManager.isAdmin()) {
+      this.showToast('केवळ प्रशासक कर्ज परतफेड नोंदवू शकतात', 'error');
+      return;
+    }
+
+    const loanId = document.getElementById('markLoanPaidId')?.value;
+    const repaidAmount = Number(document.getElementById('markLoanPaidAmountInput')?.value) || 0;
+    const interestAmount = Number(document.getElementById('markLoanPaidInterestInput')?.value) || 0;
+    const paidWeek = Number(document.getElementById('markLoanPaidWeek')?.value) || window.bishiStore.state.meta.currentWeek || 1;
+    const paidDate = document.getElementById('markLoanPaidDate')?.value || new Date().toISOString().split('T')[0];
+    const paymentMode = document.getElementById('markLoanPaidMode')?.value || 'Cash';
+    const upiId = document.getElementById('markLoanPaidUpiId')?.value || '';
+    const notes = document.getElementById('markLoanPaidNotes')?.value || '';
+
+    const res = window.bishiStore.markLoanPaid(loanId, {
+      repaidAmount,
+      interestAmount,
+      paidWeek,
+      paidDate,
+      paymentMode,
+      upiId,
+      notes
+    });
+
+    if (res.success) {
+      document.getElementById('markLoanPaidModal')?.classList.remove('active');
+      this.renderAll();
+      this.renderAdminLoansModal();
+      this.showToast(res.message, 'success');
+      setTimeout(() => {
+        window.receiptManager.showLoanReceiptModal(loanId);
+      }, 300);
+    } else {
+      this.showToast(res.message || 'परतफेड नोंद अयशस्वी', 'error');
+    }
+  }
+
+  handleCancelLoan(loanId) {
+    if (!window.authManager.isAdmin()) {
+      this.showToast('केवळ प्रशासक कर्ज रद्द करू शकतात', 'error');
+      return;
+    }
+
+    if (confirm(`खात्री करा: कर्ज ${loanId} ची नोंद सिस्टममधून काढून टाकायची आहे का?`)) {
+      const res = window.bishiStore.cancelLoan(loanId);
+      if (res.success) {
+        this.renderAll();
+        this.renderAdminLoansModal();
+        this.showToast(res.message, 'success');
+      } else {
+        this.showToast(res.message || 'रद्द करता आले नाही', 'error');
+      }
+    }
   }
 
   // --- इव्हेंट लिसनर्स सेटअप ---
@@ -2694,6 +3632,92 @@ class UIManager {
     document.getElementById('adminTxnModeFilter')?.addEventListener('change', () => {
       this.renderAdminTransactionsTab();
     });
+
+    // सदस्य कर्ज व्यवस्थापन मोडल (प्रशासक)
+    document.getElementById('btnOpenAdminLoans')?.addEventListener('click', () => {
+      this.openAdminLoansModal();
+    });
+
+    document.getElementById('btnOpenGiveLoanModal')?.addEventListener('click', () => {
+      this.openGiveLoanModal();
+    });
+
+    document.getElementById('btnExportLoansCSV')?.addEventListener('click', () => {
+      window.exportManager.exportLoansCSV();
+    });
+
+    document.getElementById('adminLoansSearchInput')?.addEventListener('input', () => {
+      this.renderAdminLoansModal();
+    });
+
+    document.getElementById('adminLoansStatusFilter')?.addEventListener('change', () => {
+      this.renderAdminLoansModal();
+    });
+
+    // कर्ज देणे फॉर्म व प्रीसेट्स
+    document.querySelectorAll('#giveLoanAmountPresets .preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#giveLoanAmountPresets .preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const input = document.getElementById('giveLoanAmount');
+        if (input) input.value = btn.dataset.amount;
+      });
+    });
+
+    document.getElementById('giveLoanPaymentMode')?.addEventListener('change', (e) => {
+      const isUpi = e.target.value.toLowerCase().includes('upi');
+      const upiGroup = document.getElementById('giveLoanUpiGroup');
+      const upiInput = document.getElementById('giveLoanUpiId');
+      if (upiGroup) upiGroup.style.display = isUpi ? 'block' : 'none';
+      if (upiInput) upiInput.required = isUpi;
+    });
+
+    document.getElementById('giveLoanForm')?.addEventListener('submit', (e) => this.handleGiveLoanSubmit(e));
+
+    // कर्ज परतफेड फॉर्म
+    document.getElementById('markLoanPaidMode')?.addEventListener('change', (e) => {
+      const isUpi = e.target.value.toLowerCase().includes('upi');
+      const upiGroup = document.getElementById('markLoanPaidUpiGroup');
+      const upiInput = document.getElementById('markLoanPaidUpiId');
+      if (upiGroup) upiGroup.style.display = isUpi ? 'block' : 'none';
+      if (upiInput) upiInput.required = isUpi;
+    });
+
+    const markAmtIn = document.getElementById('markLoanPaidAmountInput');
+    const markIntIn = document.getElementById('markLoanPaidInterestInput');
+    const updateMarkDisplay = () => {
+      const a = Number(markAmtIn?.value) || 0;
+      const currency = window.bishiStore.state.meta.currency || '₹';
+      const disp = document.getElementById('markLoanPaidTotalDisplay');
+      if (disp) disp.textContent = `${currency}${a.toLocaleString('en-IN')}`;
+    };
+    markAmtIn?.addEventListener('input', updateMarkDisplay);
+    markIntIn?.addEventListener('input', () => {
+      const princ = Number(document.getElementById('markLoanPaidPrincipalDisplay')?.textContent?.replace(/[^\d]/g, '')) || 0;
+      const intVal = Number(markIntIn.value) || 0;
+      if (markAmtIn) markAmtIn.value = princ + intVal;
+      updateMarkDisplay();
+    });
+
+    document.getElementById('markLoanPaidForm')?.addEventListener('submit', (e) => this.handleMarkLoanPaidSubmit(e));
+
+    // ४-आठवडे कर्ज व्याज जमा फॉर्म
+    document.getElementById('payLoanInterestMode')?.addEventListener('change', (e) => {
+      const isUpi = e.target.value.toLowerCase().includes('upi');
+      const upiGroup = document.getElementById('payLoanInterestUpiGroup');
+      const upiInput = document.getElementById('payLoanInterestUpiId');
+      if (upiGroup) upiGroup.style.display = isUpi ? 'block' : 'none';
+      if (upiInput) upiInput.required = isUpi;
+    });
+
+    document.getElementById('payLoanInterestAmountInput')?.addEventListener('input', (e) => {
+      const a = Number(e.target.value) || 0;
+      const currency = window.bishiStore.state.meta.currency || '₹';
+      const disp = document.getElementById('payLoanInterestAmountDisplay');
+      if (disp) disp.textContent = `${currency}${a.toLocaleString('en-IN')}`;
+    });
+
+    document.getElementById('payLoanInterestForm')?.addEventListener('submit', (e) => this.handlePayLoanInterestSubmit(e));
 
     // आठवडा बदल बटणे
     document.getElementById('btnPrevWeek')?.addEventListener('click', () => {
