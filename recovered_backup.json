@@ -1,0 +1,1129 @@
+{
+  "meta": {
+    "bishiName": "सुखकर्ता बीशी",
+    "subtitle": "५०-आठवडे बचत व फंड व्यवस्थापन",
+    "currency": "₹",
+    "totalWeeks": 50,
+    "currentWeek": 4,
+    "defaultFineAmount": 50,
+    "maturityInterestPercent": 8,
+    "autoApplyFine": true,
+    "startDate": "2026-09-04",
+    "lastUpdated": 1788927832456,
+    "updateVersion": 25
+  },
+  "members": [
+    {
+      "id": "SKB-001",
+      "name": "aditya patil",
+      "phone": "1234567890",
+      "password": "7890",
+      "weeklyAmount": 500,
+      "startWeek": 1,
+      "nominee": "",
+      "notes": "",
+      "joinDate": "2026-09-04",
+      "status": "active",
+      "currentCycle": 1,
+      "pastCycles": [],
+      "payoutStatus": "pending",
+      "payoutDetails": null,
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W1-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 2,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W2-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 3,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W3-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 4,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W4-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 5,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W5-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 6,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W6-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 7,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W7-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 8,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W8-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 9,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W9-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 10,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W10-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 11,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W11-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 12,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W12-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 13,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W13-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 14,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W14-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 15,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W15-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 16,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W16-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 17,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W17-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 18,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W18-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 19,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W19-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 20,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W20-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 21,
+          "status": "paid",
+          "amountPaid": 500,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-001-W21-2391",
+          "notes": ""
+        },
+        {
+          "weekNumber": 22,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 23,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 24,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 25,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 26,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 27,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 28,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 29,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 30,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 31,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 32,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 33,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 34,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 35,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 36,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 37,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 38,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 39,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 40,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 41,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 42,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 43,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 44,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 45,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 46,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 47,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 48,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 49,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        },
+        {
+          "weekNumber": 50,
+          "status": "pending",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": null,
+          "paymentMode": "",
+          "receiptNo": null,
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "SKB-002",
+      "name": "sarvesh nalwade",
+      "phone": "1234567890",
+      "password": "7890",
+      "weeklyAmount": 1000,
+      "startWeek": 1,
+      "nominee": "N/A",
+      "notes": "",
+      "joinDate": "2026-09-04",
+      "status": "active",
+      "currentCycle": 1,
+      "pastCycles": [],
+      "payoutStatus": "pending",
+      "payoutDetails": null,
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 2,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 3,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 4,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 5,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 6,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 7,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 8,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 9,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 10,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 11,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 12,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 13,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 14,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 15,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 16,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 17,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 18,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 19,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 20,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 21,
+          "status": "paid",
+          "amountPaid": 21000,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W21-6361",
+          "notes": "साप्ताहिक हप्ता (एकूण भरणा: ₹21,000)"
+        },
+        {
+          "weekNumber": 22,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 23,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 24,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 25,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 26,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 27,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 28,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 29,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 30,
+          "status": "paid",
+          "amountPaid": 9000,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W30-5620",
+          "notes": "साप्ताहिक हप्ता (एकूण भरणा: ₹9,000)"
+        },
+        {
+          "weekNumber": 31,
+          "status": "paid",
+          "amountPaid": 1000,
+          "finePaid": 0,
+          "paidDate": "2026-09-04",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W31-1579",
+          "notes": "साप्ताहिक हप्ता"
+        },
+        {
+          "weekNumber": 32,
+          "status": "paid",
+          "amountPaid": 19000,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "एकत्रित हप्ता भरणा (पूर्ण ५० आठवडे)"
+        },
+        {
+          "weekNumber": 33,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 34,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 35,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 36,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 37,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 38,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 39,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 40,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 41,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 42,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 43,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 44,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 45,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 46,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 47,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 48,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 49,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        },
+        {
+          "weekNumber": 50,
+          "status": "paid",
+          "amountPaid": 0,
+          "finePaid": 0,
+          "paidDate": "2026-09-05",
+          "paymentMode": "Cash",
+          "receiptNo": "REC-SKB-002-W32-BULK-1044",
+          "notes": "अगाऊ जमा (Advance Clear)"
+        }
+      ]
+    }
+  ],
+  "settledMembers": [],
+  "transactions": [
+    {
+      "id": "TXN-SKB-002-W32",
+      "memberId": "SKB-002",
+      "memberName": "sarvesh nalwade",
+      "cycleNumber": 1,
+      "weekNumber": 32,
+      "depositAmount": 19000,
+      "fineAmount": 0,
+      "totalAmount": 19000,
+      "date": "2026-09-05T10:00:00.000Z",
+      "paymentMode": "Cash",
+      "receiptNo": "REC-SKB-002-W32-BULK-1044",
+      "note": "साप्ताहिक हप्ता (एकूण भरणा: ₹19,000 • पूर्ण ५० आठवडे उद्दिष्ट साध्य)"
+    },
+    {
+      "id": "TXN-SKB-002-W31",
+      "memberId": "SKB-002",
+      "memberName": "sarvesh nalwade",
+      "cycleNumber": 1,
+      "weekNumber": 31,
+      "depositAmount": 1000,
+      "fineAmount": 0,
+      "totalAmount": 1000,
+      "date": "2026-09-04T16:00:00.000Z",
+      "paymentMode": "Cash",
+      "receiptNo": "REC-SKB-002-W31-1579",
+      "note": "साप्ताहिक हप्ता"
+    },
+    {
+      "id": "TXN-SKB-002-W30",
+      "memberId": "SKB-002",
+      "memberName": "sarvesh nalwade",
+      "cycleNumber": 1,
+      "weekNumber": 30,
+      "depositAmount": 9000,
+      "fineAmount": 0,
+      "totalAmount": 9000,
+      "date": "2026-09-04T15:00:00.000Z",
+      "paymentMode": "Cash",
+      "receiptNo": "REC-SKB-002-W30-5620",
+      "note": "साप्ताहिक हप्ता (एकूण भरणा: ₹9,000)"
+    },
+    {
+      "id": "TXN-SKB-002-W21",
+      "memberId": "SKB-002",
+      "memberName": "sarvesh nalwade",
+      "cycleNumber": 1,
+      "weekNumber": 21,
+      "depositAmount": 21000,
+      "fineAmount": 0,
+      "totalAmount": 21000,
+      "date": "2026-09-04T14:00:00.000Z",
+      "paymentMode": "Cash",
+      "receiptNo": "REC-SKB-002-W21-6361",
+      "note": "साप्ताहिक हप्ता (एकूण भरणा: ₹21,000)"
+    },
+    {
+      "id": "TXN-SKB-001-W1",
+      "memberId": "SKB-001",
+      "memberName": "aditya patil",
+      "cycleNumber": 1,
+      "weekNumber": 1,
+      "depositAmount": 10500,
+      "fineAmount": 0,
+      "totalAmount": 10500,
+      "date": "2026-09-04T12:00:00.000Z",
+      "paymentMode": "Cash",
+      "receiptNo": "REC-SKB-001-W1-4210",
+      "note": "सदस्य हप्ता भरणा (२१ आठवडे अगाऊ जमा)"
+    }
+  ],
+  "loans": [],
+  "_updatedAt": "2026-09-09T04:23:52.456Z",
+  "_lastUpdatedBy": "Admin Recovery"
+}

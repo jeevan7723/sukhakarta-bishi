@@ -19,8 +19,8 @@ const defaultState = {
     maturityInterestPercent: 8, // ५० आठवडे पूर्ण झाल्यावर एकूण बचतीवर ८% मॅच्युरिटी व्याज
     autoApplyFine: true,
     startDate: new Date().toISOString().split('T')[0],
-    lastUpdated: Date.now(),
-    updateVersion: 1
+    lastUpdated: 0,
+    updateVersion: 0
   },
   members: [],
   settledMembers: [],
@@ -31,8 +31,19 @@ const defaultState = {
 class BishiStore {
   constructor() {
     this.cleanLegacyStorageKeys();
+    this.hasLoadedFromStorage = false;
     this.state = this.loadState();
     this.ensureIntegrity();
+  }
+
+  // स्टोअरमध्ये प्रत्यक्ष डेटा (सदस्य, व्यवहार किंवा कर्ज) उपलब्ध आहे का ते तपासणे
+  hasData() {
+    return Boolean(
+      (this.state.members && this.state.members.length > 0) ||
+      (this.state.settledMembers && this.state.settledMembers.length > 0) ||
+      (this.state.transactions && this.state.transactions.length > 0) ||
+      (this.state.loans && this.state.loans.length > 0)
+    );
   }
 
   // जुन्या चाचणी कीज स्वच्छ करणे (Purge Old Dummy Keys)
@@ -83,11 +94,11 @@ class BishiStore {
     if (!this.state.meta.currency) {
       this.state.meta.currency = '₹';
     }
-    if (!this.state.meta.lastUpdated) {
-      this.state.meta.lastUpdated = Date.now();
+    if (this.state.meta.lastUpdated === undefined || this.state.meta.lastUpdated === null) {
+      this.state.meta.lastUpdated = 0;
     }
-    if (!this.state.meta.updateVersion) {
-      this.state.meta.updateVersion = 1;
+    if (this.state.meta.updateVersion === undefined || this.state.meta.updateVersion === null) {
+      this.state.meta.updateVersion = 0;
     }
   }
 
@@ -98,12 +109,14 @@ class BishiStore {
       if (serialized) {
         const parsed = JSON.parse(serialized);
         if (parsed && typeof parsed === 'object' && parsed.meta) {
+          this.hasLoadedFromStorage = true;
           return parsed;
         }
       }
     } catch (e) {
       console.error('Error loading state from localStorage:', e);
     }
+    this.hasLoadedFromStorage = false;
     return JSON.parse(JSON.stringify(defaultState));
   }
 
@@ -1508,7 +1521,36 @@ class BishiStore {
   // ==========================================================================
 
   exportJSON() {
-    return JSON.stringify(this.state, null, 2);
+    this.ensureIntegrity();
+
+    // थेट सक्रिय रेकॉर्ड्सची स्वच्छ कॉपी तयार करणे (Pristine current snapshot)
+    const cleanPayload = {
+      meta: {
+        ...this.state.meta,
+        lastUpdated: Date.now(),
+        exportedAt: new Date().toISOString()
+      },
+      members: JSON.parse(JSON.stringify(this.state.members || [])),
+      settledMembers: JSON.parse(JSON.stringify(this.state.settledMembers || [])),
+      transactions: JSON.parse(JSON.stringify(this.state.transactions || [])),
+      loans: JSON.parse(JSON.stringify(this.state.loans || []))
+    };
+
+    // जर सदस्य वेबसाइटवरून डिलीट झाला असेल, तर त्यांचे जुने व्यवहार किंवा कर्ज JSON मध्ये राहू नये
+    const validMemberIds = new Set([
+      ...cleanPayload.members.map(m => (m.id || '').toUpperCase()),
+      ...cleanPayload.settledMembers.map(s => (s.id || '').toUpperCase())
+    ]);
+
+    cleanPayload.transactions = cleanPayload.transactions.filter(t => 
+      !t.memberId || validMemberIds.has((t.memberId || '').toUpperCase())
+    );
+
+    cleanPayload.loans = cleanPayload.loans.filter(l => 
+      !l.memberId || validMemberIds.has((l.memberId || '').toUpperCase())
+    );
+
+    return JSON.stringify(cleanPayload, null, 2);
   }
 
   importJSON(jsonString) {

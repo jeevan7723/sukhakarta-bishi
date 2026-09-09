@@ -166,6 +166,7 @@ class UIManager {
       this.renderWeekPills();
       this.renderMembersTable();
       this.renderSummaryBanner();
+      this.renderDashboardLoans();
     } else if (window.authManager.isCustomer()) {
       this.renderCustomerPortal();
     }
@@ -988,6 +989,17 @@ class UIManager {
 
     const weekPending = document.getElementById('statWeekPending');
     if (weekPending) weekPending.textContent = `${currency}${stats.weekPendingAmount.toLocaleString('en-IN')} बाकी`;
+
+    // नवीन कर्ज आकडेवारी (Top Dashboard Loan Metric Cards)
+    const statActiveLoans = document.getElementById('statDashboardActiveLoans');
+    if (statActiveLoans) statActiveLoans.textContent = `${currency}${(stats.totalActiveLoansPrincipal || 0).toLocaleString('en-IN')}`;
+    const statActiveLoansSub = document.getElementById('statDashboardActiveLoansSub');
+    if (statActiveLoansSub) statActiveLoansSub.textContent = `${stats.activeLoansCount || 0} सक्रिय कर्जे`;
+
+    const statLoanInterest = document.getElementById('statDashboardLoanInterest');
+    if (statLoanInterest) statLoanInterest.textContent = `${currency}${(stats.totalLoanInterestCollected || 0).toLocaleString('en-IN')}`;
+    const statRepaidLoans = document.getElementById('statDashboardRepaidLoans');
+    if (statRepaidLoans) statRepaidLoans.textContent = `${stats.repaidLoansCount || 0} कर्जे परतफेड`;
   }
 
   renderSummaryBanner() {
@@ -1392,9 +1404,6 @@ class UIManager {
               <button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${member.id}', ${currentWeek})" title="पावती पहा / प्रिंट करा">
                 🧾 पावती
               </button>
-              <button class="btn btn-danger btn-sm" onclick="window.ui.handleUndoPayment('${member.id}', ${currentWeek})" title="पेमेंट रद्द करा">
-                ✕
-              </button>
             ` : isPartialThisWeek ? `
               <button class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${currentWeek})" title="उर्वरित हप्ता जमा करा">
                 💰 बाकी जमा
@@ -1402,57 +1411,110 @@ class UIManager {
               <button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${member.id}', ${currentWeek})" title="पावती पहा / प्रिंट करा">
                 🧾 पावती
               </button>
-              <button class="btn btn-danger btn-sm" onclick="window.ui.handleUndoPayment('${member.id}', ${currentWeek})" title="पेमेंट रद्द करा">
-                ✕
-              </button>
             ` : `
-              <button class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${currentWeek})">
+              <button class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${currentWeek})" title="चालू हप्ता जमा करा">
                 💰 जमा करा
               </button>
             `}
-            ${isInterestDueThisWeek ? `
-              <button class="btn btn-gold btn-sm" onclick="window.ui.openPayLoanInterestModal('${firstActiveLoan.loan.id}')" style="background: var(--gold-500); color: #000; font-weight: 800; border-color: var(--gold-400);" title="४ आठवड्यांचे ३% व्याज जमा करा (+${currency}${loanSummary.activeInterest})">
-                💰 व्याज जमा (+${currency}${loanSummary.activeInterest})
-              </button>
-              <button class="btn btn-sm" onclick="window.receiptManager.sendLoanInterestPendingReminder('${firstActiveLoan.loan.id}')" style="background: #25d366; color: #000; font-weight: 700; border: none;" title="सदस्याला WhatsApp वर व्याज भरणा स्मरणपत्र पाठवा">
-                💬 व्याज मेसेज
-              </button>
-            ` : ''}
-            ${stats.isFullyPaid ? (stats.isPayoutCompleted ? `
-              <button class="btn btn-gold btn-sm" onclick="window.receiptManager.showPayoutVoucherModal('${member.id}')" title="अधिकृत ५०-आठवडे मॅच्युरिटी व्हाउचर पहा">
-                📜 व्हाउचर
-              </button>
-            ` : `
-              <button class="btn btn-emerald btn-sm" onclick="window.ui.openPayoutCompleteModal('${member.id}')" title="सदस्याला ५०-आठवडे मॅच्युरिटी परतावा वाटप करा" style="background: var(--emerald-600); border-color: var(--emerald-500); font-weight: 800;">
-                💰 परतावा वाटप
-              </button>
-            `) : ''}
-            ${stats.canRestartPlan ? `
-              <button class="btn btn-emerald btn-sm" onclick="window.ui.openRestartPlanModal('${member.id}')" title="पुढील सायकल सुरू करा" style="background: linear-gradient(135deg, var(--emerald-600), var(--blue-600)); color: #fff; font-weight: 800; border: none;">
-                🔄 नवीन प्लॅन
-              </button>
-            ` : ''}
-            <button class="btn btn-secondary btn-sm" style="color: var(--blue-400); border-color: rgba(59, 130, 246, 0.4);" onclick="window.ui.openGiveLoanModal('${member.id}')" title="सदस्यास कर्ज द्या">
-              💳 कर्ज
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="window.ui.openPassbookModal('${member.id}')" title="संपूर्ण ५०-आठवडे पासबुक">
-              📖 पासबुक
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="window.ui.openEditMemberModal('${member.id}')" title="सदस्य तपशील एडिट करा">
-              ✏️ एडिट
-            </button>
-            <button class="btn btn-secondary btn-sm" style="color: var(--gold-400); border-color: rgba(245, 158, 11, 0.4);" onclick="window.ui.handleWipeMemberDeposits('${member.id}')" title="या सदस्याचा जमा भरणा डेटा पुसा (Wipe Deposits)">
-              🧹 भरणा पुसा
-            </button>
-            <button class="btn btn-secondary btn-sm" style="color: var(--rose-400); border-color: rgba(244, 63, 94, 0.4);" onclick="window.ui.openSettleModal('${member.id}')" title="सदस्य डेटा व्यवस्थापन व डिलीट">
-              🗑️ डिलीट
-            </button>
+            <select class="member-action-select" onchange="window.ui.handleMemberActionSelect(this, '${member.id}', ${currentWeek})" title="अधिक पर्याय व कृती निवडा">
+              <option value="" selected disabled>⚙️ पर्याय ▾</option>
+              ${(isFullPaidThisWeek || isClearedThisWeek || isPartialThisWeek) ? `
+                <option value="receipt">🧾 पावती पहा (Receipt)</option>
+                <option value="undo">✕ चालू आठवडा भरणा रद्द करा (Undo)</option>
+              ` : `
+                <option value="collect">💰 चालू आठवडा हप्ता जमा करा</option>
+              `}
+              ${isInterestDueThisWeek ? `
+                <option value="pay_interest">💰 ३% कर्ज व्याज जमा करा (+${currency}${loanSummary.activeInterest})</option>
+                <option value="loan_msg">💬 व्याज WhatsApp स्मरणपत्र</option>
+              ` : ''}
+              ${stats.isFullyPaid ? (stats.isPayoutCompleted ? `
+                <option value="voucher">📜 मॅच्युरिटी व्हाउचर पहा</option>
+              ` : `
+                <option value="payout">💰 मॅच्युरिटी परतावा वाटप करा</option>
+              `) : ''}
+              ${stats.canRestartPlan ? `
+                <option value="restart">🔄 नवीन ५०-आठवडे प्लॅन सुरू करा</option>
+              ` : ''}
+              <option value="loan">💳 सदस्यास कर्ज द्या</option>
+              <option value="passbook">📖 ५०-आठवडे पासबुक पहा</option>
+              <option value="edit">✏️ सदस्य तपशील एडिट करा</option>
+              <option value="wipe">🧹 भरणा डेटा पुसा (Wipe)</option>
+              <option value="settle">🗑️ सदस्य डिलीट / सेटल करा</option>
+            </select>
           </div>
         </td>
       `;
 
       tbody.appendChild(tr);
     });
+  }
+
+  // --- सदस्य कृती ड्रॉपडाउन लिस्ट हँडलर ---
+  handleMemberActionSelect(selectEl, memberId, currentWeek) {
+    const action = selectEl.value;
+    if (!action) return;
+
+    // सिलेक्ट रीसेट करा जेणेकरून पुढील कृतीसाठी तयार राहील
+    selectEl.value = '';
+
+    switch (action) {
+      case 'collect':
+        this.openCollectModal(memberId, currentWeek);
+        break;
+      case 'receipt':
+        window.receiptManager.showReceiptModal(memberId, currentWeek);
+        break;
+      case 'undo':
+        this.handleUndoPayment(memberId, currentWeek);
+        break;
+      case 'pay_interest': {
+        const loanSummary = window.bishiStore.getMemberLoansSummary(memberId);
+        const firstActive = loanSummary.allLoans.find(l => l.status === 'active');
+        if (firstActive) {
+          this.openPayLoanInterestModal(firstActive.id);
+        } else {
+          this.showToast('सक्रिय कर्ज सापडले नाही', 'warning');
+        }
+        break;
+      }
+      case 'loan_msg': {
+        const loanSummary = window.bishiStore.getMemberLoansSummary(memberId);
+        const firstActive = loanSummary.allLoans.find(l => l.status === 'active');
+        if (firstActive) {
+          window.receiptManager.sendLoanInterestPendingReminder(firstActive.id);
+        } else {
+          this.showToast('सक्रिय कर्ज सापडले नाही', 'warning');
+        }
+        break;
+      }
+      case 'payout':
+        this.openPayoutCompleteModal(memberId);
+        break;
+      case 'voucher':
+        window.receiptManager.showPayoutVoucherModal(memberId);
+        break;
+      case 'restart':
+        this.openRestartPlanModal(memberId);
+        break;
+      case 'loan':
+        this.openGiveLoanModal(memberId);
+        break;
+      case 'passbook':
+        this.openPassbookModal(memberId);
+        break;
+      case 'edit':
+        this.openEditMemberModal(memberId);
+        break;
+      case 'wipe':
+        this.handleWipeMemberDeposits(memberId);
+        break;
+      case 'settle':
+        this.openSettleModal(memberId);
+        break;
+      default:
+        console.warn('Unknown member action:', action);
+    }
   }
 
   // --- हप्ता जमा मोडल उघडणे ---
@@ -3179,6 +3241,165 @@ class UIManager {
     });
   }
 
+  // --- मुख्य डॅशबोर्डवरील थेट कर्ज खातावही विभाग (Main Dashboard Loans Section) ---
+  renderDashboardLoans() {
+    const stats = window.bishiStore.getDashboardStats();
+    const currency = window.bishiStore.state.meta.currency || '₹';
+
+    // १. बॅज व मिनी KPI अद्ययावत करणे
+    const badge = document.getElementById('dashLoansBadge');
+    if (badge) {
+      badge.textContent = `${stats.activeLoansCount || 0} सक्रिय कर्जे`;
+    }
+
+    const disbEl = document.getElementById('dashLoanDisbursed');
+    if (disbEl) disbEl.textContent = `${currency}${(stats.totalLoansDisbursed || 0).toLocaleString('en-IN')}`;
+    const disbCountEl = document.getElementById('dashLoanDisbursedCount');
+    if (disbCountEl) disbCountEl.textContent = `${(stats.activeLoansCount || 0) + (stats.repaidLoansCount || 0)} कर्जे वाटप`;
+
+    const activeEl = document.getElementById('dashLoanActivePrincipal');
+    if (activeEl) activeEl.textContent = `${currency}${(stats.totalActiveLoansPrincipal || 0).toLocaleString('en-IN')}`;
+    const activeCountEl = document.getElementById('dashLoanActiveCount');
+    if (activeCountEl) activeCountEl.textContent = `${stats.activeLoansCount || 0} सक्रिय बाकी`;
+
+    const intEl = document.getElementById('dashLoanInterestCollected');
+    if (intEl) intEl.textContent = `${currency}${(stats.totalLoanInterestCollected || 0).toLocaleString('en-IN')}`;
+
+    const repEl = document.getElementById('dashLoanRepaidAmount');
+    if (repEl) repEl.textContent = `${currency}${(stats.totalLoansRepaidAmount || 0).toLocaleString('en-IN')}`;
+    const repCountEl = document.getElementById('dashLoanRepaidCount');
+    if (repCountEl) repCountEl.textContent = `${stats.repaidLoansCount || 0} कर्जे पूर्ण`;
+
+    // २. टेबल बॉडी
+    const tbody = document.getElementById('dashLoansTableBody');
+    if (!tbody) return;
+
+    let loans = window.bishiStore.state.loans || [];
+
+    // फिल्टर (Status filter)
+    const statusFilter = document.getElementById('dashLoansStatusFilter')?.value || 'all';
+    if (statusFilter === 'active') {
+      loans = loans.filter(l => l.status === 'active');
+    } else if (statusFilter === 'paid') {
+      loans = loans.filter(l => l.status === 'paid');
+    }
+
+    // शोध (Search Query)
+    const query = (document.getElementById('dashLoansSearchInput')?.value || '').toLowerCase().trim();
+    if (query) {
+      loans = loans.filter(l => 
+        (l.memberName || '').toLowerCase().includes(query) ||
+        (l.memberId || '').toLowerCase().includes(query) ||
+        (l.id || '').toLowerCase().includes(query) ||
+        (l.memberPhone || '').includes(query)
+      );
+    }
+
+    if (loans.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center; padding: 2.25rem; color: var(--text-muted);">
+            <div style="font-size: 2rem; margin-bottom: 0.35rem;">💳</div>
+            <div style="font-weight: 700; color: #fff; font-size: 1rem;">कोणतीही कर्ज नोंद सापडली नाही</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+              नवीन कर्ज वाटप करण्यासाठी वरील <strong>'➕ नवीन कर्ज वाटप'</strong> बटणावर क्लिक करा.
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = '';
+    loans.forEach(loan => {
+      const details = window.bishiStore.calculateLoanDetails(loan);
+      const isPaid = loan.status === 'paid';
+      const tr = document.createElement('tr');
+
+      let graceHtml = '';
+      if (isPaid) {
+        graceHtml = loan.interestPaid > 0 
+          ? `<span style="color: var(--rose-400); font-weight: 700;">+${currency}${loan.interestPaid.toLocaleString('en-IN')} (३% व्याज)</span>` 
+          : `<span style="color: var(--emerald-400); font-weight: 700;">₹० (०% सवलतीत पूर्ण)</span>`;
+      } else if (details.isGracePeriodActive) {
+        graceHtml = `<span class="status-pill status-paid" style="font-size: 0.72rem; background: rgba(16, 185, 129, 0.15); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.35);">🟢 चक्र ${details.currentCycleNumber}: सवलत चालू (०% व्याज • ${details.remainingGraceWeeks} आठवडे बाकी)</span>`;
+      } else {
+        graceHtml = `<span class="status-pill status-overdue" style="font-size: 0.72rem; background: rgba(245, 158, 11, 0.15); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.35);">⚠️ चक्र ${details.currentCycleNumber}: +${currency}${details.interestAmount.toLocaleString('en-IN')} (४ आठवडे पूर्ण • ३% व्याज देय)</span>`;
+      }
+
+      const totalInterestCollectedOnLoan = Number(loan.totalInterestPaid || 0);
+      const interestPaymentsList = Array.isArray(loan.interestPayments) ? loan.interestPayments : [];
+
+      tr.innerHTML = `
+        <td style="font-family: var(--font-mono); font-weight: 700; color: var(--gold-400); font-size: 0.85rem;">
+          ${loan.id}
+        </td>
+        <td>
+          <div style="font-weight: 700; color: #fff;">${loan.memberName}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">${loan.memberId} • 📞 ${loan.memberPhone || '-'}</div>
+        </td>
+        <td style="font-weight: 800; color: #fff; font-size: 0.95rem;">
+          ${currency}${details.principal.toLocaleString('en-IN')}
+        </td>
+        <td style="font-size: 0.82rem; color: var(--text-secondary);">
+          <div>वाटप: W${loan.issueWeek || 1}</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">${loan.issueDate || '-'}</div>
+        </td>
+        <td style="font-size: 0.82rem;">
+          <div>${details.elapsedWeeks} आठवडे एकूण</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">चालू सायकल: ${details.currentCycleElapsedWeeks}/४ आठवडे</div>
+        </td>
+        <td>
+          ${graceHtml}
+          ${totalInterestCollectedOnLoan > 0 ? `<div style="font-size: 0.7rem; color: var(--emerald-400); font-weight: 700; margin-top: 0.2rem;">💰 जमा व्याज: ${currency}${totalInterestCollectedOnLoan.toLocaleString('en-IN')} (${interestPaymentsList.length} चक्र)</div>` : ''}
+        </td>
+        <td style="font-weight: 800; color: ${isPaid ? 'var(--emerald-400)' : 'var(--gold-400)'}; font-size: 0.95rem;">
+          ${currency}${(isPaid ? (Number(loan.repaidAmount) || details.totalPayable) : details.totalPayable).toLocaleString('en-IN')}
+          ${!isPaid && details.isGracePeriodActive ? `<div style="font-size: 0.7rem; color: var(--emerald-400); font-weight: 600;">(फक्त मुद्दल)</div>` : ''}
+          ${!isPaid && !details.isGracePeriodActive ? `<div style="font-size: 0.7rem; color: var(--rose-400); font-weight: 700;">(+३% व्याज)</div>` : ''}
+        </td>
+        <td>
+          ${isPaid 
+            ? `<span class="status-pill status-paid">✅ भरले (${loan.paidDate || '-'})</span>` 
+            : `<span class="status-pill status-active">🟡 सक्रिय बाकी</span>`}
+        </td>
+        <td style="text-align: right;">
+          <div style="display: flex; gap: 0.35rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+            ${!isPaid ? `
+              ${!details.isGracePeriodActive ? `
+                <button type="button" class="btn btn-gold btn-sm" onclick="window.ui.openPayLoanInterestModal('${loan.id}')" title="४ आठवड्यांचे ३% व्याज जमा करा (+₹${details.interestAmount})" style="background: var(--gold-500); color: #000; font-weight: 800; border-color: var(--gold-400);">
+                  💰 व्याज जमा (+${currency}${details.interestAmount})
+                </button>
+                <button type="button" class="btn btn-sm" onclick="window.receiptManager.sendLoanInterestPendingReminder('${loan.id}')" style="background: #25d366; color: #000; font-weight: 700; border: none;" title="सदस्याला WhatsApp वर व्याज भरणा मेसेज पाठवा">
+                  💬 मेसेज
+                </button>
+              ` : `
+                <span class="status-pill status-paid" style="font-size: 0.72rem; padding: 0.25rem 0.5rem; background: rgba(16, 185, 129, 0.12); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.3);" title="पहिल्या ४ आठवड्यांत ०% व्याज सवलत आहे. आठवडा ${details.nextInterestDueWeek} ला ३% व्याज देय होईल.">
+                  ⏳ सवलतीत (W${details.nextInterestDueWeek} ला देय)
+                </span>
+              `}
+              <button type="button" class="btn btn-emerald btn-sm" onclick="window.ui.openMarkLoanPaidModal('${loan.id}')" title="संपूर्ण कर्ज परतफेड नोंदवा">
+                ✅ कर्ज फेड
+              </button>
+            ` : ''}
+            ${interestPaymentsList.length > 0 ? `
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanInterestReceiptModal('${loan.id}')" title="व्याज पावती पहा">
+                🧾 व्याज पावती
+              </button>
+            ` : ''}
+            <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${loan.id}')" title="कर्ज पावती / व्हाऊचर पहा">
+              📄 व्हाऊचर
+            </button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="window.ui.handleCancelLoan('${loan.id}')" title="कर्ज नोंद रद्द करा">
+              ✕
+            </button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
   openGiveLoanModal(memberId = null) {
     if (!window.authManager.isAdmin()) {
       this.showToast('केवळ प्रशासक सदस्यास कर्ज देऊ शकतात', 'error');
@@ -3653,6 +3874,25 @@ class UIManager {
     document.getElementById('adminLoansStatusFilter')?.addEventListener('change', () => {
       this.renderAdminLoansModal();
     });
+
+    // मुख्य डॅशबोर्ड कर्ज सेक्शन सर्च, फिल्टर व संकुचित / विस्तारित टॉगल
+    document.getElementById('dashLoansSearchInput')?.addEventListener('input', () => {
+      this.renderDashboardLoans();
+    });
+
+    document.getElementById('dashLoansStatusFilter')?.addEventListener('change', () => {
+      this.renderDashboardLoans();
+    });
+
+    const btnToggleDashLoans = document.getElementById('btnToggleDashLoans');
+    const dashLoansCollapsibleBody = document.getElementById('dashLoansCollapsibleBody');
+    if (btnToggleDashLoans && dashLoansCollapsibleBody) {
+      btnToggleDashLoans.addEventListener('click', () => {
+        const isHidden = dashLoansCollapsibleBody.style.display === 'none';
+        dashLoansCollapsibleBody.style.display = isHidden ? 'block' : 'none';
+        btnToggleDashLoans.innerHTML = isHidden ? '▲ संकुचित करा' : '▼ विस्तारित करा';
+      });
+    }
 
     // कर्ज देणे फॉर्म व प्रीसेट्स
     document.querySelectorAll('#giveLoanAmountPresets .preset-btn').forEach(btn => {

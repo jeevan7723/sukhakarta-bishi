@@ -77,7 +77,12 @@ class FirebaseSyncManager {
         window.addEventListener('online', () => {
           this.updateStatusUI('connecting', 'पुन्हा कनेक्ट करत आहे...');
           this.logActivity('इंटरनेट पुन्हा जोडले गेले - ऑटो-सिंक सुरू');
-          this.saveCurrentStateToCloud(true);
+          const store = window.bishiStore;
+          if (store && store.hasData && store.hasData()) {
+            this.saveCurrentStateToCloud(true);
+          } else {
+            this.fetchStateAndApply();
+          }
         });
 
         window.addEventListener('offline', () => {
@@ -112,8 +117,11 @@ class FirebaseSyncManager {
             const remoteData = docSnap.data();
             this.handleRemoteUpdate(remoteData, 'Firestore');
           } else {
-            console.log('Firestore doc empty. Seeding current state to cloud...');
-            this.saveCurrentStateToCloud(true);
+            const store = window.bishiStore;
+            if (store && store.hasData && store.hasData()) {
+              console.log('Firestore doc empty. Seeding local state to cloud...');
+              this.saveCurrentStateToCloud(true);
+            }
           }
         },
         (err) => {
@@ -141,7 +149,10 @@ class FirebaseSyncManager {
         if (val) {
           this.handleRemoteUpdate(val, 'RTDB');
         } else {
-          this.saveCurrentStateToCloud(true);
+          const store = window.bishiStore;
+          if (store && store.hasData && store.hasData()) {
+            this.saveCurrentStateToCloud(true);
+          }
         }
       },
       (err) => {
@@ -171,20 +182,50 @@ class FirebaseSyncManager {
     const remoteStr = JSON.stringify(remoteClean);
 
     if (currentStr !== remoteStr) {
-      // Timestamp & Version Check: Prevent stale snapshots from overwriting local state
       const localUpdated = Number((store.state.meta && store.state.meta.lastUpdated) || 0);
       const remoteUpdated = Number((remoteClean.meta && remoteClean.meta.lastUpdated) || 0);
       const localVersion = Number((store.state.meta && store.state.meta.updateVersion) || 0);
       const remoteVersion = Number((remoteClean.meta && remoteClean.meta.updateVersion) || 0);
 
-      // जर स्थानिक बदल नवीन असतील, तर स्थानिक बदल कायम ठेवून क्लाउडवर पुन्हा पाठवा
-      if (localUpdated > remoteUpdated || (localUpdated === remoteUpdated && localVersion > remoteVersion)) {
-        console.log(`⚡ Local state (v${localVersion}, ${localUpdated}) is newer than remote (v${remoteVersion}, ${remoteUpdated}). Retaining local data and syncing to cloud.`);
+      const localHasData = Boolean(
+        (store.state.members && store.state.members.length > 0) ||
+        (store.state.settledMembers && store.state.settledMembers.length > 0) ||
+        (store.state.transactions && store.state.transactions.length > 0) ||
+        (store.state.loans && store.state.loans.length > 0)
+      );
+
+      const remoteHasData = Boolean(
+        (remoteClean.members && remoteClean.members.length > 0) ||
+        (remoteClean.settledMembers && remoteClean.settledMembers.length > 0) ||
+        (remoteClean.transactions && remoteClean.transactions.length > 0) ||
+        (remoteClean.loans && remoteClean.loans.length > 0)
+      );
+
+      // १. नव्याने उघडलेले कोरे क्लायंट (ज्यावर कधीही कोणताही डेटा सेव्ह झालेला नाही):
+      // अशा कोऱ्या क्लायंटवर क्लाउड डेटा त्वरित लोड करणे
+      const isBrandNewClient = (localUpdated === 0 && localVersion === 0 && !store.hasLoadedFromStorage);
+      if (isBrandNewClient && remoteHasData) {
+        console.log(`📥 Fresh uninitialized client loaded. Adopting cloud data (${(remoteClean.members || []).length} members).`);
+      }
+      // २. स्थानिक बदल नवीन आहेत (उदा. सदस्य भरणा, संपादन, किंवा सदस्य/डेटा डिलीट करणे):
+      // स्थानिक डेटा (डिलीशनसह) कायम ठेवणे आणि क्लाउडवर तात्काळ पाठवणे जेणेकरून जुना डेटा परत येणार नाही
+      else if (localUpdated > remoteUpdated || (localUpdated === remoteUpdated && localVersion > remoteVersion)) {
+        console.log(`⚡ Local state (v${localVersion}, ${localUpdated}) is newer than remote (v${remoteVersion}, ${remoteUpdated}). Retaining local state (including deletions) and syncing to cloud.`);
         this.saveCurrentStateToCloud(true);
         return;
       }
+      // ३. स्थानिक ॲपमध्ये डेटा आहे पण क्लाउड कोरा आहे
+      else if (localHasData && !remoteHasData) {
+        console.log(`📤 Cloud is empty but local has data (${(store.state.members || []).length} members). Seeding cloud.`);
+        this.saveCurrentStateToCloud(true);
+        return;
+      }
+      // ४. क्लाउडवरील अपडेट नवीन आहे: क्लाउडमधील बदल स्वीकारणे
+      else {
+        console.log(`📥 Cloud state (v${remoteVersion}, ${remoteUpdated}) is newer than local (v${localVersion}, ${localUpdated}). Applying cloud update.`);
+      }
 
-      // क्लाउडवरील नवीन बदल स्वीकारणे
+      // क्लाउडवरील डेटा स्वीकारणे व स्थानिक स्टोअर अपडेट करणे
       this.logActivity(`⚡ ${source} वरून लाइव्ह अपडेट प्राप्त झाला (${(remoteClean.members || []).length} सदस्य)`);
       this.isSyncing = true;
       store.state = remoteClean;
@@ -223,6 +264,19 @@ class FirebaseSyncManager {
 
     const store = window.bishiStore;
     if (!store || !store.state) return;
+
+    const localHasData = Boolean(
+      (store.state.members && store.state.members.length > 0) ||
+      (store.state.settledMembers && store.state.settledMembers.length > 0) ||
+      (store.state.transactions && store.state.transactions.length > 0) ||
+      (store.state.loans && store.state.loans.length > 0)
+    );
+
+    // 🛡️ Data Loss Prevention: Don't push an empty state over cloud unless explicitly performed as Admin Reset
+    if (!localHasData && !this.hasRemoteData && !force) {
+      console.log('🛡️ Skipping cloud push of empty initial state before remote data is checked.');
+      return;
+    }
 
     const payload = JSON.parse(JSON.stringify(store.state));
     payload._updatedAt = new Date().toISOString();

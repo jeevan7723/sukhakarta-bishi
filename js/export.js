@@ -352,10 +352,22 @@ class ExportManager {
 
   // --- संपूर्ण डेटाबेस बॅकअप (JSON Backup) ---
   backupJSON() {
+    if (window.bishiStore) {
+      window.bishiStore.ensureIntegrity();
+    }
     const jsonStr = window.bishiStore.exportJSON();
-    const fileName = `सुखकर्ता_बीशी_बॅकअप_${new Date().toISOString().split('T')[0]}.json`;
+    
+    // फाईल नावात अचूक वेळ (तास-मिनिट-सेकंद) जोडणे जेणेकरून डाऊनलोड फोल्डरमधील जुनी फाईल उघडली जाणार नाही
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+    const fileName = `सुखकर्ता_बीशी_बॅकअप_${dateStr}_${timeStr}.json`;
+
     this.downloadFile(jsonStr, fileName, 'application/json');
-    window.ui?.showToast('संपूर्ण सिस्टम बॅकअप फाईल डाउनलोड झाली!', 'success');
+
+    const memberCount = (window.bishiStore?.state?.members || []).length;
+    const txnCount = (window.bishiStore?.state?.transactions || []).length;
+    window.ui?.showToast(`✅ थेट अद्ययावत बॅकअप डाउनलोड झाला (${memberCount} सदस्य, ${txnCount} व्यवहार)!`, 'success');
   }
 
   // --- डेटाबेस रिस्टोर (JSON Restore) ---
