@@ -94,6 +94,8 @@ class UIManager {
       if (mobileBtnAddMember) mobileBtnAddMember.style.display = 'none';
       if (dashboardView) dashboardView.style.display = 'none';
       if (customerPortalView) customerPortalView.style.display = 'none';
+      const loansPageView = document.getElementById('loansPageView');
+      if (loansPageView) loansPageView.style.display = 'none';
     } else {
       if (loginOverlay) loginOverlay.classList.add('hidden');
       if (userProfileBadge) userProfileBadge.style.display = 'flex';
@@ -124,9 +126,15 @@ class UIManager {
         if (btnOpenExport) btnOpenExport.style.display = 'inline-flex';
         if (btnOpenClearDataModal) btnOpenClearDataModal.style.display = 'inline-flex';
         if (customerPortalView) customerPortalView.style.display = 'none';
-        if (dashboardView) dashboardView.style.display = 'block';
-
-        this.renderAll();
+        
+        const loansPageView = document.getElementById('loansPageView');
+        if (window.location.hash === '#loans') {
+          this.navigateToLoansPage();
+        } else {
+          if (loansPageView) loansPageView.style.display = 'none';
+          if (dashboardView) dashboardView.style.display = 'block';
+          this.renderAll();
+        }
       } else if (window.authManager.isCustomer()) {
         // सदस्य दृश्य (Customer / Member View)
         const cur = window.authManager.getCurrentUser();
@@ -153,6 +161,8 @@ class UIManager {
         if (btnOpenExport) btnOpenExport.style.display = 'none';
         if (btnOpenClearDataModal) btnOpenClearDataModal.style.display = 'none';
         if (dashboardView) dashboardView.style.display = 'none';
+        const loansPageView = document.getElementById('loansPageView');
+        if (loansPageView) loansPageView.style.display = 'none';
         if (customerPortalView) customerPortalView.style.display = 'block';
 
         this.renderCustomerPortal();
@@ -3241,43 +3251,106 @@ class UIManager {
     });
   }
 
-  // --- मुख्य डॅशबोर्डवरील थेट कर्ज खातावही विभाग (Main Dashboard Loans Section) ---
+  // --- स्वतंत्र कर्ज व्यवस्थापन व खातावही पेज (Dedicated Loans Page View) ---
+  navigateToLoansPage() {
+    if (!window.authManager.isAdmin()) {
+      this.showToast('केवळ प्रशासक कर्ज खातावही पाहू शकतात', 'warning');
+      return;
+    }
+    this.currentAdminView = 'loans';
+    const dashboardView = document.getElementById('dashboardView');
+    const loansPageView = document.getElementById('loansPageView');
+    const customerPortalView = document.getElementById('customerPortalView');
+
+    if (dashboardView) dashboardView.style.display = 'none';
+    if (customerPortalView) customerPortalView.style.display = 'none';
+    if (loansPageView) loansPageView.style.display = 'block';
+
+    const btnNavLoans = document.getElementById('btnOpenAdminLoans');
+    if (btnNavLoans) {
+      btnNavLoans.classList.add('active');
+      btnNavLoans.style.background = 'linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25))';
+      btnNavLoans.style.borderColor = 'rgba(168, 85, 247, 0.6)';
+    }
+
+    if (window.location.hash !== '#loans') {
+      try { history.pushState(null, '', '#loans'); } catch (_) { window.location.hash = 'loans'; }
+    }
+
+    this.renderLoansPage();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  navigateToDashboard() {
+    this.currentAdminView = 'dashboard';
+    const dashboardView = document.getElementById('dashboardView');
+    const loansPageView = document.getElementById('loansPageView');
+    const customerPortalView = document.getElementById('customerPortalView');
+
+    if (loansPageView) loansPageView.style.display = 'none';
+    if (customerPortalView) customerPortalView.style.display = 'none';
+    if (dashboardView) dashboardView.style.display = 'block';
+
+    const btnNavLoans = document.getElementById('btnOpenAdminLoans');
+    if (btnNavLoans) {
+      btnNavLoans.classList.remove('active');
+      btnNavLoans.style.background = '';
+      btnNavLoans.style.borderColor = '';
+    }
+
+    if (window.location.hash === '#loans') {
+      try { history.pushState(null, '', '#dashboard'); } catch (_) { window.location.hash = 'dashboard'; }
+    }
+
+    this.renderAll();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   renderDashboardLoans() {
+    this.renderLoansPage();
+  }
+
+  renderLoansPage() {
     const stats = window.bishiStore.getDashboardStats();
     const currency = window.bishiStore.state.meta.currency || '₹';
 
     // १. बॅज व मिनी KPI अद्ययावत करणे
-    const badge = document.getElementById('dashLoansBadge');
+    const badge = document.getElementById('loansPageBadge') || document.getElementById('dashLoansBadge');
     if (badge) {
       badge.textContent = `${stats.activeLoansCount || 0} सक्रिय कर्जे`;
     }
 
-    const disbEl = document.getElementById('dashLoanDisbursed');
+    const navBadge = document.getElementById('navLoansActiveBadge');
+    if (navBadge) {
+      navBadge.textContent = `${stats.activeLoansCount || 0}`;
+    }
+
+    const disbEl = document.getElementById('loansPageTotalDisbursed') || document.getElementById('dashLoanDisbursed');
     if (disbEl) disbEl.textContent = `${currency}${(stats.totalLoansDisbursed || 0).toLocaleString('en-IN')}`;
-    const disbCountEl = document.getElementById('dashLoanDisbursedCount');
+    const disbCountEl = document.getElementById('loansPageDisbursedCount') || document.getElementById('dashLoanDisbursedCount');
     if (disbCountEl) disbCountEl.textContent = `${(stats.activeLoansCount || 0) + (stats.repaidLoansCount || 0)} कर्जे वाटप`;
 
-    const activeEl = document.getElementById('dashLoanActivePrincipal');
+    const activeEl = document.getElementById('loansPageActivePrincipal') || document.getElementById('dashLoanActivePrincipal');
     if (activeEl) activeEl.textContent = `${currency}${(stats.totalActiveLoansPrincipal || 0).toLocaleString('en-IN')}`;
-    const activeCountEl = document.getElementById('dashLoanActiveCount');
+    const activeCountEl = document.getElementById('loansPageActiveCount') || document.getElementById('dashLoanActiveCount');
     if (activeCountEl) activeCountEl.textContent = `${stats.activeLoansCount || 0} सक्रिय बाकी`;
 
-    const intEl = document.getElementById('dashLoanInterestCollected');
+    const intEl = document.getElementById('loansPageInterestCollected') || document.getElementById('dashLoanInterestCollected');
     if (intEl) intEl.textContent = `${currency}${(stats.totalLoanInterestCollected || 0).toLocaleString('en-IN')}`;
 
-    const repEl = document.getElementById('dashLoanRepaidAmount');
+    const repEl = document.getElementById('loansPageRepaidAmount') || document.getElementById('dashLoanRepaidAmount');
     if (repEl) repEl.textContent = `${currency}${(stats.totalLoansRepaidAmount || 0).toLocaleString('en-IN')}`;
-    const repCountEl = document.getElementById('dashLoanRepaidCount');
+    const repCountEl = document.getElementById('loansPageRepaidCount') || document.getElementById('dashLoanRepaidCount');
     if (repCountEl) repCountEl.textContent = `${stats.repaidLoansCount || 0} कर्जे पूर्ण`;
 
     // २. टेबल बॉडी
-    const tbody = document.getElementById('dashLoansTableBody');
+    const tbody = document.getElementById('loansPageTableBody') || document.getElementById('dashLoansTableBody');
     if (!tbody) return;
 
     let loans = window.bishiStore.state.loans || [];
 
     // फिल्टर (Status filter)
-    const statusFilter = document.getElementById('dashLoansStatusFilter')?.value || 'all';
+    const statusFilter = document.getElementById('loansPageStatusFilter')?.value || document.getElementById('dashLoansStatusFilter')?.value || 'all';
     if (statusFilter === 'active') {
       loans = loans.filter(l => l.status === 'active');
     } else if (statusFilter === 'paid') {
@@ -3285,7 +3358,8 @@ class UIManager {
     }
 
     // शोध (Search Query)
-    const query = (document.getElementById('dashLoansSearchInput')?.value || '').toLowerCase().trim();
+    const searchInput = document.getElementById('loansPageSearchInput') || document.getElementById('dashLoansSearchInput');
+    const query = (searchInput?.value || '').toLowerCase().trim();
     if (query) {
       loans = loans.filter(l => 
         (l.memberName || '').toLowerCase().includes(query) ||
@@ -3298,10 +3372,10 @@ class UIManager {
     if (loans.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="9" style="text-align: center; padding: 2.25rem; color: var(--text-muted);">
-            <div style="font-size: 2rem; margin-bottom: 0.35rem;">💳</div>
-            <div style="font-weight: 700; color: #fff; font-size: 1rem;">कोणतीही कर्ज नोंद सापडली नाही</div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+          <td colspan="9" style="text-align: center; padding: 2.75rem 1.5rem; color: var(--text-muted);">
+            <div style="font-size: 2.2rem; margin-bottom: 0.4rem;">💳</div>
+            <div style="font-weight: 700; color: #fff; font-size: 1.05rem;">कोणतीही कर्ज नोंद सापडली नाही</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.3rem;">
               नवीन कर्ज वाटप करण्यासाठी वरील <strong>'➕ नवीन कर्ज वाटप'</strong> बटणावर क्लिक करा.
             </div>
           </td>
@@ -3875,24 +3949,25 @@ class UIManager {
       this.renderAdminLoansModal();
     });
 
-    // मुख्य डॅशबोर्ड कर्ज सेक्शन सर्च, फिल्टर व संकुचित / विस्तारित टॉगल
-    document.getElementById('dashLoansSearchInput')?.addEventListener('input', () => {
-      this.renderDashboardLoans();
+    // स्वतंत्र कर्ज व्यवस्थापन पेज सर्च व स्टेटस फिल्टर
+    document.getElementById('loansPageSearchInput')?.addEventListener('input', () => {
+      this.renderLoansPage();
     });
 
-    document.getElementById('dashLoansStatusFilter')?.addEventListener('change', () => {
-      this.renderDashboardLoans();
+    document.getElementById('loansPageStatusFilter')?.addEventListener('change', () => {
+      this.renderLoansPage();
     });
 
-    const btnToggleDashLoans = document.getElementById('btnToggleDashLoans');
-    const dashLoansCollapsibleBody = document.getElementById('dashLoansCollapsibleBody');
-    if (btnToggleDashLoans && dashLoansCollapsibleBody) {
-      btnToggleDashLoans.addEventListener('click', () => {
-        const isHidden = dashLoansCollapsibleBody.style.display === 'none';
-        dashLoansCollapsibleBody.style.display = isHidden ? 'block' : 'none';
-        btnToggleDashLoans.innerHTML = isHidden ? '▲ संकुचित करा' : '▼ विस्तारित करा';
-      });
-    }
+    // Hash change router (उदा. #loans किंवा #dashboard)
+    window.addEventListener('hashchange', () => {
+      if (window.authManager && window.authManager.isAdmin()) {
+        if (window.location.hash === '#loans') {
+          this.navigateToLoansPage();
+        } else if (window.location.hash === '#dashboard' || !window.location.hash) {
+          this.navigateToDashboard();
+        }
+      }
+    });
 
     // कर्ज देणे फॉर्म व प्रीसेट्स
     document.querySelectorAll('#giveLoanAmountPresets .preset-btn').forEach(btn => {

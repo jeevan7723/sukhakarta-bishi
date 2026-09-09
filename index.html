@@ -3384,8 +3384,9 @@ button.status-completed:hover {
         </button>
 
         <!-- सदस्य कर्ज व्यवस्थापन (प्रशासक) -->
-        <button class="btn btn-secondary" id="btnOpenAdminLoans" title="सदस्य कर्ज व्यवस्थापन व ३% व्याज खातावही" style="display: none;">
+        <button class="btn btn-secondary" id="btnOpenAdminLoans" onclick="window.ui.navigateToLoansPage()" title="सदस्य कर्ज व्यवस्थापन व ३% व्याज खातावही नवीन पेज" style="display: none;">
           💳 कर्ज व्यवस्थापन
+          <span class="badge" id="navLoansActiveBadge" style="background: rgba(168, 85, 247, 0.25); color: #c084fc; font-size: 0.72rem; padding: 0.15rem 0.45rem; border-radius: 9999px; margin-left: 0.35rem; font-weight: 800; border: 1px solid rgba(168, 85, 247, 0.4);">0</span>
         </button>
 
         <!-- एक्सपोर्ट व बॅकअप (प्रशासक) -->
@@ -3481,11 +3482,11 @@ button.status-completed:hover {
             </div>
           </button>
 
-          <button type="button" class="drawer-menu-item" onclick="window.ui.closeMobileDrawer(); window.ui.openAdminLoansModal();">
+          <button type="button" class="drawer-menu-item" onclick="window.ui.closeMobileDrawer(); window.ui.navigateToLoansPage();">
             <span class="drawer-item-icon">💳</span>
             <div class="drawer-item-text">
-              <span class="drawer-item-title">सदस्य कर्ज व्यवस्थापन</span>
-              <span class="drawer-item-sub">कर्ज वाटप, ३% व्याज व परतफेड खातावही</span>
+              <span class="drawer-item-title">सदस्य कर्ज खातावही पेज</span>
+              <span class="drawer-item-sub">कर्ज वाटप, ३% व्याज व परतफेड संपूर्ण पेज</span>
             </div>
           </button>
 
@@ -3609,7 +3610,7 @@ button.status-completed:hover {
           </div>
 
           <!-- कार्ड ५: सक्रिय बाकी कर्ज मुद्दल -->
-          <div class="stat-card highlight-purple" style="cursor: pointer;" onclick="document.getElementById('dashboardLoansSection')?.scrollIntoView({behavior: 'smooth'})" title="सर्व कर्ज तपशील पाहण्यासाठी खाली स्क्रोल करा">
+          <div class="stat-card highlight-purple" style="cursor: pointer;" onclick="window.ui.navigateToLoansPage()" title="कर्ज व्यवस्थापन नवीन पेज उघडा">
             <div class="stat-header">
               <span class="stat-label">सक्रिय बाकी कर्ज</span>
               <div class="stat-icon icon-purple">💳</div>
@@ -3617,12 +3618,12 @@ button.status-completed:hover {
             <div class="stat-value" id="statDashboardActiveLoans">₹0</div>
             <div class="stat-footer">
               <span id="statDashboardActiveLoansSub">० सक्रिय कर्जे</span>
-              <span style="color: #c084fc; font-weight: 700;">३% व्याज चक्र ➔</span>
+              <span style="color: #c084fc; font-weight: 700;">कर्ज पेज ➔</span>
             </div>
           </div>
 
           <!-- कार्ड ६: एकूण जमा ३% कर्ज व्याज -->
-          <div class="stat-card highlight-amber" style="cursor: pointer;" onclick="document.getElementById('dashboardLoansSection')?.scrollIntoView({behavior: 'smooth'})" title="सर्व कर्ज तपशील पाहण्यासाठी खाली स्क्रोल करा">
+          <div class="stat-card highlight-amber" style="cursor: pointer;" onclick="window.ui.navigateToLoansPage()" title="कर्ज व्यवस्थापन नवीन पेज उघडा">
             <div class="stat-header">
               <span class="stat-label">जमा ३% कर्ज व्याज</span>
               <div class="stat-icon icon-amber">💰</div>
@@ -3630,102 +3631,7 @@ button.status-completed:hover {
             <div class="stat-value" id="statDashboardLoanInterest">₹0</div>
             <div class="stat-footer">
               <span id="statDashboardRepaidLoans">० कर्जे परतफेड</span>
-              <span style="color: var(--gold-400); font-weight: 700;">४-आठवडे चक्र</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- ==========================================================================
-             बीशी सदस्य कर्ज खातावही व ४-आठवडे ३% व्याज ताळेबंद (Member Loans Section)
-             ========================================================================== -->
-        <section class="dashboard-loans-card" id="dashboardLoansSection" style="margin-bottom: 2rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding: 1.15rem 1.35rem; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98)); border-bottom: 1px solid var(--border-color);">
-            <div style="display: flex; align-items: center; gap: 0.85rem;">
-              <div style="font-size: 1.6rem; background: rgba(168, 85, 247, 0.15); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(168, 85, 247, 0.35); flex-shrink: 0;">
-                💳
-              </div>
-              <div>
-                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-                  <h2 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0;">बीशी सदस्य कर्ज खातावही व ४-आठवडे ३% व्याज ताळेबंद</h2>
-                  <span class="status-pill status-active" id="dashLoansBadge" style="font-size: 0.72rem; padding: 0.2rem 0.65rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);">० सक्रिय कर्जे</span>
-                </div>
-                <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                  सक्रिय मुद्दल कर्ज, ४-आठवड्यांचे ०% सवलत चक्र, ३% मासिक/आवर्ती व्याज आकारणी व परतफेड पावत्या
-                </div>
-              </div>
-            </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="btn btn-emerald btn-sm" onclick="window.ui.openGiveLoanModal()" style="font-weight: 800; display: flex; align-items: center; gap: 0.35rem;">
-                <span>➕</span> नवीन कर्ज वाटप
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.exportManager.exportLoansCSV()" title="कर्ज खातावही CSV फाईल डाउनलोड करा" style="display: flex; align-items: center; gap: 0.35rem;">
-                <span>📥</span> CSV डाउनलोड
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" id="btnToggleDashLoans" title="कर्ज टेबल संकुचित / विस्तारित करा" style="font-size: 0.8rem;">
-                ▲ संकुचित करा
-              </button>
-            </div>
-          </div>
-
-          <div id="dashLoansCollapsibleBody">
-            <!-- कर्ज मिनी KPI बार -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; padding: 1rem 1.35rem; background: rgba(10, 15, 29, 0.45); border-bottom: 1px solid var(--border-color);">
-              <div style="background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.06);">
-                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">एकूण वाटप कर्ज</div>
-                <div style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-top: 0.2rem;" id="dashLoanDisbursed">₹0</div>
-                <div style="font-size: 0.72rem; color: var(--text-secondary);" id="dashLoanDisbursedCount">० कर्जे वाटप</div>
-              </div>
-              <div style="background: rgba(168,85,247,0.08); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid rgba(168,85,247,0.25);">
-                <div style="font-size: 0.72rem; color: #c084fc; text-transform: uppercase; font-weight: 700;">सक्रिय बाकी मुद्दल</div>
-                <div style="font-size: 1.25rem; font-weight: 800; color: #d8b4fe; margin-top: 0.2rem;" id="dashLoanActivePrincipal">₹0</div>
-                <div style="font-size: 0.72rem; color: var(--text-secondary);" id="dashLoanActiveCount">० सक्रिय बाकी</div>
-              </div>
-              <div style="background: rgba(245,158,11,0.08); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid rgba(245,158,11,0.25);">
-                <div style="font-size: 0.72rem; color: var(--gold-400); text-transform: uppercase; font-weight: 700;">जमा ३% व्याज</div>
-                <div style="font-size: 1.25rem; font-weight: 800; color: var(--gold-400); margin-top: 0.2rem;" id="dashLoanInterestCollected">₹0</div>
-                <div style="font-size: 0.72rem; color: var(--text-secondary);">४-आठवडे चक्र व्याज</div>
-              </div>
-              <div style="background: rgba(16,185,129,0.08); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid rgba(16,185,129,0.25);">
-                <div style="font-size: 0.72rem; color: var(--emerald-400); text-transform: uppercase; font-weight: 700;">पूर्ण परतफेड कर्जे</div>
-                <div style="font-size: 1.25rem; font-weight: 800; color: var(--emerald-400); margin-top: 0.2rem;" id="dashLoanRepaidAmount">₹0</div>
-                <div style="font-size: 0.72rem; color: var(--text-secondary);" id="dashLoanRepaidCount">० कर्जे पूर्ण</div>
-              </div>
-            </div>
-
-            <!-- शोध व स्थिती फिल्टर पट्टी -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; padding: 0.85rem 1.35rem; background: rgba(15, 23, 42, 0.75); border-bottom: 1px solid var(--border-color);">
-              <div style="flex: 1; min-width: 250px;">
-                <input type="text" id="dashLoansSearchInput" class="form-control" placeholder="🔍 सदस्याचे नाव, आयडी, मोबाईल किंवा कर्ज क्र. शोधा..." style="padding: 0.5rem 0.85rem; font-size: 0.85rem; width: 100%;">
-              </div>
-              <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <select id="dashLoansStatusFilter" class="form-control" style="width: auto; padding: 0.5rem 0.85rem; font-size: 0.85rem;">
-                  <option value="all">सर्व कर्जे (All)</option>
-                  <option value="active">सक्रिय बाकी कर्जे (Active Only)</option>
-                  <option value="paid">पूर्ण परतफेड झालेली (Settled Only)</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- कर्ज तपशील डेटा टेबल -->
-            <div class="table-responsive" style="overflow-x: auto;">
-              <table class="data-table" style="width: 100%; border-collapse: collapse;">
-                <thead>
-                  <tr>
-                    <th>कर्ज क्र.</th>
-                    <th>सदस्य नाव व संपर्क</th>
-                    <th>मूळ मुद्दल</th>
-                    <th>वाटप आठवडा/तारीख</th>
-                    <th>कालावधी व सायकल</th>
-                    <th>४-आठवडे ३% व्याज स्थिती</th>
-                    <th>एकूण देय रक्कम</th>
-                    <th>स्थिती</th>
-                    <th style="text-align: right;">कृती (Actions)</th>
-                  </tr>
-                </thead>
-                <tbody id="dashLoansTableBody">
-                  <!-- डायनॅमिकली भरले जाईल -->
-                </tbody>
-              </table>
+              <span style="color: var(--gold-400); font-weight: 700;">कर्ज पेज ➔</span>
             </div>
           </div>
         </section>
@@ -3870,6 +3776,137 @@ button.status-completed:hover {
               <div class="audit-card-val" id="auditTotalPending" style="color: var(--blue-400);">₹0</div>
               <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">लक्ष्य पूर्ण करण्यासाठी उर्वरित रक्कम</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ==========================================================================
+           दृश्य ३: सदस्य कर्ज खातावही व ३% व्याज व्यवस्थापन (Dedicated Loans Page)
+           ========================================================================== -->
+      <div id="loansPageView" style="display: none;">
+        <!-- कर्ज पेज हिरो व हेडर -->
+        <div class="loans-page-hero" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.navigateToDashboard()" title="मुख्य बचत डॅशबोर्डवर परत जा" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem; border-color: rgba(255, 255, 255, 0.2);">
+                <span>⬅️</span> मुख्य डॅशबोर्ड
+              </button>
+              <div style="font-size: 1.8rem; background: rgba(168, 85, 247, 0.15); width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(168, 85, 247, 0.35); flex-shrink: 0;">
+                💳
+              </div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                  <h1 style="font-size: 1.3rem; font-weight: 800; color: #fff; margin: 0;">बीशी सदस्य कर्ज खातावही व ३% व्याज व्यवस्थापन</h1>
+                  <span class="status-pill status-active" id="loansPageBadge" style="font-size: 0.72rem; padding: 0.2rem 0.65rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);">० सक्रिय कर्जे</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                  सर्व वाटप कर्जे, ४-आठवड्यांचे ०% सवलत चक्र, ३% मासिक/आवर्ती व्याज आकारणी, व्हॉट्सअ‍ॅप स्मरणपत्रे व परतफेड पावत्या
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-emerald btn-sm" onclick="window.ui.openGiveLoanModal()" style="font-weight: 800; display: flex; align-items: center; gap: 0.35rem; padding: 0.55rem 1rem;">
+                <span>➕</span> नवीन कर्ज वाटप
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.exportManager.exportLoansCSV()" title="कर्ज खातावही CSV फाईल डाउनलोड करा" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.55rem 0.95rem;">
+                <span>📥</span> CSV डाउनलोड
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- मुख्य ४ कर्ज KPI कार्ड्स -->
+        <section class="metrics-grid" style="margin-bottom: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));">
+          <!-- कार्ड १: एकूण वाटप कर्ज -->
+          <div class="stat-card highlight-blue">
+            <div class="stat-header">
+              <span class="stat-label">एकूण वाटप कर्ज</span>
+              <div class="stat-icon icon-blue">💳</div>
+            </div>
+            <div class="stat-value" id="loansPageTotalDisbursed">₹0</div>
+            <div class="stat-footer">
+              <span id="loansPageDisbursedCount">० कर्जे वाटप</span>
+              <span style="color: var(--blue-400); font-weight: 600;">एकूण मुद्दल</span>
+            </div>
+          </div>
+
+          <!-- कार्ड २: सक्रिय बाकी मुद्दल -->
+          <div class="stat-card highlight-purple">
+            <div class="stat-header">
+              <span class="stat-label">सक्रिय बाकी मुद्दल</span>
+              <div class="stat-icon icon-purple">🟣</div>
+            </div>
+            <div class="stat-value" id="loansPageActivePrincipal" style="color: #d8b4fe;">₹0</div>
+            <div class="stat-footer">
+              <span id="loansPageActiveCount">० सक्रिय बाकी</span>
+              <span style="color: #c084fc; font-weight: 700;">बाकी मुद्दल</span>
+            </div>
+          </div>
+
+          <!-- कार्ड ३: जमा ३% कर्ज व्याज -->
+          <div class="stat-card highlight-amber">
+            <div class="stat-header">
+              <span class="stat-label">जमा ३% कर्ज व्याज</span>
+              <div class="stat-icon icon-amber">💰</div>
+            </div>
+            <div class="stat-value" id="loansPageInterestCollected" style="color: var(--gold-400);">₹0</div>
+            <div class="stat-footer">
+              <span id="loansPageInterestCount">४-आठवडे चक्र व्याज</span>
+              <span style="color: var(--gold-400); font-weight: 700;">एकूण जमा</span>
+            </div>
+          </div>
+
+          <!-- कार्ड ४: पूर्ण परतफेड झालेली कर्जे -->
+          <div class="stat-card highlight-emerald">
+            <div class="stat-header">
+              <span class="stat-label">पूर्ण परतफेड कर्जे</span>
+              <div class="stat-icon icon-emerald">✅</div>
+            </div>
+            <div class="stat-value" id="loansPageRepaidAmount" style="color: var(--emerald-400);">₹0</div>
+            <div class="stat-footer">
+              <span id="loansPageRepaidCount">० कर्जे पूर्ण</span>
+              <span style="color: var(--emerald-400); font-weight: 700;">परतफेड</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- कर्ज खातावही टेबल कार्ड -->
+        <div class="table-card" style="margin-bottom: 2rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
+          <!-- शोध व स्थिती फिल्टर पट्टी -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; padding: 1rem 1.35rem; background: rgba(15, 23, 42, 0.85); border-bottom: 1px solid var(--border-color);">
+            <div style="flex: 1; min-width: 250px;">
+              <input type="text" id="loansPageSearchInput" class="form-control" placeholder="🔍 सदस्याचे नाव, आयडी, मोबाईल किंवा कर्ज क्र. शोधा..." style="padding: 0.55rem 0.95rem; font-size: 0.85rem; width: 100%;">
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <select id="loansPageStatusFilter" class="form-control" style="width: auto; padding: 0.55rem 0.95rem; font-size: 0.85rem;">
+                <option value="all">सर्व कर्जे (All Loans)</option>
+                <option value="active">सक्रिय बाकी कर्जे (Active Only)</option>
+                <option value="paid">पूर्ण परतफेड झालेली (Settled Only)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- कर्ज तपशील डेटा टेबल -->
+          <div class="table-responsive" style="overflow-x: auto;">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th>कर्ज क्र.</th>
+                  <th>सदस्य नाव व संपर्क</th>
+                  <th>मूळ मुद्दल</th>
+                  <th>वाटप आठवडा/तारीख</th>
+                  <th>कालावधी व सायकल</th>
+                  <th>४-आठवडे ३% व्याज स्थिती</th>
+                  <th>एकूण देय रक्कम</th>
+                  <th>स्थिती</th>
+                  <th style="text-align: right;">कृती (Actions)</th>
+                </tr>
+              </thead>
+              <tbody id="loansPageTableBody">
+                <!-- डायनॅमिकली भरले जाईल -->
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
