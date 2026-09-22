@@ -1837,6 +1837,136 @@ select option:checked {
 }
 
 /* ==========================================================================
+   PAGE HERO & HIGHLIGHT CARDS (Members Page, Loans Page, Dashboard Highlights)
+   ========================================================================== */
+.members-page-hero,
+.loans-page-hero,
+.member-section-highlight-card {
+  margin-bottom: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all var(--transition-normal);
+}
+
+[data-theme="light"] .members-page-hero,
+[data-theme="light"] .loans-page-hero,
+[data-theme="light"] .member-section-highlight-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04) !important;
+}
+
+.hero-top-nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.hero-back-btn {
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+}
+
+.hero-main-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.hero-icon-container {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.hero-icon-container.members-hero-icon {
+  background: rgba(5, 150, 105, 0.12);
+  border: 1px solid rgba(5, 150, 105, 0.3);
+}
+
+.hero-icon-container.loans-hero-icon {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.hero-heading-block {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-title-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.2rem;
+}
+
+.hero-page-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.hero-page-desc {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0 0;
+  line-height: 1.45;
+}
+
+.hero-action-buttons-group {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 900px) {
+  .members-page-hero,
+  .loans-page-hero {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .hero-top-nav-bar {
+    width: auto;
+  }
+  .hero-action-buttons-group {
+    justify-content: flex-end;
+  }
+
+  .member-section-highlight-card {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .member-section-highlight-card .hero-action-buttons-group {
+    flex-shrink: 0;
+  }
+}
+
+/* ==========================================================================
    LOANS PAGE & LOANS TABLE RESPONSIVE STYLING
    ========================================================================== */
 .loans-table-card {
@@ -4078,9 +4208,96 @@ body.customer-mode #mobileDrawerAdminMenu,
     font-size: 0.8rem !important;
   }
 
-  /* Loans Table & Filter Bar Mobile Responsiveness */
-  .loans-page-hero {
-    padding: 1rem 0.95rem !important;
+  /* Hero Cards Mobile Layout (Clean, User-Friendly & Touch-Optimized) */
+  .members-page-hero,
+  .loans-page-hero,
+  .member-section-highlight-card {
+    padding: 0.95rem 1rem !important;
+    gap: 0.75rem !important;
+    border-radius: var(--radius-md) !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .hero-top-nav-bar {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-bottom: 0.5rem !important;
+    border-bottom: 1px dashed var(--border-color) !important;
+  }
+
+  .hero-back-btn {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-sm) !important;
+  }
+
+  .hero-main-content {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+
+  .hero-icon-container {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 1.45rem !important;
+    border-radius: var(--radius-sm) !important;
+    margin-top: 2px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .hero-heading-block {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .hero-page-title {
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    margin: 0 !important;
+  }
+
+  .hero-page-desc {
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+    color: var(--text-secondary) !important;
+    margin-top: 0.35rem !important;
+  }
+
+  .hero-action-buttons-group {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    margin-top: 0.2rem !important;
+  }
+
+  .hero-main-action-btn {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    padding: 0.65rem 1rem !important;
+    font-size: 0.92rem !important;
+    font-weight: 800 !important;
+    justify-content: center !important;
+    border-radius: var(--radius-sm) !important;
+  }
+
+  .hero-sub-action-btn {
+    width: 100% !important;
+    padding: 0.52rem 0.65rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    justify-content: center !important;
+    text-align: center !important;
+    border-radius: var(--radius-sm) !important;
   }
 
   .loans-filter-bar {
@@ -4688,39 +4905,32 @@ body.customer-mode #mobileDrawerAdminMenu,
         <!-- ==========================================================================
              सदस्य विभाग: सर्व सदस्य तपशील (Member Section - Dedicated Highlights & Navigation)
              ========================================================================== -->
-        <section class="member-section-highlight-card glass-card" style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; background: linear-gradient(135deg, rgba(5, 150, 105, 0.08), rgba(37, 99, 235, 0.08)); border: 1.5px solid rgba(5, 150, 105, 0.3); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
-            <div style="display: flex; align-items: center; gap: 1rem; min-width: 280px; flex: 1;">
-              <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: linear-gradient(135deg, rgba(5, 150, 105, 0.2), rgba(37, 99, 235, 0.25)); display: flex; align-items: center; justify-content: center; font-size: 2rem; border: 1px solid rgba(5, 150, 105, 0.4); flex-shrink: 0; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);">
-                👥
-              </div>
-              <div>
-                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-                  <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0;">
-                    सदस्य विभाग (सर्व सदस्य तपशील)
-                  </h2>
-                  <span class="badge" id="dashMemberSectionBadge" style="background: rgba(5, 150, 105, 0.15); color: var(--emerald-500); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 9999px; font-weight: 700; border: 1px solid rgba(5, 150, 105, 0.3);">
-                    ० सदस्य
-                  </span>
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.25rem 0 0 0; line-height: 1.4;">
-                  सर्व सदस्यांची संपूर्ण वैयक्तिक माहिती, ५०-आठवडे ठेव खातावही, फोन, वारसदार, कर्ज स्थिती आणि पासबुक तपशील एकाच ठिकाणी.
-                </p>
-              </div>
+        <section class="member-section-highlight-card glass-card">
+          <div class="hero-main-content">
+            <div class="hero-icon-container members-hero-icon">
+              👥
             </div>
+            <div class="hero-heading-block">
+              <div class="hero-title-with-badge">
+                <h2 class="hero-page-title" style="font-size: 1.25rem;">सदस्य विभाग (सर्व सदस्य तपशील)</h2>
+                <span class="badge" id="dashMemberSectionBadge" style="background: rgba(5, 150, 105, 0.15); color: var(--emerald-500); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 9999px; font-weight: 700; border: 1px solid rgba(5, 150, 105, 0.3);">० सदस्य</span>
+              </div>
+              <p class="hero-page-desc">
+                सर्व सदस्यांची संपूर्ण वैयक्तिक माहिती, ५०-आठवडे ठेव खातावही, फोन, वारसदार, कर्ज स्थिती आणि पासबुक तपशील एकाच ठिकाणी.
+              </p>
+            </div>
+          </div>
 
-            <!-- कृती बटणे: सर्व सदस्य तपशील नवीन पेज व मोडल -->
-            <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="btn btn-primary" onclick="window.ui.navigateToMembersPage()" style="font-weight: 800; display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1.15rem; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);">
-                <span>👥</span> सर्व सदस्य तपशील पहा ➔
-              </button>
-              <a href="members.html" target="_blank" class="btn btn-secondary" title="सर्व सदस्य विभाग नवीन टॅब/पेजवर उघडा" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1rem; text-decoration: none; border: 1px solid var(--border-color);">
-                <span>🔗</span> नवीन पेजवर उघडा ↗
-              </a>
-              <button type="button" class="btn btn-secondary" onclick="window.ui.openAddMemberModal()" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.6rem 0.95rem;">
-                <span>➕</span> नवीन सदस्य
-              </button>
-            </div>
+          <div class="hero-action-buttons-group">
+            <button type="button" class="btn btn-primary hero-main-action-btn" onclick="window.ui.navigateToMembersPage()">
+              <span>👥</span> सर्व सदस्य तपशील पहा ➔
+            </button>
+            <a href="members.html" target="_blank" class="btn btn-secondary hero-sub-action-btn" title="सर्व सदस्य विभाग नवीन टॅब/पेजवर उघडा">
+              <span>🔗</span> नवीन पेजवर उघडा ↗
+            </a>
+            <button type="button" class="btn btn-secondary hero-sub-action-btn" onclick="window.ui.openAddMemberModal()">
+              <span>➕</span> नवीन सदस्य
+            </button>
           </div>
         </section>
 
@@ -4874,33 +5084,33 @@ body.customer-mode #mobileDrawerAdminMenu,
            ========================================================================== -->
       <div id="loansPageView" style="display: none;">
         <!-- कर्ज पेज हिरो व हेडर -->
-        <div class="loans-page-hero" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-            <div style="display: flex; align-items: center; gap: 0.85rem;">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.navigateToDashboard()" title="मुख्य बचत डॅशबोर्डवर परत जा" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem;">
-                <span>⬅️</span> मुख्य डॅशबोर्ड
-              </button>
-              <div style="font-size: 1.8rem; background: rgba(168, 85, 247, 0.15); width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(168, 85, 247, 0.35); flex-shrink: 0;">
-                💳
-              </div>
-              <div>
-                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-                  <h1 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin: 0;">बीशी सदस्य कर्ज खातावही व ३% व्याज व्यवस्थापन</h1>
-                  <span class="status-pill status-active" id="loansPageBadge" style="font-size: 0.72rem; padding: 0.2rem 0.65rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);">० सक्रिय कर्जे</span>
-                </div>
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                  सर्व वाटप कर्जे, ४-आठवड्यांचे ०% सवलत चक्र, ३% मासिक/आवर्ती व्याज आकारणी, व्हॉट्सअ‍ॅप स्मरणपत्रे व परतफेड पावत्या
-                </div>
-              </div>
+        <div class="loans-page-hero">
+          <div class="hero-top-nav-bar">
+            <button type="button" class="btn btn-secondary btn-sm hero-back-btn" onclick="window.ui.navigateToDashboard()" title="मुख्य बचत डॅशबोर्डवर परत जा">
+              <span>⬅️</span> मुख्य डॅशबोर्ड
+            </button>
+            <span class="status-pill status-active" id="loansPageBadge" style="font-size: 0.75rem; padding: 0.22rem 0.75rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);">० सक्रिय कर्जे</span>
+          </div>
+
+          <div class="hero-main-content">
+            <div class="hero-icon-container loans-hero-icon">
+              💳
             </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="btn btn-emerald btn-sm" onclick="window.ui.openGiveLoanModal()" style="font-weight: 800; display: flex; align-items: center; gap: 0.35rem; padding: 0.55rem 1rem;">
-                <span>➕</span> नवीन कर्ज वाटप
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.exportManager.exportLoansCSV()" title="कर्ज खातावही CSV फाईल डाउनलोड करा" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.55rem 0.95rem;">
-                <span>📥</span> CSV डाउनलोड
-              </button>
+            <div class="hero-heading-block">
+              <h1 class="hero-page-title">बीशी सदस्य कर्ज खातावही व ३% व्याज व्यवस्थापन</h1>
+              <p class="hero-page-desc">
+                सर्व वाटप कर्जे, ४-आठवड्यांचे ०% सवलत चक्र, ३% मासिक/आवर्ती व्याज आकारणी, व्हॉट्सअ‍ॅप स्मरणपत्रे व परतफेड पावत्या
+              </p>
             </div>
+          </div>
+
+          <div class="hero-action-buttons-group">
+            <button type="button" class="btn btn-emerald hero-main-action-btn" onclick="window.ui.openGiveLoanModal()">
+              <span>➕</span> नवीन कर्ज वाटप
+            </button>
+            <button type="button" class="btn btn-secondary hero-sub-action-btn" onclick="window.exportManager.exportLoansCSV()" title="कर्ज खातावही CSV फाईल डाउनलोड करा">
+              <span>📥</span> CSV डाउनलोड
+            </button>
           </div>
         </div>
 
@@ -5053,36 +5263,36 @@ body.customer-mode #mobileDrawerAdminMenu,
            ========================================================================== -->
       <div id="membersPageView" style="display: none;">
         <!-- सदस्य पेज हिरो व हेडर -->
-        <div class="members-page-hero" style="margin-bottom: 1.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-            <div style="display: flex; align-items: center; gap: 0.85rem;">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.navigateToDashboard()" title="मुख्य बचत डॅशबोर्डवर परत जा" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem;">
-                <span>⬅️</span> मुख्य डॅशबोर्ड
-              </button>
-              <div style="font-size: 1.8rem; background: rgba(5, 150, 105, 0.12); width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(5, 150, 105, 0.3); flex-shrink: 0;">
-                👥
-              </div>
-              <div>
-                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-                  <h1 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin: 0;">बीशी सर्व सदस्य संपूर्ण प्रोफाईल व खातावही</h1>
-                  <span class="status-pill status-paid" id="membersPageCountBadge" style="font-size: 0.72rem; padding: 0.2rem 0.65rem;">० सदस्य</span>
-                </div>
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                  सर्व सदस्यांची वैयक्तिक माहिती, फोन, वारसदार, पत्ता, ५०-आठवडे ठेव प्रगती, मॅच्युरिटी परतावा व कर्ज स्थिती
-                </div>
-              </div>
+        <div class="members-page-hero">
+          <div class="hero-top-nav-bar">
+            <button type="button" class="btn btn-secondary btn-sm hero-back-btn" onclick="window.ui.navigateToDashboard()" title="मुख्य बचत डॅशबोर्डवर परत जा">
+              <span>⬅️</span> मुख्य डॅशबोर्ड
+            </button>
+            <span class="status-pill status-paid" id="membersPageCountBadge" style="font-size: 0.75rem; padding: 0.22rem 0.75rem;">० सदस्य</span>
+          </div>
+
+          <div class="hero-main-content">
+            <div class="hero-icon-container members-hero-icon">
+              👥
             </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="btn btn-primary btn-sm" onclick="window.ui.openAddMemberModal()" style="font-weight: 800; display: flex; align-items: center; gap: 0.35rem; padding: 0.55rem 1rem;">
-                <span>➕</span> नवीन सदस्य जोडा
-              </button>
-              <a href="members.html" target="_blank" class="btn btn-secondary btn-sm" title="हे सदस्य पेज नवीन टॅब/खिडकीत उघडा" style="font-weight: 700; display: flex; align-items: center; gap: 0.35rem; padding: 0.55rem 0.95rem; text-decoration: none; border: 1px solid var(--border-color);">
-                <span>🔗</span> नवीन पेजवर उघडा ↗
-              </a>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.exportManager.exportMasterLedgerCSV()" title="सर्व सदस्य खातावही CSV डाउनलोड करा" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.55rem 0.95rem;">
-                <span>📥</span> सदस्य CSV
-              </button>
+            <div class="hero-heading-block">
+              <h1 class="hero-page-title">बीशी सर्व सदस्य संपूर्ण प्रोफाईल व खातावही</h1>
+              <p class="hero-page-desc">
+                सर्व सदस्यांची वैयक्तिक माहिती, फोन, वारसदार, पत्ता, ५०-आठवडे ठेव प्रगती, मॅच्युरिटी परतावा व कर्ज स्थिती
+              </p>
             </div>
+          </div>
+
+          <div class="hero-action-buttons-group">
+            <button type="button" class="btn btn-primary hero-main-action-btn" onclick="window.ui.openAddMemberModal()">
+              <span>➕</span> नवीन सदस्य जोडा
+            </button>
+            <a href="members.html" target="_blank" class="btn btn-secondary hero-sub-action-btn" title="हे सदस्य पेज नवीन टॅब/खिडकीत उघडा">
+              <span>🔗</span> नवीन पेजवर उघडा ↗
+            </a>
+            <button type="button" class="btn btn-secondary hero-sub-action-btn" onclick="window.exportManager.exportMasterLedgerCSV()" title="सर्व सदस्य खातावही CSV डाउनलोड करा">
+              <span>📥</span> सदस्य CSV
+            </button>
           </div>
         </div>
 
