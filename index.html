@@ -12,9 +12,23 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   
-  <!-- तात्काळ थीम आरंभ (Immediate Light Theme Enforcer) -->
+  <!-- तात्काळ थीम व कॅश आरंभ (Immediate Theme & Cache Purge) -->
   <script>
     (function() {
+      // जुनी कॅश व सर्व्हिस वर्कर तात्काळ नष्ट करणे
+      try {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for (var r of registrations) { r.unregister(); }
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            for (var k of keys) { caches.delete(k); }
+          });
+        }
+      } catch (e) {}
+
       try {
         localStorage.removeItem('sukhakarta_theme');
         var theme = localStorage.getItem('sukhakarta_theme_v2') || 'light';
@@ -7364,12 +7378,12 @@ body.customer-mode #mobileDrawerAdminMenu,
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <!-- Javascript Scripts (Cache-Busted) -->
-  <script src="js/firebase.js?v=2.2.0"></script>
-  <script src="js/store.js?v=2.2.0"></script>
-  <script src="js/auth.js?v=2.2.0"></script>
-  <script src="js/receipt.js?v=2.2.0"></script>
-  <script src="js/export.js?v=2.2.0"></script>
-  <script src="js/ui.js?v=2.2.0"></script>
-  <script src="js/app.js?v=2.2.0"></script>
+  <script src="js/firebase.js?v=2.3.0"></script>
+  <script src="js/store.js?v=2.3.0"></script>
+  <script src="js/auth.js?v=2.3.0"></script>
+  <script src="js/receipt.js?v=2.3.0"></script>
+  <script src="js/export.js?v=2.3.0"></script>
+  <script src="js/ui.js?v=2.3.0"></script>
+  <script src="js/app.js?v=2.3.0"></script>
 </body>
 </html>
