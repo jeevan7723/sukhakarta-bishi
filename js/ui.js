@@ -687,7 +687,7 @@ class UIManager {
           <tr>
             <td colspan="8" style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
               <div style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.7;">🧾</div>
-              <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 0.35rem;">
+              <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem; margin-bottom: 0.35rem;">
                 सायकल ${this.customerViewCycle} मध्ये अद्याप कोणतेही व्यवहार किंवा जमा हप्ते नोंदवले गेलेले नाहीत
               </div>
               <div style="font-size: 0.82rem; color: var(--text-muted); max-width: 480px; margin: 0 auto;">
@@ -764,7 +764,7 @@ class UIManager {
               ${isExtraDeposit ? `<div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">(नियमित ${currency}${member.weeklyAmount} + ⭐ ${currency}${extraDepositAmt} जादा)</div>` : ''}
             `;
             fineAmtHtml = `<span style="color: ${fineAmt > 0 ? 'var(--rose-400)' : 'var(--text-muted)'}; font-weight: 600;">${fineAmt > 0 ? `+${currency}${fineAmt.toLocaleString('en-IN')}` : '₹0'}</span>`;
-            totalRecHtml = `<span style="color: #fff; font-weight: 800; font-size: 0.95rem;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
+            totalRecHtml = `<span style="color: var(--text-primary); font-weight: 800; font-size: 0.95rem;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
             receiptBtnHtml = `<button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${member.id}', ${rec.weekNumber || 1}, ${txnCycle})" title="पावती पहा व प्रिंट करा">🧾 पावती</button>`;
           }
 
@@ -907,7 +907,7 @@ class UIManager {
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; font-size: 0.85rem; margin-bottom: 0.85rem;">
               <div>
                 <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">मूळ कर्ज मुद्दल</div>
-                <div style="font-weight: 800; color: #fff; font-size: 1.05rem;">${currency}${details.principal.toLocaleString('en-IN')}</div>
+                <div style="font-weight: 800; color: var(--text-primary); font-size: 1.05rem;">${currency}${details.principal.toLocaleString('en-IN')}</div>
               </div>
               <div>
                 <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">कालावधी (एकूण / चालू चक्र)</div>
@@ -963,7 +963,7 @@ class UIManager {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--gold-400); font-weight: 700;">${loan.id}</td>
-            <td style="font-weight: 700; color: #fff;">
+            <td style="font-weight: 700; color: var(--text-primary);">
               <div>${currency}${details.remainingPrincipal.toLocaleString('en-IN')}</div>
               ${details.isPartiallyPaid ? `<div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">बाकी मुद्दल (मूळ: ${currency}${details.originalPrincipal.toLocaleString('en-IN')})</div>` : ''}
             </td>
@@ -3136,7 +3136,7 @@ class UIManager {
           ${isExtraDeposit ? `<div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">(नियमित ${currency}${memberWeekly} + ⭐ ${currency}${extraDepositAmt})</div>` : ''}
         `;
         fineAmtHtml = `<span style="color: var(--rose-400); font-weight: 700;">${fineAmt > 0 ? `+${currency}${fineAmt}` : '₹0'}</span>`;
-        totalRecHtml = `<span style="color: #fff; font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
+        totalRecHtml = `<span style="color: var(--text-primary); font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
         receiptBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${t.memberId}', ${t.weekNumber})" title="पावती पहा / प्रिंट करा">🧾 पावती</button>`;
       }
 

@@ -365,7 +365,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
 
         <div class="receipt-amount-box" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(245, 158, 11, 0.2)); border: 1px solid var(--gold-400);">
           <div class="receipt-amount-lbl" style="color: var(--gold-400);">सदस्याला वाटप केलेली एकूण मॅच्युरिटी रक्कम</div>
-          <div class="receipt-amount-val" style="color: #fff;">${currency}${payout.amount.toLocaleString('en-IN')}</div>
+          <div class="receipt-amount-val" style="color: var(--text-primary);">${currency}${payout.amount.toLocaleString('en-IN')}</div>
           <div style="font-size: 0.82rem; color: var(--emerald-400); margin-top: 0.35rem; font-weight: 700;">
             (५० आठवडे बचत: ${currency}${payout.savingsAmount.toLocaleString('en-IN')} + ${payout.interestPercent}% व्याज: +${currency}${payout.interestBonus.toLocaleString('en-IN')})
           </div>
