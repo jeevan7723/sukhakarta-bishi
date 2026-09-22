@@ -251,9 +251,12 @@ function getWeekPillStatus(w, currentWk) {
   });
 
   const isCompleted = members.length > 0 && fullyPaidCount === members.length;
-  const hasDeposits = (fullyPaidCount > 0 && fullyPaidCount < members.length) || partialCount > 0 || totalWkAmount > 0;
+  // Future weeks (w > currentWk) must never show hasDeposits/yellow partial indicator from individual member advances;
+  // extra amount indicators should only show in that specific member's section.
+  const hasDeposits = (w <= currentWk) && (((fullyPaidCount > 0 && fullyPaidCount < members.length) || partialCount > 0 || totalWkAmount > 0));
   const isOverdue = (w < currentWk) && !isCompleted && !hasDeposits;
-  return { isCompleted, hasDeposits, isOverdue, fullyPaidCount, totalWkAmount };
+  const statusClass = (w > currentWk) ? (isCompleted ? 'completed paid' : 'pending') : (isCompleted ? 'completed paid' : (hasDeposits ? 'has-deposits partial' : (isOverdue ? 'overdue' : 'pending')));
+  return { isCompleted, hasDeposits, isOverdue, fullyPaidCount, totalWkAmount, statusClass };
 }
 
 const w1Status = getWeekPillStatus(1, 1);
@@ -261,14 +264,14 @@ const w2Status = getWeekPillStatus(2, 1);
 const w3Status = getWeekPillStatus(3, 1);
 
 console.log('Week 1 Pill Status:', w1Status);
-console.log('Week 2 Pill Status (Early Advance Paid by Member 3):', w2Status);
+console.log('Week 2 Pill Status (Future Week - Member 3 advance should NOT turn Week 2 yellow):', w2Status);
 console.log('Week 3 Pill Status (Pending):', w3Status);
 
 if (!w1Status.isCompleted || w1Status.fullyPaidCount < 2) {
   throw new Error('Test 10 failed: Week 1 should be fully completed');
 }
-if (!w2Status.hasDeposits || w2Status.fullyPaidCount < 1) {
-  throw new Error('Test 10 failed: Week 2 should show deposits from Member 3 advance');
+if (w2Status.hasDeposits || w2Status.statusClass !== 'pending') {
+  throw new Error('Test 10 failed: Week 2 must remain pending and NOT show yellow deposits from individual member advance');
 }
 
 // Test 11: Combined previous week payment with empty note (validates auto-note generation)

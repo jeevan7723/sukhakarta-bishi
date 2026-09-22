@@ -94,6 +94,9 @@ class BishiStore {
     if (!this.state.meta.currency) {
       this.state.meta.currency = '₹';
     }
+    if (!this.state.meta.startDate) {
+      this.state.meta.startDate = defaultState.meta.startDate;
+    }
     if (this.state.meta.lastUpdated === undefined || this.state.meta.lastUpdated === null) {
       this.state.meta.lastUpdated = 0;
     }
@@ -158,6 +161,7 @@ class BishiStore {
   // ग्रुप सेटिंग्स व नियम बदलणे
   updateSettings(settings) {
     if (settings.bishiName) this.state.meta.bishiName = settings.bishiName.trim();
+    if (settings.startDate) this.state.meta.startDate = String(settings.startDate).trim();
     if (settings.defaultFineAmount !== undefined) {
       this.state.meta.defaultFineAmount = Math.max(0, Number(settings.defaultFineAmount) || 0);
     }
@@ -167,6 +171,28 @@ class BishiStore {
     if (settings.currency) this.state.meta.currency = settings.currency.trim();
     this.saveState();
     return this.state.meta;
+  }
+
+  // आठवड्याची कॅलेंडर तारीख मिळवणे (Calculated Week Date from startDate)
+  getWeekDate(weekNumber) {
+    const w = parseInt(weekNumber, 10) || 1;
+    let baseDateStr = (this.state.meta && this.state.meta.startDate) ? this.state.meta.startDate : null;
+    let baseDate;
+    if (baseDateStr && typeof baseDateStr === 'string') {
+      const parts = baseDateStr.split('-');
+      if (parts.length === 3) {
+        baseDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 12, 0, 0);
+      } else {
+        baseDate = new Date(baseDateStr);
+      }
+    } else {
+      baseDate = new Date();
+    }
+    if (isNaN(baseDate.getTime())) {
+      baseDate = new Date();
+    }
+    const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + (w - 1) * 7, 12, 0, 0);
+    return d;
   }
 
   // ==========================================================================
@@ -874,12 +900,18 @@ class BishiStore {
   calculateLoanDetails(loan, targetWeekOrDate = null) {
     if (!loan) return null;
 
-    const principal = Math.max(0, Number(loan.principalAmount) || 0);
+    const originalPrincipal = Math.max(0, Number(loan.principalAmount) || 0);
+    const principalRepaid = Math.max(0, Number(loan.principalRepaid) || 0);
+    const isPaid = loan.status === 'paid';
+    const remainingPrincipal = isPaid ? 0 : Math.max(0, originalPrincipal - principalRepaid);
+    const isPartiallyPaid = !isPaid && principalRepaid > 0 && remainingPrincipal > 0;
+    const isPending = !isPaid;
+
     const interestRate = Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : 3);
     const cycleWeeks = Number(loan.gracePeriodWeeks !== undefined ? loan.gracePeriodWeeks : 4);
-    const isPaid = loan.status === 'paid';
     const totalInterestPaid = Number(loan.totalInterestPaid || 0);
     const interestPayments = Array.isArray(loan.interestPayments) ? loan.interestPayments : [];
+    const repayments = Array.isArray(loan.repayments) ? loan.repayments : [];
 
     let elapsedWeeks = 0;
     let daysElapsed = 0;
@@ -930,8 +962,9 @@ class BishiStore {
     const remainingGraceWeeks = isGracePeriodActive ? Math.max(0, cycleWeeks - currentCycleElapsedWeeks) : 0;
     const isInterestApplicable = !isPaid && currentCycleElapsedWeeks >= cycleWeeks;
 
-    // ३% व्याज रक्कम (१ सायकल = ४ आठवडे)
-    const singleCycleInterestAmount = Math.round(principal * (interestRate / 100));
+    // ३% व्याज रक्कम: बाकी मुद्दल रकमेवर आकारले जाते (Single cycle interest calculated on remaining loan principal)
+    const activePrincipal = isPaid ? originalPrincipal : remainingPrincipal;
+    const singleCycleInterestAmount = Math.round(activePrincipal * (interestRate / 100));
     const completedUnpaidCycles = Math.max(0, Math.floor(currentCycleElapsedWeeks / cycleWeeks));
 
     let currentCycleAccruedInterest = 0;
@@ -941,8 +974,10 @@ class BishiStore {
       currentCycleAccruedInterest = completedUnpaidCycles * singleCycleInterestAmount;
     }
 
-    const totalPayable = principal + currentCycleAccruedInterest;
-    const repaidAmount = isPaid ? (Number(loan.repaidAmount) || totalPayable) : (Number(loan.repaidAmount) || 0);
+    const totalPayable = remainingPrincipal + currentCycleAccruedInterest;
+    const repaidAmount = isPaid 
+      ? (Number(loan.repaidAmount) || (originalPrincipal + (Number(loan.interestPaid) || 0))) 
+      : (Number(loan.repaidAmount) || principalRepaid);
     const remainingBalance = isPaid ? 0 : totalPayable;
     const currentCycleNumber = interestPayments.length + 1;
 
@@ -950,7 +985,10 @@ class BishiStore {
       id: loan.id,
       memberId: loan.memberId,
       memberName: loan.memberName,
-      principal,
+      principal: remainingPrincipal, // चालू बाकी कर्ज मुद्दल (Remaining Loan Amount)
+      originalPrincipal,            // सुरुवातीची मूळ कर्ज रक्कम
+      remainingPrincipal,           // उर्वरित बाकी कर्ज मुद्दल
+      principalRepaid,              // आतापर्यंत परत केलेली मुद्दल
       interestRate,
       gracePeriod: cycleWeeks,
       cycleWeeks,
@@ -972,13 +1010,16 @@ class BishiStore {
       totalPayable,
       repaidAmount,
       remainingBalance,
-      status: isPaid ? 'paid' : 'active',
+      status: isPaid ? 'paid' : (isPartiallyPaid ? 'pending' : (loan.status || 'pending')),
       isPaid,
+      isPartiallyPaid,
+      isPending,
       paidDate: loan.paidDate || null,
       paidWeek: loan.paidWeek || null,
       lastInterestPaidWeek: loan.lastInterestPaidWeek || loan.issueWeek || 1,
       lastInterestPaidDate: loan.lastInterestPaidDate || loan.issueDate || null,
-      interestPayments
+      interestPayments,
+      repayments
     };
   }
 
@@ -1012,17 +1053,19 @@ class BishiStore {
       memberName: member.name,
       memberPhone: member.phone,
       principalAmount: principal,
+      principalRepaid: 0,
       issueWeek: issueWeek,
       issueDate: issueDate,
       lastInterestPaidWeek: issueWeek,
       lastInterestPaidDate: issueDate,
       interestRatePercent: 3,
       gracePeriodWeeks: 4,
-      status: 'active',
+      status: 'active', // नवीन वाटप कर्ज (पेंडिंग / सक्रिय)
       repaidAmount: 0,
       interestPaid: 0,
       totalInterestPaid: 0,
       interestPayments: [],
+      repayments: [],
       paidDate: null,
       paidWeek: null,
       disbursementMode: disbMode,
@@ -1076,7 +1119,7 @@ class BishiStore {
     }
 
     const details = this.calculateLoanDetails(loan);
-    const suggestedInterest = details.singleCycleInterestAmount || Math.round(loan.principalAmount * 0.03);
+    const suggestedInterest = details.singleCycleInterestAmount || Math.round(details.remainingPrincipal * 0.03);
     const amount = paymentData.amount !== undefined ? Math.max(1, Number(paymentData.amount)) : (details.interestAmount > 0 ? details.interestAmount : suggestedInterest);
     
     const paidDate = paymentData.paidDate || new Date().toISOString().split('T')[0];
@@ -1144,7 +1187,8 @@ class BishiStore {
     };
   }
 
-  // संपूर्ण कर्ज परतफेड जमा नोंदवणे (Mark Loan as Fully Paid / Settlement - केवळ प्रशासक)
+  // कर्ज परतफेड जमा नोंदवणे (अंशतः / पूर्ण - Partial & Full Loan Repayment - केवळ प्रशासक)
+  // नियम: सर्व रक्कम भरल्याशिवाय कर्ज पूर्ण फेड होत नाही; अर्धी/अंशतः रक्कम भरल्यास बाकी रक्कम कर्ज म्हणून दिसते व कर्ज प्रलंबित (Pending) राहते.
   markLoanPaid(loanId, paymentData = {}) {
     if (window.authManager && !window.authManager.isAdmin()) {
       console.warn('Unauthorized attempt to mark loan paid: Admin login required');
@@ -1161,27 +1205,81 @@ class BishiStore {
     }
 
     const details = this.calculateLoanDetails(loan);
-    const principalPaid = loan.principalAmount;
-    const interestPaid = paymentData.interestAmount !== undefined ? Math.max(0, Number(paymentData.interestAmount)) : details.interestAmount;
-    const totalRepaid = paymentData.repaidAmount !== undefined ? Math.max(0, Number(paymentData.repaidAmount)) : (principalPaid + interestPaid);
-    
+    const currentRemainingPrincipal = details.remainingPrincipal;
+    const currentInterestDue = details.interestAmount;
+
+    const interestPaid = paymentData.interestAmount !== undefined 
+      ? Math.max(0, Number(paymentData.interestAmount)) 
+      : (paymentData.repaidAmount !== undefined ? Math.min(currentInterestDue, Number(paymentData.repaidAmount)) : currentInterestDue);
+
+    // एकूण जमा केलेली परतफेड रक्कम
+    const totalRepaid = paymentData.repaidAmount !== undefined 
+      ? Math.max(1, Number(paymentData.repaidAmount)) 
+      : (currentRemainingPrincipal + interestPaid);
+
+    // मुद्दलमध्ये जाणारी रक्कम गणना करणे
+    let principalPaid = 0;
+    if (paymentData.principalPaid !== undefined) {
+      principalPaid = Math.max(0, Number(paymentData.principalPaid));
+    } else {
+      principalPaid = Math.max(0, totalRepaid - interestPaid);
+    }
+    principalPaid = Math.min(currentRemainingPrincipal, principalPaid);
+
     const paidDate = paymentData.paidDate || new Date().toISOString().split('T')[0];
     const paidWeek = Number(paymentData.paidWeek) || this.state.meta.currentWeek || 1;
     const paymentMode = paymentData.paymentMode || 'Cash';
     const upiId = (paymentData.upiId || '').trim();
-    const receiptNo = `LOAN-REC-${loan.id}-${Date.now().toString().slice(-4)}`;
     const note = (paymentData.notes || '').trim();
 
-    loan.status = 'paid';
-    loan.paidDate = paidDate;
-    loan.paidWeek = paidWeek;
-    loan.repaidAmount = totalRepaid;
-    loan.interestPaid = interestPaid;
+    if (!Array.isArray(loan.repayments)) {
+      loan.repayments = [];
+    }
+
+    const repaymentCount = loan.repayments.length + 1;
+    const receiptNo = `LOAN-REC-${loan.id}-${repaymentCount}-${Date.now().toString().slice(-4)}`;
+
+    const newPrincipalRepaid = (Number(loan.principalRepaid) || 0) + principalPaid;
+    loan.principalRepaid = newPrincipalRepaid;
+
+    const remainingPrincipalAfter = Math.max(0, (Number(loan.principalAmount) || 0) - newPrincipalRepaid);
+    const isFullySettled = remainingPrincipalAfter <= 0;
+
+    const repaymentRecord = {
+      id: receiptNo,
+      installmentNumber: repaymentCount,
+      amount: totalRepaid,
+      principalPaid,
+      interestPaid,
+      remainingPrincipalAfter,
+      paidWeek,
+      paidDate,
+      paymentMode,
+      upiId,
+      receiptNo,
+      notes: note,
+      createdAt: Date.now()
+    };
+
+    loan.repayments.push(repaymentRecord);
+    loan.repaidAmount = (Number(loan.repaidAmount) || 0) + totalRepaid;
+    loan.interestPaid = (Number(loan.interestPaid) || 0) + interestPaid;
     loan.totalInterestPaid = (Number(loan.totalInterestPaid) || 0) + interestPaid;
     loan.paymentMode = paymentMode;
     loan.upiId = upiId;
     loan.receiptNo = receiptNo;
-    loan.settlementNotes = note;
+
+    if (isFullySettled) {
+      loan.status = 'paid';
+      loan.paidDate = paidDate;
+      loan.paidWeek = paidWeek;
+      loan.settlementNotes = note || `संपूर्ण कर्ज परतफेड पूर्ण`;
+    } else {
+      loan.status = 'pending'; // कर्ज बाकी - प्रलंबित राहते (Shows loan is pending)
+      loan.lastRepaymentDate = paidDate;
+      loan.lastRepaymentWeek = paidWeek;
+      loan.lastRepaymentNotes = note || `अंशतः कर्ज परतफेड जमा`;
+    }
 
     const member = this.getMember(loan.memberId);
     const cycleNum = member ? (member.currentCycle || 1) : 1;
@@ -1203,11 +1301,26 @@ class BishiStore {
       paymentMode: paymentMode,
       upiId: upiId,
       receiptNo: receiptNo,
-      note: note || `कर्ज परतफेड पूर्ण: मूळ मुद्दल ₹${principalPaid.toLocaleString('en-IN')}${interestPaid > 0 ? ` + चालू चक्र व्याज ₹${interestPaid.toLocaleString('en-IN')}` : ' (व्याज क्लिअर)'} = एकूण जमा ₹${totalRepaid.toLocaleString('en-IN')}`
+      note: note || (isFullySettled 
+        ? `संपूर्ण कर्ज परतफेड: मूळ मुद्दल ₹${principalPaid.toLocaleString('en-IN')}${interestPaid > 0 ? ` + व्याज ₹${interestPaid.toLocaleString('en-IN')}` : ''} = एकूण जमा ₹${totalRepaid.toLocaleString('en-IN')} (कर्ज पूर्ण फेड)`
+        : `अंशतः कर्ज परतफेड: मुद्दल जमा ₹${principalPaid.toLocaleString('en-IN')}${interestPaid > 0 ? ` + व्याज ₹${interestPaid.toLocaleString('en-IN')}` : ''} = एकूण जमा ₹${totalRepaid.toLocaleString('en-IN')} (उर्वरित बाकी कर्ज: ₹${remainingPrincipalAfter.toLocaleString('en-IN')} - कर्ज बाकी/Pending)`)
     });
 
     this.saveState();
-    return { success: true, loan, receiptNo, totalRepaid, interestPaid, message: `कर्ज ${loan.id} ची ₹${totalRepaid.toLocaleString('en-IN')} संपूर्ण परतफेड यशस्वीरीत्या जमा नोंदवली गेली.` };
+    return {
+      success: true,
+      loan,
+      repayment: repaymentRecord,
+      receiptNo,
+      totalRepaid,
+      principalPaid,
+      interestPaid,
+      remainingPrincipalAfter,
+      isFullySettled,
+      message: isFullySettled
+        ? `कर्ज ${loan.id} ची ₹${totalRepaid.toLocaleString('en-IN')} संपूर्ण परतफेड यशस्वीरीत्या जमा नोंदवली गेली. (कर्ज पूर्ण फेड).`
+        : `कर्ज ${loan.id} वर ₹${totalRepaid.toLocaleString('en-IN')} जमा झाले. उर्वरित बाकी कर्ज: ₹${remainingPrincipalAfter.toLocaleString('en-IN')} (कर्ज बाकी - Pending).`
+    };
   }
 
   // कर्ज रद्द / डिलीट करणे (Cancel Loan - केवळ प्रशासक)
@@ -1240,16 +1353,17 @@ class BishiStore {
 
     memberLoans.forEach(loan => {
       const details = this.calculateLoanDetails(loan);
-      totalBorrowed += details.principal;
+      totalBorrowed += details.originalPrincipal;
       totalInterestCollected += (Number(loan.totalInterestPaid) || 0);
 
-      if (loan.status === 'paid') {
-        totalRepaid += details.repaidAmount;
+      if (details.isPaid) {
+        totalRepaid += (Number(loan.repaidAmount) || details.originalPrincipal);
         paidLoansList.push({ loan, details });
       } else {
-        activePrincipal += details.principal;
+        totalRepaid += details.principalRepaid;
+        activePrincipal += details.remainingPrincipal;
         activeInterest += details.interestAmount;
-        activeTotalDue += details.remainingBalance;
+        activeTotalDue += details.totalPayable;
         activeLoansList.push({ loan, details });
       }
     });
@@ -1342,9 +1456,10 @@ class BishiStore {
     const nextDueAmount = weeklyAmount;
     const remainingWeeksCount = Math.max(0, 50 - effectivePaidWeeks);
 
-    // Calculate overdue weeks based on cumulative expected deposit vs actual total deposited
-    const expectedSoFar = Math.min(50, currentWeek) * weeklyAmount;
-    const depositDeficit = Math.max(0, expectedSoFar - Math.max(totalDeposited, effectivePaidWeeks * weeklyAmount));
+    // Calculate overdue weeks based on cumulative expected deposit for PAST completed weeks (weeks < currentWeek)
+    const pastCompletedWeeks = Math.max(0, Math.min(50, currentWeek - 1));
+    const expectedPastDeposit = pastCompletedWeeks * weeklyAmount;
+    const depositDeficit = Math.max(0, expectedPastDeposit - Math.max(totalDeposited, effectivePaidWeeks * weeklyAmount));
     const overdueWeeksCount = Math.ceil(depositDeficit / (weeklyAmount || 1));
 
     // Determine next due week: the next week following the covered weeks
@@ -1460,12 +1575,13 @@ class BishiStore {
       const details = this.calculateLoanDetails(loan);
       if (loan.status === 'paid') {
         repaidLoansCount++;
-        totalLoansRepaidAmount += Number(loan.repaidAmount || (loan.principalAmount + (loan.interestPaid || 0)));
+        totalLoansRepaidAmount += Number(loan.repaidAmount || (details.originalPrincipal + (loan.interestPaid || 0)));
         totalLoanInterestCollected += Number(loan.totalInterestPaid !== undefined ? loan.totalInterestPaid : (loan.interestPaid || 0));
       } else {
         activeLoansCount++;
-        totalActiveLoansPrincipal += details.principal;
+        totalActiveLoansPrincipal += details.remainingPrincipal;
         totalActiveLoansInterestAccrued += details.interestAmount;
+        totalLoansRepaidAmount += details.principalRepaid;
         totalLoanInterestCollected += Number(loan.totalInterestPaid || 0);
       }
       totalLoansDisbursed += Number(loan.principalAmount) || 0;

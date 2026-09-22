@@ -235,6 +235,100 @@ assert(pendingWaText.includes('३% व्याज देय झाले आ�
 assert(pendingWaText.includes('10,000') || pendingWaText.includes('१०,०००'), 'Pending interest message contains principal loan amount');
 assert(pendingWaText.includes('300') || pendingWaText.includes('३००'), 'Pending interest message contains due interest amount');
 
+// 16. Test Partial Repayment & Pending Status (User Requirement: Pay half amount -> shows remaining amount as loan & loan pending)
+console.log('\n--- Test 16: Partial Loan Repayment (Paying 50% Half Amount) ---');
+window.bishiStore.state.meta.currentWeek = 1;
+
+const member2 = window.bishiStore.addMember({
+  name: 'सुनील शिंदे (Sunil Shinde)',
+  phone: '9822022222',
+  weeklyAmount: 1000,
+  password: '123'
+});
+assert(member2 && member2.id, `Test member 2 created: ${member2?.id}`);
+
+const loan2Res = window.bishiStore.issueLoan({
+  memberId: member2.id,
+  principalAmount: 10000,
+  issueWeek: 1,
+  issueDate: '2026-01-01',
+  notes: 'व्यवसायासाठी कर्ज'
+});
+assert(loan2Res.success, `Member 2 loan issued: ${loan2Res.loan?.id} (₹10,000)`);
+const loan2 = loan2Res.loan;
+
+// Verify unpaid loan shows as pending
+const calcUnpaid = window.bishiStore.calculateLoanDetails(loan2);
+assert(calcUnpaid.isPending === true, 'Unpaid loan isPending is true');
+assert(calcUnpaid.isPaid === false, 'Unpaid loan isPaid is false');
+assert(calcUnpaid.remainingPrincipal === 10000, 'Unpaid loan remaining principal is full ₹10,000');
+
+// Member 2 pays HALF amount of loan (₹5,000 out of ₹10,000)
+const halfPayRes = window.bishiStore.markLoanPaid(loan2.id, {
+  repaidAmount: 5000,
+  interestAmount: 0,
+  paidWeek: 1,
+  paidDate: '2026-01-07',
+  paymentMode: 'Cash',
+  notes: '५०% अर्धी कर्ज परतफेड जमा'
+});
+assert(halfPayRes.success, 'Paying half loan amount succeeds');
+assert(halfPayRes.isFullySettled === false, 'Loan is NOT fully settled after paying half amount');
+assert(halfPayRes.remainingPrincipalAfter === 5000, `Remaining amount after half payment = ₹5,000 (actual: ₹${halfPayRes.remainingPrincipalAfter})`);
+assert(halfPayRes.loan.status === 'pending', `Loan status shows as "pending" (actual: ${halfPayRes.loan.status})`);
+
+// 17. Verify Loan Details reflect Remaining Amount as Loan and Status as Pending
+const loan2AfterHalf = window.bishiStore.getLoan(loan2.id);
+const calcHalf = window.bishiStore.calculateLoanDetails(loan2AfterHalf);
+assert(calcHalf.remainingPrincipal === 5000, `Remaining loan amount is ₹5,000 (actual: ₹${calcHalf.remainingPrincipal})`);
+assert(calcHalf.principal === 5000, `Active principal is now ₹5,000 (actual: ₹${calcHalf.principal})`);
+assert(calcHalf.originalPrincipal === 10000, `Original principal preserved as ₹10,000`);
+assert(calcHalf.principalRepaid === 5000, `Repaid principal recorded as ₹5,000`);
+assert(calcHalf.isPartiallyPaid === true, `isPartiallyPaid flag is true`);
+assert(calcHalf.isPending === true, `isPending flag is true (shows loan is pending)`);
+assert(calcHalf.status === 'pending', `Status is 'pending'`);
+assert(calcHalf.totalPayable === 5000, `Total payable for full payoff is now remaining ₹5,000 (actual: ₹${calcHalf.totalPayable})`);
+
+// 18. Member Overall Due Calculation reflects only remaining ₹5,000 loan
+const member2Due = window.bishiStore.calculateMemberOverallDue(member2);
+assert(member2Due.loanPrincipalDue === 5000, `Member 2 overall due includes only remaining ₹5,000 loan principal (actual: ₹${member2Due.loanPrincipalDue})`);
+
+// 19. Verify Partial Repayment Receipt HTML & WhatsApp text
+const partialReceiptHTML = window.receiptManager.generateLoanReceiptHTML(loan2AfterHalf, member2, window.bishiStore.state.meta);
+assert(partialReceiptHTML.includes('अंशतः'), 'Partial repayment receipt HTML contains Marathi partial repayment badge');
+assert(partialReceiptHTML.includes('बाकी'), 'Partial repayment receipt HTML contains Marathi remaining balance notice');
+
+const partialWaText = window.receiptManager.generateLoanWhatsAppText(loan2AfterHalf, member2, window.bishiStore.state.meta);
+assert(partialWaText.includes('अंशतः परतफेड'), 'WhatsApp message contains partial repayment notice');
+assert(partialWaText.includes('बाकी'), 'WhatsApp message contains remaining loan balance notice');
+assert(partialWaText.includes('Pending'), 'WhatsApp message contains Pending status');
+
+// 20. Subsequent 3% Periodic Interest is calculated on the REMAINING balance (3% of ₹5,000 = ₹150)
+window.bishiStore.state.meta.currentWeek = 5; // 4 weeks elapsed
+const calcHalfW5 = window.bishiStore.calculateLoanDetails(loan2AfterHalf);
+assert(calcHalfW5.isInterestApplicable === true, 'Week 5: Interest is applicable');
+assert(calcHalfW5.singleCycleInterestAmount === 150, `3% interest calculated on remaining ₹5,000 = ₹150 (actual: ₹${calcHalfW5.singleCycleInterestAmount})`);
+assert(calcHalfW5.interestAmount === 150, `Cycle accrued interest is ₹150 (actual: ₹${calcHalfW5.interestAmount})`);
+assert(calcHalfW5.totalPayable === 5150, `Total payable is remaining ₹5,000 + ₹150 interest = ₹5,150 (actual: ₹${calcHalfW5.totalPayable})`);
+
+// 21. Member Pays Remaining Balance (₹5,000 principal + ₹150 interest = ₹5,150) -> Status becomes Paid
+const fullPayRes = window.bishiStore.markLoanPaid(loan2.id, {
+  repaidAmount: 5150,
+  interestAmount: 150,
+  paidWeek: 5,
+  paidDate: '2026-02-05',
+  paymentMode: 'UPI',
+  notes: 'उर्वरित बाकी कर्ज व व्याज संपूर्ण जमा'
+});
+assert(fullPayRes.success, 'Paying remaining loan balance succeeds');
+assert(fullPayRes.isFullySettled === true, 'Loan is now marked as fully settled');
+assert(fullPayRes.remainingPrincipalAfter === 0, 'Remaining principal after final settlement is 0');
+assert(fullPayRes.loan.status === 'paid', 'Settled loan status is now "paid"');
+
+const finalCalcLoan2 = window.bishiStore.calculateLoanDetails(fullPayRes.loan);
+assert(finalCalcLoan2.isPaid === true, 'Final loan isPaid is true');
+assert(finalCalcLoan2.remainingPrincipal === 0, 'Final remaining principal is 0');
+
 console.log('\n====================================================');
 console.log(`📊 TEST SUMMARY: ${passedTests} / ${totalTests} TESTS PASSED`);
 console.log('====================================================');

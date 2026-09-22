@@ -153,10 +153,10 @@
 
 .week-pill {
   flex: 0 0 auto;
-  min-width: 62px;
-  width: 62px;
-  height: 66px;
-  padding: 0.4rem 0.25rem 0.35rem;
+  min-width: 68px;
+  width: 68px;
+  height: 76px;
+  padding: 0.35rem 0.2rem 0.3rem;
   border-radius: var(--radius-md);
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
@@ -164,7 +164,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   transition: all var(--transition-fast);
   color: var(--text-secondary);
   cursor: pointer;
@@ -174,7 +174,7 @@
 }
 
 .week-pill .wk-label {
-  font-size: 0.62rem;
+  font-size: 0.60rem;
   font-weight: 700;
   color: var(--text-muted);
   line-height: 1;
@@ -185,16 +185,27 @@
 
 .week-pill .wk-num {
   font-weight: 800;
-  font-size: 1.15rem;
+  font-size: 1.12rem;
   font-family: var(--font-display);
-  line-height: 1.1;
+  line-height: 1.05;
   color: var(--text-primary);
   display: block;
 }
 
+.week-pill .wk-date {
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.1;
+  white-space: nowrap;
+  display: block;
+  letter-spacing: -0.01em;
+  transition: color var(--transition-fast);
+}
+
 .week-pill .wk-status-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--text-muted);
   margin-top: 1px;
@@ -211,6 +222,10 @@
   color: var(--text-secondary);
 }
 
+.week-pill:hover .wk-date {
+  color: var(--text-secondary);
+}
+
 .week-pill.completed,
 .week-pill.paid {
   border-color: rgba(16, 185, 129, 0.45);
@@ -218,6 +233,10 @@
 }
 .week-pill.completed .wk-num,
 .week-pill.paid .wk-num {
+  color: #34d399;
+}
+.week-pill.completed .wk-date,
+.week-pill.paid .wk-date {
   color: #34d399;
 }
 .week-pill.completed .wk-status-dot,
@@ -235,6 +254,10 @@
 .week-pill.partial .wk-num {
   color: #fbbf24;
 }
+.week-pill.has-deposits .wk-date,
+.week-pill.partial .wk-date {
+  color: #fbbf24;
+}
 .week-pill.has-deposits .wk-status-dot,
 .week-pill.partial .wk-status-dot {
   background: var(--gold-400, #f59e0b);
@@ -244,6 +267,9 @@
 .week-pill.overdue {
   border-color: rgba(244, 63, 94, 0.35);
   background: rgba(244, 63, 94, 0.05);
+}
+.week-pill.overdue .wk-date {
+  color: #fb7185;
 }
 .week-pill.overdue .wk-status-dot {
   background: var(--rose-400, #fb7185);
@@ -264,6 +290,11 @@
 
 .week-pill.active .wk-num {
   color: #ffffff !important;
+}
+
+.week-pill.active .wk-date {
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-weight: 700;
 }
 
 .week-pill.active .wk-status-dot {

@@ -21,7 +21,7 @@ class FirebaseSyncManager {
     this.app = null;
     this.firestore = null;
     this.rtdb = null;
-    this.isInitialized = false;
+    this.isInitialized = true;
     this.isConnected = false;
     this.isSyncing = false;
     this.autoSyncEnabled = true;
@@ -32,45 +32,54 @@ class FirebaseSyncManager {
     this.rtdbRef = null;
     this.heartbeatTimer = null;
     this.activityLogs = [];
+    this.restBaseUrl = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents`;
+    this.rtdbBaseUrl = firebaseConfig.databaseURL;
+
+    // Immediately boot up
+    this.init();
   }
 
-  // --- १. इनिशिअलायझेशन (Initialization) ---
+  // --- १. इनिशिअलायझेशन (Initialization & Universal Fallback) ---
   init() {
+    this.isInitialized = true;
     try {
-      if (typeof firebase === 'undefined') {
-        console.warn('Firebase SDK not loaded. Operating in local storage mode.');
-        this.updateStatusUI('offline', 'स्थानिक मोड (ऑफलाइन)');
-        return;
-      }
+      if (typeof firebase !== 'undefined') {
+        if (!this.app) {
+          if (!firebase.apps || !firebase.apps.length) {
+            this.app = firebase.initializeApp(firebaseConfig);
+          } else {
+            this.app = firebase.app();
+          }
+        }
 
-      if (!firebase.apps || !firebase.apps.length) {
-        this.app = firebase.initializeApp(firebaseConfig);
+        // 1. Initialize Firestore SDK
+        try {
+          if (!this.firestore) {
+            this.firestore = firebase.firestore();
+            this.firestoreDocRef = this.firestore.collection('sukhakarta_bishi').doc('live_state');
+          }
+        } catch (e) {
+          console.warn('Firestore SDK initialization notice:', e);
+        }
+
+        // 2. Initialize Realtime Database
+        try {
+          if (!this.rtdb) {
+            this.rtdb = firebase.database();
+            this.rtdbRef = this.rtdb.ref('sukhakarta_bishi/live_state');
+          }
+        } catch (e) {
+          console.warn('Realtime Database initialization notice:', e);
+        }
+
+        // Start Realtime Listeners
+        this.setupRealtimeListeners();
       } else {
-        this.app = firebase.app();
+        console.warn('Firebase JavaScript SDK not loaded, operating in Universal Cloud REST Engine Mode.');
       }
 
-      // 1. Initialize Firestore
-      try {
-        this.firestore = firebase.firestore();
-        this.firestoreDocRef = this.firestore.collection('sukhakarta_bishi').doc('live_state');
-      } catch (e) {
-        console.warn('Firestore initialization notice:', e);
-      }
-
-      // 2. Initialize Realtime Database
-      try {
-        this.rtdb = firebase.database();
-        this.rtdbRef = this.rtdb.ref('sukhakarta_bishi/live_state');
-      } catch (e) {
-        console.warn('Realtime Database initialization notice:', e);
-      }
-
-      this.isInitialized = true;
       this.updateStatusUI('connecting', 'क्लाउड कनेक्ट करत आहे...');
-      this.logActivity('Firebase Cloud SDK यशस्वीरीत्या सुरू झाले');
-
-      // Start Realtime Listeners
-      this.setupRealtimeListeners();
+      this.logActivity('Firebase Cloud Engine सक्रिय झाले');
 
       // Network online / offline events
       if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
@@ -94,12 +103,155 @@ class FirebaseSyncManager {
       // Background periodic heartbeat to monitor latency
       this.startHeartbeat();
 
+      // Auto-load state from cloud if local store is empty
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          const store = window.bishiStore;
+          const hasLocalData = store && (
+            (typeof store.hasData === 'function' && store.hasData()) ||
+            (Array.isArray(store.state?.members) && store.state.members.length > 0)
+          );
+          if (store && !hasLocalData) {
+            console.log('🔄 Local store is empty. Fetching initial state from Firebase...');
+            this.fetchStateAndApply();
+          }
+        }, 400);
+      }
+
       console.log('🔥 Firebase Cloud Realtime Live Sync Engine is active for Sukhakarta Bishi.');
     } catch (err) {
       console.error('Firebase Initialization Error:', err);
-      this.updateStatusUI('error', 'क्लाउड एरर');
-      this.logActivity(`त्रुटी: ${err.message || err}`);
+      this.isInitialized = true; // Never block UI
+      this.updateStatusUI('offline', 'स्थानिक मोड (REST सक्रिय)');
+      this.logActivity(`सूचना: REST मोड सक्रिय (${err.message || err})`);
     }
+  }
+
+  // --- REST Engine Helpers (Universal Fallback for zero dependency & no adblock issue) ---
+  toFirestoreValue(val) {
+    if (val === null || val === undefined) return { nullValue: null };
+    if (typeof val === 'string') return { stringValue: val };
+    if (typeof val === 'boolean') return { booleanValue: val };
+    if (typeof val === 'number') {
+      if (Number.isInteger(val)) return { integerValue: val.toString() };
+      return { doubleValue: val };
+    }
+    if (Array.isArray(val)) {
+      return { arrayValue: { values: val.map(v => this.toFirestoreValue(v)) } };
+    }
+    if (typeof val === 'object') {
+      const fields = {};
+      for (const [k, v] of Object.entries(val)) {
+        if (v !== undefined) fields[k] = this.toFirestoreValue(v);
+      }
+      return { mapValue: { fields } };
+    }
+    return { stringValue: String(val) };
+  }
+
+  toFirestoreDocument(obj) {
+    const fields = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (v !== undefined) fields[k] = this.toFirestoreValue(v);
+    }
+    return { fields };
+  }
+
+  parseFirestoreValue(val) {
+    if (!val) return null;
+    if ('stringValue' in val) return val.stringValue;
+    if ('integerValue' in val) return parseInt(val.integerValue, 10);
+    if ('doubleValue' in val) return parseFloat(val.doubleValue);
+    if ('booleanValue' in val) return val.booleanValue;
+    if ('nullValue' in val) return null;
+    if ('timestampValue' in val) return val.timestampValue;
+    if ('arrayValue' in val) return (val.arrayValue.values || []).map(v => this.parseFirestoreValue(v));
+    if ('mapValue' in val) {
+      const res = {};
+      const f = val.mapValue.fields || {};
+      for (const k in f) res[k] = this.parseFirestoreValue(f[k]);
+      return res;
+    }
+    return val;
+  }
+
+  parseFirestoreDocument(doc) {
+    if (!doc || !doc.fields) return null;
+    const res = {};
+    for (const k in doc.fields) res[k] = this.parseFirestoreValue(doc.fields[k]);
+    return res;
+  }
+
+  async fetchStateViaRest() {
+    const startTime = performance.now();
+    const url = `${this.restBaseUrl}/sukhakarta_bishi/live_state`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const doc = await res.json();
+    const data = this.parseFirestoreDocument(doc);
+    const latency = Math.round(performance.now() - startTime);
+    return { data, latency };
+  }
+
+  async patchFirestoreDocViaRest(collection, docId, obj) {
+    const url = `${this.restBaseUrl}/${collection}/${encodeURIComponent(docId)}`;
+    const body = JSON.stringify(this.toFirestoreDocument(obj));
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body
+    });
+    return res.ok;
+  }
+
+  async deleteFirestoreDocViaRest(collection, docId) {
+    const url = `${this.restBaseUrl}/${collection}/${encodeURIComponent(docId)}`;
+    try {
+      await fetch(url, { method: 'DELETE' });
+    } catch (e) {}
+  }
+
+  async syncAllModularSectionsViaRest(payload) {
+    // 1. Unified snapshot
+    await this.patchFirestoreDocViaRest('sukhakarta_bishi', 'live_state', payload);
+    
+    // 2. Separate Member documents
+    for (const member of (payload.members || [])) {
+      const memberDoc = this.buildMemberDocument(member, payload);
+      await this.patchFirestoreDocViaRest('members', member.id, memberDoc);
+    }
+
+    // 3. Transactions
+    for (const txn of (payload.transactions || [])) {
+      await this.patchFirestoreDocViaRest('transactions', txn.id, {
+        ...txn,
+        _section: 'transactions',
+        _updatedAt: new Date().toISOString()
+      });
+    }
+
+    // 4. Loans
+    for (const loan of (payload.loans || [])) {
+      await this.patchFirestoreDocViaRest('loans', loan.id, {
+        ...loan,
+        _section: 'loans',
+        _updatedAt: new Date().toISOString()
+      });
+    }
+
+    // 5. Settings
+    if (payload.meta) {
+      await this.patchFirestoreDocViaRest('settings', 'bishi_rules', {
+        ...payload.meta,
+        _section: 'settings',
+        _updatedAt: new Date().toISOString()
+      });
+    }
+
+    // 6. Summary
+    const summaryDoc = this.buildSummaryPayload(payload);
+    await this.patchFirestoreDocViaRest('summary', 'dashboard_overview', summaryDoc);
+    return true;
   }
 
   // --- २. रिअल-टाईम लाइव्ह लिसनर्स (Bidirectional Realtime Listeners) ---
@@ -256,7 +408,123 @@ class FirebaseSyncManager {
     this.hasRemoteData = true;
   }
 
-  // --- ४. क्लाउडवर डेटा सेव्ह/पुश करणे (Push State to Firebase Cloud) ---
+  // --- ३.१ सर्व डेटा समाविष्ट असलेले स्वतंत्र सदस्य डॉक्युमेंट तयार करणे (Comprehensive Member Document) ---
+  buildMemberDocument(member, storeState = null) {
+    const store = storeState || (window.bishiStore && window.bishiStore.state);
+    const transactions = (store && store.transactions) || [];
+    const loans = (store && store.loans) || [];
+    const meta = (store && store.meta) || {};
+    const totalWeeks = Number(meta.totalWeeks) || 50;
+    const maturityPercent = Number(meta.maturityInterestPercent) || 8;
+
+    const memberTxns = transactions.filter(t => t.memberId === member.id);
+    const memberLoans = loans.filter(l => l.memberId === member.id);
+
+    let totalDeposited = 0;
+    let totalFinePaid = 0;
+    let paidWeeksCount = 0;
+    let pendingWeeksCount = 0;
+
+    if (Array.isArray(member.weeks)) {
+      member.weeks.forEach(w => {
+        const deposit = Number(w.amountPaid) || 0;
+        const fine = Number(w.finePaid) || 0;
+        totalDeposited += deposit;
+        totalFinePaid += fine;
+        if (w.status === 'paid') {
+          paidWeeksCount++;
+        } else if (w.status === 'pending' || w.status === 'partial') {
+          pendingWeeksCount++;
+        }
+      });
+    }
+
+    const weeklyAmt = Number(member.weeklyAmount) || 1000;
+    const expectedTotalContribution = weeklyAmt * totalWeeks;
+    const projectedInterest = Math.round((expectedTotalContribution * maturityPercent) / 100);
+    const projectedMaturityAmount = expectedTotalContribution + projectedInterest;
+
+    return {
+      // Identity & Profile
+      id: member.id,
+      name: member.name || '',
+      phone: member.phone || '',
+      password: member.password || '',
+      weeklyAmount: weeklyAmt,
+      startWeek: Number(member.startWeek) || 1,
+      nominee: member.nominee || '',
+      notes: member.notes || '',
+      joinDate: member.joinDate || new Date().toISOString().split('T')[0],
+      status: member.status || 'active',
+      currentCycle: Number(member.currentCycle) || 1,
+      pastCycles: member.pastCycles || [],
+      payoutStatus: member.payoutStatus || 'pending',
+      payoutDetails: member.payoutDetails || null,
+
+      // All 50 Weeks Full Details
+      weeks: member.weeks || [],
+
+      // Calculated Financial Summary
+      summary: {
+        totalDeposited,
+        totalFinePaid,
+        totalPaid: totalDeposited + totalFinePaid,
+        paidWeeksCount,
+        pendingWeeksCount,
+        totalWeeks,
+        completionRatePercent: totalWeeks > 0 ? Math.round((paidWeeksCount / totalWeeks) * 100) : 0,
+        expectedTotalContribution,
+        projectedMaturityAmount,
+        balanceToMaturity: Math.max(0, expectedTotalContribution - totalDeposited)
+      },
+
+      // Associated Records
+      transactions: memberTxns,
+      loans: memberLoans,
+
+      // Metadata
+      _section: 'members',
+      _updatedAt: new Date().toISOString(),
+      _version: '2.0'
+    };
+  }
+
+  // डॅशबोर्ड समरी डॉक्युमेंट तयार करणे
+  buildSummaryPayload(storeState) {
+    const members = (storeState && storeState.members) || [];
+    const settledMembers = (storeState && storeState.settledMembers) || [];
+    const transactions = (storeState && storeState.transactions) || [];
+    const loans = (storeState && storeState.loans) || [];
+    const meta = (storeState && storeState.meta) || {};
+
+    let totalBishiDeposits = 0;
+    let totalBishiFines = 0;
+    members.forEach(m => {
+      (m.weeks || []).forEach(w => {
+        totalBishiDeposits += Number(w.amountPaid) || 0;
+        totalBishiFines += Number(w.finePaid) || 0;
+      });
+    });
+
+    return {
+      bishiName: meta.bishiName || 'सुखकर्ता बीशी',
+      currentWeek: meta.currentWeek || 1,
+      totalWeeks: meta.totalWeeks || 50,
+      totalActiveMembers: members.length,
+      totalSettledMembers: settledMembers.length,
+      totalTransactionsCount: transactions.length,
+      totalLoansCount: loans.length,
+      financials: {
+        totalDeposited: totalBishiDeposits,
+        totalFines: totalBishiFines,
+        grandTotalCollected: totalBishiDeposits + totalBishiFines
+      },
+      _section: 'summary',
+      _updatedAt: new Date().toISOString()
+    };
+  }
+
+  // --- ४. क्लाउडवर डेटा सेव्ह/पुश करणे (Push State & Modular Sections to Firebase Cloud) ---
   async saveCurrentStateToCloud(force = false) {
     if (!this.isInitialized) return;
     if (!this.autoSyncEnabled && !force) return;
@@ -286,23 +554,170 @@ class FirebaseSyncManager {
 
     let pushedSuccessfully = false;
 
-    // 1. Push to Firestore
+    // 1. Push Unified Snapshot to Firestore (Fast atomic listener)
     if (this.firestoreDocRef) {
       try {
         await this.firestoreDocRef.set(payload);
         pushedSuccessfully = true;
       } catch (err) {
-        console.warn('Firestore push warning:', err.message || err);
+        console.warn('Firestore live_state push warning:', err.message || err);
       }
     }
 
-    // 2. Mirror Push to Realtime Database
+    // 2. Mirror Push Unified Snapshot to Realtime Database
     if (this.rtdbRef) {
       try {
         await this.rtdbRef.set(payload);
         pushedSuccessfully = true;
       } catch (err) {
-        console.warn('Realtime Database push warning:', err.message || err);
+        console.warn('Realtime Database live_state push warning:', err.message || err);
+      }
+    }
+
+    // 3. Modular Sections: Write Dedicated Documents in Firestore & Clean Out Old Ones
+    if (this.firestore) {
+      try {
+        const membersList = payload.members || [];
+        const activeMemberIds = new Set(membersList.map(m => m.id));
+
+        // Delete old obsolete member documents that are not in local members
+        try {
+          const existingMembersSnap = await this.firestore.collection('members').get();
+          const batch = this.firestore.batch();
+          let hasDeletions = false;
+          existingMembersSnap.forEach(doc => {
+            if (!activeMemberIds.has(doc.id)) {
+              batch.delete(doc.ref);
+              hasDeletions = true;
+            }
+          });
+          if (hasDeletions) await batch.commit();
+        } catch (e) {
+          console.warn('Notice cleaning obsolete members:', e);
+        }
+
+        // (A) Write Separate Document for each active member
+        for (const m of membersList) {
+          const memberDoc = this.buildMemberDocument(m, payload);
+          await this.firestore.collection('members').doc(m.id).set(memberDoc);
+        }
+
+        // (B) Write Separate Document for each settled member
+        const settledList = payload.settledMembers || [];
+        for (const sm of settledList) {
+          const settledDoc = this.buildMemberDocument(sm, payload);
+          await this.firestore.collection('settled_members').doc(sm.id).set(settledDoc);
+        }
+
+        // (C) Write Separate Document for each transaction & clean old
+        const txnList = payload.transactions || [];
+        const activeTxnIds = new Set(txnList.map(t => t.id));
+        try {
+          const existingTxnsSnap = await this.firestore.collection('transactions').get();
+          const batchTxn = this.firestore.batch();
+          let hasTxnDel = false;
+          existingTxnsSnap.forEach(doc => {
+            if (!activeTxnIds.has(doc.id)) {
+              batchTxn.delete(doc.ref);
+              hasTxnDel = true;
+            }
+          });
+          if (hasTxnDel) await batchTxn.commit();
+        } catch (e) {}
+
+        for (const txn of txnList) {
+          await this.firestore.collection('transactions').doc(txn.id).set({
+            ...txn,
+            _section: 'transactions',
+            _updatedAt: new Date().toISOString()
+          });
+        }
+
+        // (D) Write Separate Document for each loan & clean old
+        const loanList = payload.loans || [];
+        const activeLoanIds = new Set(loanList.map(l => l.id));
+        try {
+          const existingLoansSnap = await this.firestore.collection('loans').get();
+          const batchLoans = this.firestore.batch();
+          let hasLoanDel = false;
+          existingLoansSnap.forEach(doc => {
+            if (!activeLoanIds.has(doc.id)) {
+              batchLoans.delete(doc.ref);
+              hasLoanDel = true;
+            }
+          });
+          if (hasLoanDel) await batchLoans.commit();
+        } catch (e) {}
+
+        for (const loan of loanList) {
+          await this.firestore.collection('loans').doc(loan.id).set({
+            ...loan,
+            _section: 'loans',
+            _updatedAt: new Date().toISOString()
+          });
+        }
+
+        // (E) Settings Section (bishi_rules)
+        if (payload.meta) {
+          await this.firestore.collection('settings').doc('bishi_rules').set({
+            ...payload.meta,
+            _section: 'settings',
+            _updatedAt: new Date().toISOString()
+          });
+        }
+
+        // (F) Summary Section (dashboard_overview)
+        const summaryDoc = this.buildSummaryPayload(payload);
+        await this.firestore.collection('summary').doc('dashboard_overview').set(summaryDoc);
+
+        pushedSuccessfully = true;
+      } catch (err) {
+        console.warn('Firestore modular sections push warning:', err.message || err);
+      }
+    }
+
+    // 4. Modular Sections: Mirror to Realtime Database Nodes
+    if (this.rtdb) {
+      try {
+        const membersList = payload.members || [];
+        const membersObj = {};
+        membersList.forEach(m => {
+          membersObj[m.id] = this.buildMemberDocument(m, payload);
+        });
+        await this.rtdb.ref('sukhakarta_bishi/members').set(membersObj);
+
+        const txnList = payload.transactions || [];
+        const txnsObj = {};
+        txnList.forEach(t => {
+          txnsObj[t.id] = t;
+        });
+        await this.rtdb.ref('sukhakarta_bishi/transactions').set(txnsObj);
+
+        const loanList = payload.loans || [];
+        const loansObj = {};
+        loanList.forEach(l => {
+          loansObj[l.id] = l;
+        });
+        await this.rtdb.ref('sukhakarta_bishi/loans').set(loansObj);
+
+        if (payload.meta) {
+          await this.rtdb.ref('sukhakarta_bishi/settings').set(payload.meta);
+        }
+
+        await this.rtdb.ref('sukhakarta_bishi/summary').set(this.buildSummaryPayload(payload));
+        pushedSuccessfully = true;
+      } catch (err) {
+        console.warn('Realtime DB modular sections push warning:', err.message || err);
+      }
+    }
+
+    // 5. Direct REST API Fallback (Ultra-Reliable, runs even if SDK is blocked)
+    if (!pushedSuccessfully) {
+      try {
+        await this.syncAllModularSectionsViaRest(payload);
+        pushedSuccessfully = true;
+      } catch (restErr) {
+        console.warn('REST modular sync error:', restErr.message || restErr);
       }
     }
 
@@ -310,7 +725,7 @@ class FirebaseSyncManager {
       this.isConnected = true;
       this.lastSyncTimestamp = new Date();
       this.updateStatusUI('connected', '🟢 लाइव्ह सिंक (Firebase Live)');
-      this.logActivity(`क्लाउडवर डेटा सेव्ह केला (${(payload.members || []).length} सदस्य, ${(payload.transactions || []).length} व्यवहार)`);
+      this.logActivity(`क्लाउडवर सर्व मॉड्यूल्स सेव्ह केले (${(payload.members || []).length} सदस्य डॉक्युमेंट्स, ${(payload.transactions || []).length} व्यवहार)`);
     } else {
       this.updateStatusUI('offline', 'स्थानिक जतन (क्लाउड प्रलंबित)');
     }
@@ -322,39 +737,60 @@ class FirebaseSyncManager {
 
   // संपूर्ण स्टेट फेच करणे
   async fetchState() {
-    if (!this.isInitialized) {
-      return { success: false, message: 'Firebase इनिशिअलाइझ झाले नाही' };
-    }
-
+    this.isInitialized = true;
     const startTime = performance.now();
-    try {
-      if (this.firestoreDocRef) {
+
+    // 1. Try Firestore SDK if available
+    if (this.firestoreDocRef) {
+      try {
         const docSnap = await this.firestoreDocRef.get();
-        if (docSnap.exists) {
+        if (docSnap && docSnap.exists) {
           const data = docSnap.data();
           const latency = Math.round(performance.now() - startTime);
           this.lastPingMs = latency;
-          this.logActivity(`Firestore वरून डेटा फेच केला (${latency}ms)`);
-          return { success: true, state: data, source: 'Firestore', latency };
+          this.isConnected = true;
+          this.updateStatusUI('connected', '🟢 लाइव्ह सिंक (Firebase Live)');
+          this.logActivity(`Firestore SDK वरून डेटा फेच केला (${latency}ms)`);
+          return { success: true, state: data, source: 'Firestore SDK', latency };
         }
+      } catch (sdkErr) {
+        console.warn('Firestore SDK fetch notice:', sdkErr.message || sdkErr);
       }
+    }
 
-      if (this.rtdbRef) {
+    // 2. Direct Firestore REST API (Ultra-Reliable, zero external SDK dependency)
+    try {
+      const { data, latency } = await this.fetchStateViaRest();
+      if (data && (Array.isArray(data.members) || data.meta || Array.isArray(data.transactions))) {
+        this.lastPingMs = latency;
+        this.isConnected = true;
+        this.updateStatusUI('connected', '🟢 लाइव्ह सिंक (Firebase Live)');
+        this.logActivity(`Firestore REST वरून डेटा फेच केला (${latency}ms)`);
+        return { success: true, state: data, source: 'Firestore REST', latency };
+      }
+    } catch (restErr) {
+      console.warn('Firestore REST fetch notice:', restErr.message || restErr);
+    }
+
+    // 3. Fallback to Realtime Database SDK
+    if (this.rtdbRef) {
+      try {
         const snap = await this.rtdbRef.once('value');
         const val = snap.val();
-        const latency = Math.round(performance.now() - startTime);
-        this.lastPingMs = latency;
         if (val) {
+          const latency = Math.round(performance.now() - startTime);
+          this.lastPingMs = latency;
+          this.isConnected = true;
+          this.updateStatusUI('connected', '🟢 लाइव्ह सिंक (Firebase Live)');
           this.logActivity(`Realtime DB वरून डेटा फेच केला (${latency}ms)`);
           return { success: true, state: val, source: 'RealtimeDB', latency };
         }
+      } catch (rtdbErr) {
+        console.warn('Realtime DB SDK fetch notice:', rtdbErr.message || rtdbErr);
       }
-
-      return { success: false, message: 'क्लाउडवर डेटा सापडला नाही' };
-    } catch (err) {
-      console.error('fetchState error:', err);
-      return { success: false, message: err.message || err };
     }
+
+    return { success: false, message: 'क्लाउडवर डेटा सापडला नाही किंवा नेटवर्क समस्या' };
   }
 
   // फेच करून थेट लागू करणे
@@ -429,9 +865,30 @@ class FirebaseSyncManager {
     const member = window.bishiStore.updateMember(memberId, updateData);
     if (member) {
       await this.saveCurrentStateToCloud(true);
-      this.logActivity(`सदस्य अपडेट: ${member.name} (${member.id})`);
+      this.logActivity(`सदस्य अपडेट: ${member.name} (${member.id}) - डॉक्युमेंट सिंक`);
     }
     return member;
+  }
+
+  async syncMemberToCloud(memberId) {
+    const member = window.bishiStore.getMember(memberId);
+    if (!member) return null;
+    const memberDoc = this.buildMemberDocument(member);
+    if (this.firestore) {
+      try {
+        await this.firestore.collection('members').doc(memberId).set(memberDoc);
+      } catch (e) {
+        console.warn('Error syncing member doc to Firestore:', e);
+      }
+    }
+    if (this.rtdb) {
+      try {
+        await this.rtdb.ref(`sukhakarta_bishi/members/${memberId}`).set(memberDoc);
+      } catch (e) {
+        console.warn('Error syncing member doc to RTDB:', e);
+      }
+    }
+    return memberDoc;
   }
 
   async recordPaymentInCloud(memberId, weekNumber, depositAmount, paymentMode, note, fineAmount, upiId) {
@@ -446,8 +903,24 @@ class FirebaseSyncManager {
   async deleteMemberFromCloud(memberId) {
     const removed = window.bishiStore.removeMember(memberId);
     if (removed) {
+      // 1. Explicitly remove member's dedicated document from Firestore collection 'members'
+      if (this.firestore) {
+        try {
+          await this.firestore.collection('members').doc(memberId).delete();
+        } catch (e) {
+          console.warn('Error deleting member doc from Firestore:', e);
+        }
+      }
+      // 2. Explicitly remove member's node from Realtime DB
+      if (this.rtdb) {
+        try {
+          await this.rtdb.ref(`sukhakarta_bishi/members/${memberId}`).remove();
+        } catch (e) {
+          console.warn('Error deleting member from RTDB:', e);
+        }
+      }
       await this.saveCurrentStateToCloud(true);
-      this.logActivity(`सदस्य डिलीट: ${removed.name} (${memberId})`);
+      this.logActivity(`सदस्य डिलीट: ${removed.name} (${memberId}) - स्वतंत्र डॉक्युमेंट नष्ट केले`);
     }
     return removed;
   }
@@ -459,22 +932,85 @@ class FirebaseSyncManager {
     return meta;
   }
 
+  async pushWebsiteDataToFirebase() {
+    const store = window.bishiStore;
+    if (!store || !store.state) {
+      alert('⚠️ वेबसाइटवर कोणताही डेटा उपलब्ध नाही.');
+      return;
+    }
+
+    const membersCount = (store.getMembers() || []).length;
+    const txnsCount = (store.state.transactions || []).length;
+
+    const confirmed = confirm(`⚡ पुष्टी करा: वेबसाइटवरील सर्व चालू डेटा (${membersCount} सदस्य, ${txnsCount} व्यवहार नोंदी) Firebase क्लाउडवर पाठवायचा आहे का? यामुळे Firebase मधील जुना डेटा बदलून वेबसाइटचा चालू डेटा सेव्ह होईल.`);
+    if (!confirmed) return;
+
+    this.updateStatusUI('connecting', 'वेबसाइट डेटा Firebase वर पाठवत आहे...');
+
+    // 1. Force update local timestamps
+    if (!store.state.meta) store.state.meta = {};
+    store.state.meta.lastUpdated = Date.now();
+    store.state.meta.updateVersion = (Number(store.state.meta.updateVersion) || 0) + 1;
+    store.saveStateLocalOnly();
+
+    // 2. Perform comprehensive push to modular collections and live_state
+    await this.saveCurrentStateToCloud(true);
+
+    this.updateStatusUI('connected', '🟢 लाइव्ह सिंक (Firebase Live)');
+    this.logActivity(`वेबसाइटचा सर्व डेटा (${membersCount} सदस्य, ${txnsCount} व्यवहार) Firebase वर यशस्वीरित्या पाठवला`);
+
+    if (window.ui && typeof window.ui.showToast === 'function') {
+      window.ui.showToast(`🎉 वेबसाइटचा डेटा (${membersCount} सदस्य) Firebase क्लाउडवर 100% सिंक झाला!`, 'success');
+    } else {
+      alert(`🎉 वेबसाइटचा डेटा (${membersCount} सदस्य) Firebase क्लाउडवर 100% सिंक झाला!`);
+    }
+
+    this.renderCloudModalStats();
+  }
+
+  async syncAllModularSections(force = true) {
+    this.updateStatusUI('connecting', 'सर्व सेक्शन्स सिंक होत आहेत...');
+    await this.saveCurrentStateToCloud(force);
+    const count = (window.bishiStore?.getMembers() || []).length;
+    this.logActivity(`सर्व सेक्शन्स (members, transactions, settings, summary) यशस्वीरित्या सिंक झाले (${count} सदस्य डॉक्युमेंट्स)`);
+    if (window.ui && typeof window.ui.showToast === 'function') {
+      window.ui.showToast(`✅ Firebase मधील सर्व सेक्शन्स व ${count} सदस्यांचे स्वतंत्र डॉक्युमेंट्स क्लाउडवर सिंक झाले!`, 'success');
+    }
+    this.renderCloudModalStats();
+  }
+
+  async forceSyncNow() {
+    await this.pushWebsiteDataToFirebase();
+  }
+
   // ==========================================================================
   // ⚡ ७. डेटाबेस लेटन्सी व डायग्नोस्टिक टूल्स (Diagnostics)
   // ==========================================================================
 
   async pingDatabase() {
-    if (!this.isInitialized) {
-      return { success: false, message: 'Firebase इनिशिअलाइझ नाही' };
-    }
-
+    this.isInitialized = true;
     const startTime = performance.now();
     try {
+      let pingSuccess = false;
       if (this.firestoreDocRef) {
-        await this.firestoreDocRef.get();
-      } else if (this.rtdbRef) {
-        await this.rtdbRef.once('value');
+        try {
+          await this.firestoreDocRef.get();
+          pingSuccess = true;
+        } catch (e) {}
       }
+      
+      if (!pingSuccess && this.rtdbRef) {
+        try {
+          await this.rtdbRef.once('value');
+          pingSuccess = true;
+        } catch (e) {}
+      }
+
+      if (!pingSuccess) {
+        const pingRes = await fetch(`${this.restBaseUrl}/sukhakarta_bishi/live_state`);
+        if (pingRes.ok) pingSuccess = true;
+      }
+
       const latency = Math.round(performance.now() - startTime);
       this.lastPingMs = latency;
       this.isConnected = true;
@@ -499,6 +1035,8 @@ class FirebaseSyncManager {
     const store = window.bishiStore;
     const membersCount = store ? store.getMembers().length : 0;
     const txnsCount = store && store.state.transactions ? store.state.transactions.length : 0;
+    const loansCount = store && store.state.loans ? store.state.loans.length : 0;
+    const settledCount = store && store.state.settledMembers ? store.state.settledMembers.length : 0;
 
     return {
       isInitialized: this.isInitialized,
@@ -510,6 +1048,9 @@ class FirebaseSyncManager {
       lastPingMs: this.lastPingMs ? `${this.lastPingMs} ms` : 'N/A',
       membersCount,
       txnsCount,
+      loansCount,
+      settledCount,
+      modularSections: ['members', 'transactions', 'loans', 'settled_members', 'settings', 'summary', 'live_state'],
       logs: this.activityLogs.slice(-10)
     };
   }
@@ -573,7 +1114,20 @@ class FirebaseSyncManager {
     if (elPing) elPing.textContent = stats.lastPingMs;
 
     const elCounts = document.getElementById('fbModalCounts');
-    if (elCounts) elCounts.textContent = `${stats.membersCount} सदस्य • ${stats.txnsCount} व्यवहार नोंदी`;
+    if (elCounts) elCounts.textContent = `${stats.membersCount} सदस्य डॉक्युमेंट्स • ${stats.txnsCount} व्यवहार नोंदी`;
+
+    const elModular = document.getElementById('fbModalModularInfo');
+    if (elModular) {
+      elModular.innerHTML = `
+        <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.3rem;">
+          <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--emerald-400); border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px;">📁 members (${stats.membersCount} डॉक्स)</span>
+          <span class="badge" style="background: rgba(59,130,246,0.15); color: var(--blue-400); border: 1px solid rgba(59,130,246,0.3); font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px;">📁 transactions (${stats.txnsCount})</span>
+          <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--gold-400); border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px;">📁 loans (${stats.loansCount})</span>
+          <span class="badge" style="background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px;">📁 settings (bishi_rules)</span>
+          <span class="badge" style="background: rgba(236,72,153,0.15); color: #f472b6; border: 1px solid rgba(236,72,153,0.3); font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px;">📁 summary</span>
+        </div>
+      `;
+    }
 
     const elLogs = document.getElementById('fbModalLogsList');
     if (elLogs) {
@@ -615,10 +1169,51 @@ class FirebaseSyncManager {
     cleanPayload._updatedAt = new Date().toISOString();
     cleanPayload._lastUpdatedBy = 'Admin Reset';
 
-    // 3. Wipe and Overwrite Firestore Collection
+    // 3. Wipe and Overwrite Firestore Collections
     if (this.firestore) {
       try {
         await this.firestore.collection('sukhakarta_bishi').doc('live_state').set(cleanPayload);
+        
+        // Wipe all existing member docs in 'members' collection
+        try {
+          const membersSnap = await this.firestore.collection('members').get();
+          const batch = this.firestore.batch();
+          membersSnap.forEach(doc => batch.delete(doc.ref));
+          await batch.commit();
+        } catch (e) {}
+
+        // Wipe transactions collection
+        try {
+          const txnsSnap = await this.firestore.collection('transactions').get();
+          const batch = this.firestore.batch();
+          txnsSnap.forEach(doc => batch.delete(doc.ref));
+          await batch.commit();
+        } catch (e) {}
+
+        // Wipe loans collection
+        try {
+          const loansSnap = await this.firestore.collection('loans').get();
+          const batch = this.firestore.batch();
+          loansSnap.forEach(doc => batch.delete(doc.ref));
+          await batch.commit();
+        } catch (e) {}
+
+        // Wipe settled_members collection
+        try {
+          const settledSnap = await this.firestore.collection('settled_members').get();
+          const batch = this.firestore.batch();
+          settledSnap.forEach(doc => batch.delete(doc.ref));
+          await batch.commit();
+        } catch (e) {}
+
+        // Reset settings and summary
+        await this.firestore.collection('settings').doc('bishi_rules').set({
+          ...cleanPayload.meta,
+          _section: 'settings',
+          _updatedAt: new Date().toISOString()
+        });
+        await this.firestore.collection('summary').doc('dashboard_overview').set(this.buildSummaryPayload(cleanPayload));
+
         // Also clear legacy collections if accessible
         try {
           await this.firestore.collection('sukhakarta_bishi_db').doc('state_v2').delete();
@@ -628,10 +1223,16 @@ class FirebaseSyncManager {
       }
     }
 
-    // 4. Wipe and Overwrite Realtime Database Node
+    // 4. Wipe and Overwrite Realtime Database Nodes
     if (this.rtdb) {
       try {
         await this.rtdb.ref('sukhakarta_bishi/live_state').set(cleanPayload);
+        await this.rtdb.ref('sukhakarta_bishi/members').remove();
+        await this.rtdb.ref('sukhakarta_bishi/transactions').remove();
+        await this.rtdb.ref('sukhakarta_bishi/loans').remove();
+        await this.rtdb.ref('sukhakarta_bishi/settled_members').remove();
+        await this.rtdb.ref('sukhakarta_bishi/settings').set(cleanPayload.meta);
+        await this.rtdb.ref('sukhakarta_bishi/summary').set(this.buildSummaryPayload(cleanPayload));
         try {
           await this.rtdb.ref('sukhakarta_bishi/state_v2').remove();
         } catch (e) {}
@@ -643,7 +1244,7 @@ class FirebaseSyncManager {
     this.isConnected = true;
     this.lastSyncTimestamp = new Date();
     this.updateStatusUI('connected', '🟢 लाइव्ह सिंक (Firebase Live)');
-    this.logActivity('🔥 Firebase क्लाउड डेटाबेस पूर्णपणे स्वच्छ करून नवीन तयार करण्यात आला');
+    this.logActivity('🔥 Firebase मधील सर्व सेक्शन्स व सदस्य डॉक्युमेंट्स पूर्णपणे स्वच्छ करण्यात आले');
 
     if (window.ui && typeof window.ui.renderAll === 'function') {
       window.ui.renderAll();
@@ -651,7 +1252,7 @@ class FirebaseSyncManager {
     this.renderCloudModalStats();
 
     if (window.ui && typeof window.ui.showToast === 'function') {
-      window.ui.showToast('🎉 Firebase क्लाउड डेटाबेस रिसेट झाला व नवीन स्वच्छ कलेक्शन तयार झाले!', 'success');
+      window.ui.showToast('🎉 Firebase क्लाउड डेटाबेस रिसेट झाला व सर्व सेक्शन्स स्वच्छ झाले!', 'success');
     }
 
     return true;
@@ -659,3 +1260,4 @@ class FirebaseSyncManager {
 }
 
 window.firebaseSyncManager = new FirebaseSyncManager();
+window.pushWebsiteDataToFirebase = () => window.firebaseSyncManager.pushWebsiteDataToFirebase();

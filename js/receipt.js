@@ -445,12 +445,14 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     const currency = bishiMeta.currency || '₹';
     const isPaid = loan.status === 'paid';
     const details = window.bishiStore.calculateLoanDetails(loan);
-    const principal = details.principal;
+    const principal = details.originalPrincipal;
+    const remainingPrincipal = details.remainingPrincipal;
+    const isPartiallyPaid = details.isPartiallyPaid;
     const interestPaid = isPaid ? (Number(loan.interestPaid) || 0) : details.interestAmount;
     const totalAmount = isPaid ? (Number(loan.repaidAmount) || (principal + interestPaid)) : details.totalPayable;
 
-    const receiptNo = isPaid ? (loan.receiptNo || `LOAN-REC-${loan.id}`) : `DISB-${loan.id}`;
-    const dateStr = isPaid ? (loan.paidDate || new Date().toISOString().split('T')[0]) : (loan.issueDate || new Date().toISOString().split('T')[0]);
+    const receiptNo = isPaid ? (loan.receiptNo || `LOAN-REC-${loan.id}`) : (loan.repayments && loan.repayments.length > 0 ? loan.repayments[loan.repayments.length - 1].receiptNo : `DISB-${loan.id}`);
+    const dateStr = isPaid ? (loan.paidDate || new Date().toISOString().split('T')[0]) : (loan.lastRepaymentDate || loan.issueDate || new Date().toISOString().split('T')[0]);
     let formattedDate = dateStr;
     try {
       formattedDate = new Date(dateStr).toLocaleDateString('hi-IN', {
@@ -462,13 +464,20 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       formattedDate = dateStr;
     }
 
+    let badgeTitle = '💳 कर्ज वाटप व्हाउचर (Loan Disbursement Voucher)';
+    if (isPaid) {
+      badgeTitle = '✅ कर्ज पूर्ण परतफेड पावती (Loan Repayment Receipt)';
+    } else if (isPartiallyPaid) {
+      badgeTitle = '🟠 अंशतः कर्ज परतफेड पावती (Partial Loan Repayment - Pending)';
+    }
+
     return `
       <div class="receipt-wrapper" id="printableReceiptArea">
-        <div class="receipt-header" style="${isPaid ? 'background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));' : 'background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(245, 158, 11, 0.15));'}">
+        <div class="receipt-header" style="${isPaid ? 'background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));' : (isPartiallyPaid ? 'background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(59, 130, 246, 0.15));' : 'background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(245, 158, 11, 0.15));')}">
           <div class="receipt-org-title">✨ ${bishiMeta.bishiName}</div>
           <div class="receipt-sub">सदस्य कर्ज खातावही व अधिकृत पावती</div>
-          <div class="receipt-badge" style="${isPaid ? 'background: rgba(16, 185, 129, 0.2); color: #059669; border-color: rgba(16, 185, 129, 0.4);' : 'background: rgba(59, 130, 246, 0.2); color: #2563eb; border-color: rgba(59, 130, 246, 0.4);'}">
-            ${isPaid ? '✅ कर्ज परतफेड पावती (Loan Repayment Receipt)' : '💳 कर्ज वाटप व्हाउचर (Loan Disbursement Voucher)'}
+          <div class="receipt-badge" style="${isPaid ? 'background: rgba(16, 185, 129, 0.2); color: #059669; border-color: rgba(16, 185, 129, 0.4);' : (isPartiallyPaid ? 'background: rgba(245, 158, 11, 0.2); color: #d97706; border-color: rgba(245, 158, 11, 0.4);' : 'background: rgba(59, 130, 246, 0.2); color: #2563eb; border-color: rgba(59, 130, 246, 0.4);')}">
+            ${badgeTitle}
           </div>
         </div>
 
@@ -502,25 +511,39 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           </div>
         </div>
 
-        <div class="receipt-amount-box" style="${isPaid ? 'background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(245, 158, 11, 0.15)); border: 1.5px solid #10b981;' : 'background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(245, 158, 11, 0.15)); border: 1.5px solid #3b82f6;'}">
-          <div class="receipt-amount-lbl">${isPaid ? 'जमा झालेली एकूण परतफेड रक्कम' : 'वाटप केलेली एकूण मूळ कर्ज रक्कम'}</div>
-          <div class="receipt-amount-val" style="color: ${isPaid ? '#059669' : '#2563eb'};">${currency}${totalAmount.toLocaleString('en-IN')}</div>
+        <div class="receipt-amount-box" style="${isPaid ? 'background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(245, 158, 11, 0.15)); border: 1.5px solid #10b981;' : (isPartiallyPaid ? 'background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(59, 130, 246, 0.15)); border: 1.5px solid #f59e0b;' : 'background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(245, 158, 11, 0.15)); border: 1.5px solid #3b82f6;')}">
+          <div class="receipt-amount-lbl">${isPaid ? 'जमा झालेली एकूण परतफेड रक्कम' : (isPartiallyPaid ? 'आतापर्यंत जमा परतफेड रक्कम' : 'वाटप केलेली एकूण मूळ कर्ज रक्कम')}</div>
+          <div class="receipt-amount-val" style="color: ${isPaid ? '#059669' : (isPartiallyPaid ? '#d97706' : '#2563eb')};">${currency}${(isPaid ? totalAmount : (isPartiallyPaid ? details.principalRepaid : principal)).toLocaleString('en-IN')}</div>
           ${isPaid ? `
             <div style="font-size: 0.8rem; color: #475569; margin-top: 0.25rem;">
               (मूळ कर्ज: ${currency}${principal.toLocaleString('en-IN')}${interestPaid > 0 ? ` + ३% व्याज: +${currency}${interestPaid.toLocaleString('en-IN')}` : ' + ०% व्याज'})
+            </div>
+          ` : (isPartiallyPaid ? `
+            <div style="font-size: 0.85rem; color: #b45309; font-weight: 700; margin-top: 0.25rem;">
+              ⚠️ उर्वरित बाकी कर्ज मुद्दल: ${currency}${remainingPrincipal.toLocaleString('en-IN')} (कर्ज बाकी - Pending)
             </div>
           ` : `
             <div style="font-size: 0.8rem; color: #475569; margin-top: 0.25rem;">
               (नियम: पहिल्या ४ आठवड्यांपर्यंत ०% व्याज • ४ आठवड्यांनंतर ३% व्याज)
             </div>
-          `}
+          `)}
         </div>
 
         <table class="receipt-ledger-table">
           <tr>
-            <td>मूळ कर्ज रक्कम (Principal)</td>
+            <td>सुरुवातीची मूळ कर्ज रक्कम (Original Principal)</td>
             <td style="font-weight: 700;">${currency}${principal.toLocaleString('en-IN')}</td>
           </tr>
+          ${details.principalRepaid > 0 ? `
+            <tr style="color: #059669; font-weight: 600;">
+              <td>परतफेड केलेली मुद्दल (Repaid Principal)</td>
+              <td>${currency}${details.principalRepaid.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr style="color: #d97706; font-weight: 700; background: rgba(245, 158, 11, 0.08);">
+              <td>उर्वरित बाकी कर्ज मुद्दल (Remaining Principal)</td>
+              <td>${currency}${remainingPrincipal.toLocaleString('en-IN')}</td>
+            </tr>
+          ` : ''}
           <tr>
             <td>कर्ज वाटप आठवडा व तारीख</td>
             <td>आठवडा ${loan.issueWeek || 1} • ${loan.issueDate || '-'}</td>
@@ -534,19 +557,23 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
             <td>${interestPaid > 0 ? `+ ${currency}${interestPaid.toLocaleString('en-IN')}` : '₹० (०%)'}</td>
           </tr>
           <tr style="color: ${isPaid ? '#059669' : '#2563eb'}; font-weight: 800; font-size: 1.05rem; background: ${isPaid ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)'};">
-            <td>${isPaid ? 'एकूण जमा परतफेड रक्कम' : 'एकूण देय परतफेड रक्कम'}</td>
+            <td>${isPaid ? 'एकूण जमा परतफेड रक्कम' : 'चालू एकूण देय रक्कम'}</td>
             <td>${currency}${totalAmount.toLocaleString('en-IN')}</td>
           </tr>
           <tr>
             <td>कर्ज खाते स्थिती</td>
-            <td style="font-weight: 700; color: ${isPaid ? '#059669' : '#d97706'};">
-              ${isPaid ? '✅ पूर्ण भरले (Paid & Closed)' : '🟡 सक्रिय बाकी (Active Loan)'}
+            <td style="font-weight: 700; color: ${isPaid ? '#059669' : '#dc2626'};">
+              ${isPaid 
+                ? '✅ पूर्ण भरले (Paid & Closed)' 
+                : (isPartiallyPaid 
+                    ? `🟠 अंशतः भरले (${currency}${remainingPrincipal.toLocaleString('en-IN')} बाकी - Pending)` 
+                    : '🔴 कर्ज बाकी (Pending)')}
             </td>
           </tr>
-          ${loan.notes || loan.settlementNotes ? `
+          ${loan.notes || loan.settlementNotes || loan.lastRepaymentNotes ? `
             <tr>
               <td>टीप / संदर्भ</td>
-              <td style="font-size: 0.8rem; color: #64748b;">${loan.settlementNotes || loan.notes}</td>
+              <td style="font-size: 0.8rem; color: #64748b;">${loan.settlementNotes || loan.lastRepaymentNotes || loan.notes}</td>
             </tr>
           ` : ''}
         </table>
@@ -563,7 +590,9 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     const currency = bishiMeta.currency || '₹';
     const isPaid = loan.status === 'paid';
     const details = window.bishiStore.calculateLoanDetails(loan);
-    const principal = details.principal;
+    const principal = details.originalPrincipal;
+    const remainingPrincipal = details.remainingPrincipal;
+    const isPartiallyPaid = details.isPartiallyPaid;
     const interestPaid = isPaid ? (Number(loan.interestPaid) || 0) : details.interestAmount;
     const totalAmount = isPaid ? (Number(loan.repaidAmount) || (principal + interestPaid)) : details.totalPayable;
 
@@ -571,17 +600,26 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     message += `─────────────────────\n`;
     message += `👤 *सदस्याचे नाव:* ${member.name}\n`;
     message += `🆔 *सदस्य आयडी:* ${member.id} | *कर्ज क्र.:* ${loan.id}\n`;
-    message += `📅 *तारीख:* ${isPaid ? (loan.paidDate || '-') : (loan.issueDate || '-')}\n`;
+    message += `📅 *तारीख:* ${isPaid ? (loan.paidDate || '-') : (loan.lastRepaymentDate || loan.issueDate || '-')}\n`;
     message += `─────────────────────\n`;
 
     if (isPaid) {
-      message += `✅ *कर्ज परतफेड यशस्वीपणे जमा झाली आहे!*\n\n`;
-      message += `💵 *मूळ कर्ज रक्कम:* ${currency}${principal.toLocaleString('en-IN')}\n`;
+      message += `✅ *कर्ज परतफेड यशस्वीपणे पूर्ण झाली आहे (Paid)!*\n\n`;
+      message += `💵 *मूळ कर्ज मुद्दल:* ${currency}${principal.toLocaleString('en-IN')}\n`;
       message += `📈 *३% व्याज दर:* ${interestPaid > 0 ? `+${currency}${interestPaid.toLocaleString('en-IN')}` : '₹० (४ आठवड्यांच्या सवलतीत)'}\n`;
       message += `💰 *एकूण भरलेली रक्कम:* *${currency}${totalAmount.toLocaleString('en-IN')}*\n`;
       message += `💳 *पेमेंट पद्धत:* ${loan.paymentMode || 'Cash'}${loan.upiId ? ` (UPI: ${loan.upiId})` : ''}\n`;
       message += `🧾 *पावती क्र.:* ${loan.receiptNo || 'N/A'}\n`;
-      message += `📊 *कर्ज स्थिती:* पूर्ण परतफेड संपन्न ✅\n`;
+      message += `📊 *कर्ज स्थिती:* ✅ पूर्ण परतफेड संपन्न (Paid)\n`;
+    } else if (isPartiallyPaid) {
+      message += `🟠 *कर्ज अंशतः परतफेड जमा झाली आहे (Partial Payment Received)*\n\n`;
+      message += `💵 *सुरुवातीची मूळ मुद्दल:* ${currency}${principal.toLocaleString('en-IN')}\n`;
+      message += `💰 *आतापर्यंत भरलेली मुद्दल:* ${currency}${details.principalRepaid.toLocaleString('en-IN')}\n`;
+      message += `⚠️ *उर्वरित बाकी कर्ज मुद्दल:* *${currency}${remainingPrincipal.toLocaleString('en-IN')}*\n`;
+      message += `📈 *चालू ३% व्याज:* ${details.interestAmount > 0 ? `+${currency}${details.interestAmount.toLocaleString('en-IN')}` : '₹० (सवलतीत)'}\n`;
+      message += `💳 *पेमेंट पद्धत:* ${loan.paymentMode || 'Cash'}${loan.upiId ? ` (UPI: ${loan.upiId})` : ''}\n`;
+      message += `🧾 *पावती क्र.:* ${loan.receiptNo || 'N/A'}\n`;
+      message += `📊 *कर्ज स्थिती:* 🔴 कर्ज बाकी (Pending - ₹${remainingPrincipal.toLocaleString('en-IN')} बाकी)\n`;
     } else {
       message += `💳 *सदस्यास नवीन कर्ज वाटप करण्यात आले आहे.*\n\n`;
       message += `💵 *कर्ज रक्कम:* *${currency}${principal.toLocaleString('en-IN')}*\n`;
@@ -589,6 +627,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       message += `⏳ *व्याज नियम:* पहिल्या ४ आठवड्यांत ०% व्याज • ४ आठवड्यांनंतर ३% व्याज\n`;
       message += `💳 *वितरण पद्धत:* ${loan.disbursementMode || 'Cash'}${loan.disbursementUpiId ? ` (UPI: ${loan.disbursementUpiId})` : ''}\n`;
       message += `🧾 *व्हाउचर क्र.:* DISB-${loan.id}\n`;
+      message += `📊 *कर्ज स्थिती:* 🔴 कर्ज बाकी (Pending)\n`;
     }
 
     message += `─────────────────────\n`;
@@ -631,6 +670,182 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           <a href="${waUrl}" target="_blank" class="btn btn-sm" style="background: #25d366; color: #000; font-weight: 700;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             WhatsApp वर पावती पाठवा
+          </a>
+          <button class="btn btn-secondary btn-sm" onclick="window.receiptManager.copyWhatsAppMessage('${encodeURIComponent(waText)}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            मजकूर कॉपी करा
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('receiptModal').classList.add('active');
+  }
+
+  // --- कर्ज वाटप व्हाउचर HTML जनरेटर (Loan Assign / Disbursement Voucher HTML) ---
+  generateLoanAssignVoucherHTML(loan, member, bishiMeta) {
+    const currency = bishiMeta.currency || '₹';
+    const principal = Number(loan.originalPrincipal || loan.principalAmount) || 0;
+    const receiptNo = `DISB-${loan.id}`;
+    const dateStr = loan.issueDate || new Date().toISOString().split('T')[0];
+    let formattedDate = dateStr;
+    try {
+      formattedDate = new Date(dateStr).toLocaleDateString('hi-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (e) {
+      formattedDate = dateStr;
+    }
+
+    return `
+      <div class="receipt-wrapper" id="printableReceiptArea">
+        <div class="receipt-header" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(16, 185, 129, 0.16));">
+          <div class="receipt-org-title">✨ ${bishiMeta.bishiName}</div>
+          <div class="receipt-sub">अधिकृत कर्ज वाटप व्हाउचर (Official Loan Assignment Voucher)</div>
+          <div class="receipt-badge" style="background: rgba(59, 130, 246, 0.2); color: #2563eb; border-color: rgba(59, 130, 246, 0.45);">
+            📄 कर्ज वाटप व्हाउचर (Loan Assign Voucher)
+          </div>
+        </div>
+
+        <div class="receipt-meta-grid">
+          <div>
+            <div class="meta-item-lbl">व्हाउचर क्रमांक (Voucher No)</div>
+            <div class="meta-item-val" style="font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; color: #2563eb;">${receiptNo}</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="meta-item-lbl">वाटप तारीख (Date)</div>
+            <div class="meta-item-val">${formattedDate}</div>
+          </div>
+          <div>
+            <div class="meta-item-lbl">सदस्याचे नाव (Member Name)</div>
+            <div class="meta-item-val" style="font-weight: 700;">${member.name}</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="meta-item-lbl">सदस्य आयडी / कर्ज आयडी</div>
+            <div class="meta-item-val">${member.id} • <span style="font-family: var(--font-mono); color: #d97706; font-weight: 700;">${loan.id}</span></div>
+          </div>
+          <div>
+            <div class="meta-item-lbl">वितरण पद्धत (Mode)</div>
+            <div class="meta-item-val">
+              ${loan.disbursementMode || loan.paymentMode || 'Cash'}
+              ${(loan.disbursementUpiId || loan.upiId) ? `<div style="font-size: 0.72rem; color: #2563eb; font-weight: 700;">UPI/Ref: ${loan.disbursementUpiId || loan.upiId}</div>` : ''}
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div class="meta-item-lbl">मोबाईल नंबर (Phone)</div>
+            <div class="meta-item-val">${member.phone || '-'}</div>
+          </div>
+        </div>
+
+        <div class="receipt-amount-box" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(16, 185, 129, 0.15)); border: 1.5px solid #3b82f6;">
+          <div class="receipt-amount-lbl">मंजूर व वाटप केलेली मूळ कर्ज रक्कम (Assigned Loan Amount)</div>
+          <div class="receipt-amount-val" style="color: #2563eb;">${currency}${principal.toLocaleString('en-IN')}</div>
+          <div style="font-size: 0.8rem; color: #475569; margin-top: 0.25rem;">
+            (नियम: पहिल्या ४ आठवड्यांपर्यंत ०% व्याज • ४ आठवड्यांनंतर दर चक्रास ३% व्याज)
+          </div>
+        </div>
+
+        <table class="receipt-ledger-table">
+          <tr>
+            <td>मंजूर कर्ज मुद्दल (Sanctioned Principal)</td>
+            <td style="font-weight: 800; color: #2563eb;">${currency}${principal.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td>कर्ज वाटप आठवडा (Disbursed Week)</td>
+            <td>आठवडा ${loan.issueWeek || 1} • ${loan.issueDate || '-'}</td>
+          </tr>
+          <tr>
+            <td>सवलत कालावधी (Interest-free Grace Period)</td>
+            <td>४ आठवडे (०% व्याज सवलत)</td>
+          </tr>
+          <tr>
+            <td>पुढील देय व्याज नियम (Interest Terms)</td>
+            <td>४ आठवड्यांनंतर दरमहा ३% व्याज आकारले जाईल (+${currency}${Math.round(principal * (Number(bishiMeta.loanInterestRate) || 0.03))})</td>
+          </tr>
+          <tr>
+            <td>कर्ज वाटप स्थिती (Status)</td>
+            <td style="font-weight: 700; color: #059669;">
+              ✅ कर्ज वाटप संपन्न (Assigned & Disbursed)
+            </td>
+          </tr>
+          ${loan.notes ? `
+            <tr>
+              <td>वाटप टीप / संदर्भ</td>
+              <td style="font-size: 0.8rem; color: #64748b;">${loan.notes}</td>
+            </tr>
+          ` : ''}
+        </table>
+
+        <div class="receipt-footer-note" style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.85rem; font-size: 0.75rem; color: #64748b;">
+          📌 सुखकर्ता बीशी कर्ज नियमावली: पहिल्या ४ आठवड्यांत ०% व्याज, ४ आठवड्यांनंतर दर चक्रास ३% व्याज आकारले जाते. अधिकृत डिजिटल स्वाक्षरीसह जारी.
+        </div>
+      </div>
+    `;
+  }
+
+  // --- कर्ज वाटप WhatsApp संदेश जनरेटर ---
+  generateLoanAssignWhatsAppText(loan, member, bishiMeta) {
+    const currency = bishiMeta.currency || '₹';
+    const principal = Number(loan.originalPrincipal || loan.principalAmount) || 0;
+    const interestPerCycle = Math.round(principal * (Number(bishiMeta.loanInterestRate) || 0.03));
+
+    let message = `✨ *${bishiMeta.bishiName} - अधिकृत कर्ज वाटप व्हाउचर (Loan Assign Voucher)* ✨\n`;
+    message += `─────────────────────\n`;
+    message += `👤 *सदस्याचे नाव:* ${member.name}\n`;
+    message += `🆔 *सदस्य आयडी:* ${member.id} | *कर्ज क्र.:* ${loan.id}\n`;
+    message += `📅 *वाटप तारीख:* ${loan.issueDate || '-'}\n`;
+    message += `─────────────────────\n`;
+    message += `💵 *मंजूर व वाटप केलेली कर्ज रक्कम:* *${currency}${principal.toLocaleString('en-IN')}*\n`;
+    message += `💳 *वितरण पद्धत:* ${loan.disbursementMode || loan.paymentMode || 'Cash'}${loan.disbursementUpiId ? ` (UPI: ${loan.disbursementUpiId})` : ''}\n`;
+    message += `📅 *वाटप आठवडा:* आठवडा ${loan.issueWeek || 1}\n`;
+    message += `🧾 *व्हाउचर क्र.:* DISB-${loan.id}\n`;
+    message += `📊 *स्थिती:* ✅ अधिकृत कर्ज वाटप संपन्न (Disbursed)\n`;
+    message += `─────────────────────\n`;
+    message += `📌 *व्याज नियमावली (Rules):*\n`;
+    message += `• पहिल्या ४ आठवड्यांपर्यंत: ०% व्याज (सवलत कालावधी)\n`;
+    message += `• ४ आठवड्यांनंतर: दर चक्रास ३% व्याज (+${currency}${interestPerCycle}) लागू होईल\n`;
+    message += `─────────────────────\n`;
+    message += `_सुखकर्ता बीशी - विश्वासू व पारदर्शक फंड व्यवस्थापन_`;
+
+    return message;
+  }
+
+  // --- कर्ज वाटप व्हाउचर मोडल दाखवणे ---
+  showLoanAssignVoucherModal(loanId) {
+    const loan = window.bishiStore.getLoan(loanId);
+    if (!loan) {
+      if (window.ui && window.ui.showToast) window.ui.showToast('कर्ज तपशील सापडला नाही', 'error');
+      return;
+    }
+
+    const member = window.bishiStore.getMember(loan.memberId);
+    if (!member) {
+      if (window.ui && window.ui.showToast) window.ui.showToast('सदस्य तपशील सापडला नाही', 'error');
+      return;
+    }
+
+    const bishiMeta = window.bishiStore.state.meta;
+    const modalBody = document.getElementById('receiptModalBody');
+    if (!modalBody) return;
+
+    const waText = this.generateLoanAssignWhatsAppText(loan, member, bishiMeta);
+    const waUrl = `https://wa.me/${member.phone ? '91' + member.phone.replace(/\D/g, '') : ''}?text=${encodeURIComponent(waText)}`;
+
+    modalBody.innerHTML = `
+      ${this.generateLoanAssignVoucherHTML(loan, member, bishiMeta)}
+
+      <div class="whatsapp-preview-box">
+        <div class="whatsapp-preview-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+          WhatsApp कर्ज वाटप व्हाउचर संदेश
+        </div>
+        <div class="whatsapp-text-content">${waText}</div>
+        <div style="display: flex; gap: 0.75rem; margin-top: 0.85rem; flex-wrap: wrap;">
+          <a href="${waUrl}" target="_blank" class="btn btn-sm" style="background: #25d366; color: #000; font-weight: 700;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            WhatsApp वर व्हाउचर पाठवा
           </a>
           <button class="btn btn-secondary btn-sm" onclick="window.receiptManager.copyWhatsAppMessage('${encodeURIComponent(waText)}')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>

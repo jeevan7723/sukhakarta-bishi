@@ -6,11 +6,11 @@
     "subtitle": "५०-आठवडे बचत व फंड व्यवस्थापन",
     "currency": "₹",
     "autoApplyFine": true,
-    "lastUpdated": 1789969735342,
+    "lastUpdated": 1789619525668,
     "maturityInterestPercent": 8,
     "startDate": "2026-09-04",
     "totalWeeks": 50,
-    "updateVersion": 136,
+    "updateVersion": 135,
     "admin": {
       "username": "admin",
       "password": "jeevan@1234",
@@ -623,22 +623,21 @@
           "weekNumber": 7
         },
         {
-          "amountPaid": 1000,
-          "receiptNo": "REC-SKB-002-W8-7942",
-          "status": "paid",
-          "notes": "साप्ताहिक हप्ता",
-          "paymentMode": "Cash",
-          "paidDate": "2026-09-09",
+          "amountPaid": 0,
+          "receiptNo": null,
+          "status": "overdue",
+          "notes": "",
+          "paymentMode": "",
+          "paidDate": null,
           "finePaid": 0,
-          "weekNumber": 8,
-          "upiId": ""
+          "weekNumber": 8
         },
         {
           "upiId": "",
           "finePaid": 0,
           "weekNumber": 9,
           "status": "paid",
-          "notes": "साप्ताहिक हप्ता",
+          "notes": "",
           "amountPaid": 1000,
           "receiptNo": "REC-SKB-002-W9-7942",
           "paidDate": "2026-09-09",
@@ -1193,8 +1192,8 @@
     },
     {
       "paymentMode": "Cash",
-      "receiptNo": "REC-SKB-002-W8-7942",
-      "weekNumber": 8,
+      "receiptNo": "REC-SKB-002-W1-3639",
+      "weekNumber": 1,
       "totalAmount": 1000,
       "id": "TXN-87WE1E9",
       "note": "साप्ताहिक हप्ता",
@@ -1284,7 +1283,5 @@
       "disbursementMode": "Cash",
       "memberId": "SKB-001"
     }
-  ],
-  "_updatedAt": "2026-09-21T07:14:34.860Z",
-  "_lastUpdatedBy": "Data Alignment Fix"
+  ]
 }
