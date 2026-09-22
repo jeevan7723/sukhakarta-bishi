@@ -1667,6 +1667,27 @@ class UIManager {
     const defaultFine = Number(window.bishiStore.state.meta.defaultFineAmount) || 0;
     const globalCurrentWeek = window.bishiStore.state.meta.currentWeek || 1;
 
+    // १. जर सदस्याचे सर्व ५० आठवडे आधीच पूर्ण भरले असतील तर पेमेंट पर्याय बंद (No access to pay)
+    if (stats.isFullyPaid) {
+      this.showToast(`🎉 सदस्य ${member.name} यांचे सर्व ५० आठवडे आधीच पूर्ण झाले आहेत! कोणताही हप्ता बाकी नाही.`, 'info');
+      window.receiptManager.showPayoutVoucherModal(member.id);
+      return;
+    }
+
+    // २. निवडलेला आठवडा तपासणे
+    this.selectedCollectWeek = Number(weekNumber) || globalCurrentWeek;
+    const targetWkData = member.weeks.find(w => w.weekNumber === this.selectedCollectWeek);
+    const prevPaidOnSelectedWk = Number(targetWkData?.amountPaid || 0);
+    const isTargetFullPaid = targetWkData && (targetWkData.status === 'paid' || prevPaidOnSelectedWk >= stats.weeklyAmount);
+    const isTargetCleared = !isTargetFullPaid && (this.selectedCollectWeek <= stats.effectivePaidWeeks);
+
+    // ३. जर निवडलेला आठवडा आधीच पूर्ण भरला गेला असेल, पेमेंट पर्याय दाखवू नका आणि पेमेंटची परवानगी नाकारा (No access to pay)
+    if (isTargetFullPaid || isTargetCleared) {
+      this.showToast(`🔒 आठवडा ${this.selectedCollectWeek} चा हप्ता आधीच पूर्ण भरला गेला आहे! हा आठवडा पुन्हा भरता येणार नाही.`, 'warning');
+      window.receiptManager.showReceiptModal(member.id, this.selectedCollectWeek);
+      return;
+    }
+
     // मागील थकबाकी आठवडे शोधणे (Genuinely unpaid & uncleared previous weeks)
     const unpaidPastWeeks = member.weeks.filter(w => 
       w.weekNumber < globalCurrentWeek && 
@@ -1677,11 +1698,7 @@ class UIManager {
     const isPastDuePending = unpaidPastWeeks.length > 0 && stats.overdueWeeksCount > 0;
     const earliestUnpaidWeek = unpaidPastWeeks.length > 0 ? unpaidPastWeeks[0].weekNumber : globalCurrentWeek;
 
-    // निवडलेला आठवडा वापरणे
-    this.selectedCollectWeek = Number(weekNumber) || globalCurrentWeek;
-
-    const currentWkData = member.weeks.find(w => w.weekNumber === this.selectedCollectWeek);
-    const prevPaidOnSelectedWk = Number(currentWkData?.amountPaid || 0);
+    const currentWkData = targetWkData;
     const isTargetPartial = prevPaidOnSelectedWk > 0 && prevPaidOnSelectedWk < stats.weeklyAmount;
     const remainingOnSelectedWk = isTargetPartial ? (stats.weeklyAmount - prevPaidOnSelectedWk) : stats.weeklyAmount;
 
@@ -2010,6 +2027,19 @@ class UIManager {
     if (depositAmount <= 0) {
       this.showToast('⚠️ कृपया वैध हप्ता रक्कम प्रविष्ट करा!', 'error');
       document.getElementById('collectModalAmount')?.focus();
+      return;
+    }
+
+    const member = window.bishiStore.getMember(this.selectedMemberId);
+    if (!member) return;
+    const stats = window.bishiStore.calculateMemberStats(member);
+    const targetWkData = member.weeks.find(w => w.weekNumber === this.selectedCollectWeek);
+    const prevPaid = Number(targetWkData?.amountPaid || 0);
+    const isTargetFullPaid = targetWkData && (targetWkData.status === 'paid' || prevPaid >= stats.weeklyAmount);
+
+    if (isTargetFullPaid) {
+      this.showToast(`🔒 प्रवेश नाकारला: आठवडा ${this.selectedCollectWeek} चे पेमेंट आधीच पूर्ण झाले आहे! पुन्हा पेमेंट करता येणार नाही.`, 'error');
+      document.getElementById('collectPaymentModal')?.classList.remove('active');
       return;
     }
 
@@ -3721,6 +3751,12 @@ class UIManager {
           });
           miniMatrixHTML += '</div>';
 
+          const curWkData = member.weeks.find(w => w.weekNumber === currentWeek);
+          const curPaidAmt = Number(curWkData?.amountPaid || 0);
+          const isFullPaidThisWeek = curWkData && (curWkData.status === 'paid' || curPaidAmt >= stats.weeklyAmount);
+          const isClearedThisWeek = !isFullPaidThisWeek && (currentWeek <= stats.effectivePaidWeeks);
+          const isPartialThisWeek = !isFullPaidThisWeek && !isClearedThisWeek && (curPaidAmt > 0 && curPaidAmt < stats.weeklyAmount);
+
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <!-- १. सदस्य प्रोफाईल व संपर्क -->
@@ -3838,9 +3874,23 @@ class UIManager {
                 <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); window.ui.openMemberProfileModal('${member.id}')" title="संपूर्ण प्रोफाईल व सर्व तपशील पहा" style="font-weight: 700;">
                   👤 प्रोफाईल
                 </button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${currentWeek})" title="हप्ता जमा करा">
-                  💰 हप्ता जमा
-                </button>
+                ${stats.isFullyPaid ? `
+                  <button type="button" class="btn btn-gold btn-sm" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-weight: 800; font-size: 0.75rem;" title="मॅच्युरिटी व्हाउचर पहा">
+                    🎉 व्हाउचर
+                  </button>
+                ` : (isFullPaidThisWeek || isClearedThisWeek) ? `
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${member.id}', ${currentWeek})" title="पावती पहा">
+                    🧾 पावती
+                  </button>
+                ` : isPartialThisWeek ? `
+                  <button type="button" class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${currentWeek})" title="बाकी हप्ता जमा करा">
+                    💰 बाकी जमा
+                  </button>
+                ` : `
+                  <button type="button" class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${currentWeek})" title="हप्ता जमा करा">
+                    💰 हप्ता जमा
+                  </button>
+                `}
                 <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openEditMemberModal('${member.id}')" title="तपशील बदला">
                   ✏️ एडिट
                 </button>
@@ -3848,7 +3898,13 @@ class UIManager {
                   <option value="" selected disabled>⚙️ अधिक ▾</option>
                   <option value="profile">👤 संपूर्ण प्रोफाईल तपशील</option>
                   <option value="passbook">📖 ५०-आठवडे पासबुक</option>
-                  <option value="collect">💰 हप्ता जमा करा</option>
+                  ${(isFullPaidThisWeek || isClearedThisWeek || stats.isFullyPaid) ? `
+                    <option value="receipt">🧾 पावती पहा (Receipt)</option>
+                  ` : isPartialThisWeek ? `
+                    <option value="collect">💰 बाकी हप्ता जमा करा</option>
+                  ` : `
+                    <option value="collect">💰 हप्ता जमा करा</option>
+                  `}
                   <option value="loan">💳 कर्ज द्या</option>
                   <option value="edit">✏️ तपशील बदला</option>
                   ${stats.isFullyPaid ? `<option value="voucher">📜 मॅच्युरिटी व्हाउचर</option>` : ''}
@@ -3984,20 +4040,44 @@ class UIManager {
             </div>
 
             <!-- कृती बटणे -->
-            <div style="display: flex; gap: 0.4rem; margin-top: auto; padding-top: 0.5rem; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openMemberProfileModal('${member.id}')" style="flex: 1; justify-content: center; font-weight: 700;" title="संपूर्ण प्रोफाईल पहा">
-                👤 प्रोफाईल
-              </button>
-              <button type="button" class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${currentWeek})" style="flex: 1; justify-content: center; font-weight: 700;" title="हप्ता जमा करा">
-                💰 हप्ता
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openPassbookModal('${member.id}')" style="flex: 1; justify-content: center;" title="पासबुक पहा">
-                📖 पासबुक
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openEditMemberModal('${member.id}')" title="एडिट">
-                ✏️
-              </button>
-            </div>
+            ${(() => {
+              const curWkData = member.weeks.find(w => w.weekNumber === currentWeek);
+              const curPaidAmt = Number(curWkData?.amountPaid || 0);
+              const isFullPaidThisWeek = curWkData && (curWkData.status === 'paid' || curPaidAmt >= stats.weeklyAmount);
+              const isClearedThisWeek = !isFullPaidThisWeek && (currentWeek <= stats.effectivePaidWeeks);
+              const isPartialThisWeek = !isFullPaidThisWeek && !isClearedThisWeek && (curPaidAmt > 0 && curPaidAmt < stats.weeklyAmount);
+
+              return `
+                <div style="display: flex; gap: 0.4rem; margin-top: auto; padding-top: 0.5rem; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openMemberProfileModal('${member.id}')" style="flex: 1; justify-content: center; font-weight: 700;" title="संपूर्ण प्रोफाईल पहा">
+                    👤 प्रोफाईल
+                  </button>
+                  ${stats.isFullyPaid ? `
+                    <button type="button" class="btn btn-gold btn-sm" onclick="window.receiptManager.showPayoutVoucherModal('${member.id}')" style="flex: 1; justify-content: center; font-weight: 800;" title="५०-आठवडे मॅच्युरिटी व्हाउचर पहा">
+                      🎉 व्हाउचर
+                    </button>
+                  ` : (isFullPaidThisWeek || isClearedThisWeek) ? `
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${member.id}', ${currentWeek})" style="flex: 1; justify-content: center; font-weight: 700;" title="पावती पहा">
+                      🧾 पावती
+                    </button>
+                  ` : isPartialThisWeek ? `
+                    <button type="button" class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${currentWeek})" style="flex: 1; justify-content: center; font-weight: 700;" title="बाकी हप्ता जमा करा">
+                      💰 बाकी जमा
+                    </button>
+                  ` : `
+                    <button type="button" class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${currentWeek})" style="flex: 1; justify-content: center; font-weight: 700;" title="हप्ता जमा करा">
+                      💰 हप्ता
+                    </button>
+                  `}
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openPassbookModal('${member.id}')" style="flex: 1; justify-content: center;" title="पासबुक पहा">
+                    📖 पासबुक
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openEditMemberModal('${member.id}')" title="एडिट">
+                    ✏️
+                  </button>
+                </div>
+              `;
+            })()}
           `;
           gridBody.appendChild(card);
         });
@@ -4020,6 +4100,12 @@ class UIManager {
     const currency = window.bishiStore.state.meta.currency || '₹';
     const currentWeek = window.bishiStore.state.meta.currentWeek || 1;
     const remainingToPay = Math.max(0, stats.totalTarget - stats.totalDeposited);
+
+    const curWkData = member.weeks.find(w => w.weekNumber === currentWeek);
+    const curPaidAmt = Number(curWkData?.amountPaid || 0);
+    const isFullPaidThisWeek = curWkData && (curWkData.status === 'paid' || curPaidAmt >= stats.weeklyAmount);
+    const isClearedThisWeek = !isFullPaidThisWeek && (currentWeek <= stats.effectivePaidWeeks);
+    const isPartialThisWeek = !isFullPaidThisWeek && !isClearedThisWeek && (curPaidAmt > 0 && curPaidAmt < stats.weeklyAmount);
 
     // ५०-आठवडे प्रोग्रेस मॅट्रिक्स
     let miniMatrixHTML = `<div class="week-matrix-preview" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius-md); border: 1px solid var(--border-color);">`;
@@ -4094,9 +4180,23 @@ class UIManager {
 
             <!-- द्रुत कृती बटणे -->
             <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="btn btn-primary btn-sm" onclick="window.closeAllModals(); window.ui.openCollectModal('${member.id}', ${currentWeek});" style="font-weight: 700; padding: 0.45rem 0.9rem;">
-                💰 हप्ता जमा करा
-              </button>
+              ${stats.isFullyPaid ? `
+                <button type="button" class="btn btn-gold btn-sm" onclick="window.closeAllModals(); window.receiptManager.showPayoutVoucherModal('${member.id}');" style="font-weight: 800; padding: 0.45rem 0.9rem;">
+                  🎉 व्हाउचर पहा
+                </button>
+              ` : (isFullPaidThisWeek || isClearedThisWeek) ? `
+                <button type="button" class="btn btn-secondary btn-sm" onclick="window.closeAllModals(); window.receiptManager.showReceiptModal('${member.id}', ${currentWeek});" style="font-weight: 700; padding: 0.45rem 0.9rem;">
+                  🧾 पावती पहा
+                </button>
+              ` : isPartialThisWeek ? `
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.closeAllModals(); window.ui.openCollectModal('${member.id}', ${currentWeek});" style="font-weight: 700; padding: 0.45rem 0.9rem;">
+                  💰 बाकी जमा करा
+                </button>
+              ` : `
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.closeAllModals(); window.ui.openCollectModal('${member.id}', ${currentWeek});" style="font-weight: 700; padding: 0.45rem 0.9rem;">
+                  💰 हप्ता जमा करा
+                </button>
+              `}
               <button type="button" class="btn btn-secondary btn-sm" onclick="window.closeAllModals(); window.ui.openPassbookModal('${member.id}');" style="font-weight: 700; padding: 0.45rem 0.9rem;">
                 📖 पासबुक उघडा
               </button>
@@ -4226,9 +4326,23 @@ class UIManager {
     const footerEl = document.getElementById('mpModalFooterActions');
     if (footerEl) {
       footerEl.innerHTML = `
-        <button type="button" class="btn btn-primary" onclick="window.closeAllModals(); window.ui.openCollectModal('${member.id}', ${currentWeek});" style="font-weight: 700;">
-          💰 हप्ता जमा करा
-        </button>
+        ${stats.isFullyPaid ? `
+          <button type="button" class="btn btn-gold" onclick="window.closeAllModals(); window.receiptManager.showPayoutVoucherModal('${member.id}');" style="font-weight: 800;">
+            📜 मॅच्युरिटी व्हाउचर
+          </button>
+        ` : (isFullPaidThisWeek || isClearedThisWeek) ? `
+          <button type="button" class="btn btn-secondary" onclick="window.closeAllModals(); window.receiptManager.showReceiptModal('${member.id}', ${currentWeek});" style="font-weight: 700;">
+            🧾 आठवडा ${currentWeek} पावती
+          </button>
+        ` : isPartialThisWeek ? `
+          <button type="button" class="btn btn-primary" onclick="window.closeAllModals(); window.ui.openCollectModal('${member.id}', ${currentWeek});" style="font-weight: 700;">
+            💰 उर्वरित बाकी जमा करा
+          </button>
+        ` : `
+          <button type="button" class="btn btn-primary" onclick="window.closeAllModals(); window.ui.openCollectModal('${member.id}', ${currentWeek});" style="font-weight: 700;">
+            💰 हप्ता जमा करा
+          </button>
+        `}
         <button type="button" class="btn btn-secondary" onclick="window.closeAllModals(); window.ui.openPassbookModal('${member.id}');" style="font-weight: 700;">
           📖 संपूर्ण पासबुक
         </button>

@@ -454,7 +454,31 @@ if (finalStats.totalMembers !== 0 || finalStats.totalAllTimeCollected !== 0 || s
   throw new Error('Test 17 failed: clearAllData did not wipe all data');
 }
 
-console.log('\n✅ ALL VERIFICATION TESTS (1 to 17) PASSED SUCCESSFULLY! 100% Correct.');
+// Test 18: Prevent Double Payment of Already Paid Week
+console.log('\n--- Test 18: Prevent Double Payment of Already Paid Week ---');
+const testMember = store.addMember({
+  name: 'Ramesh Pawar',
+  phone: '9822001122',
+  weeklyAmount: 1000,
+  startWeek: 1
+});
+// Pay week 1 first time:
+const firstPayResult = store.recordPayment(testMember.id, 1, 1000, 'Cash', 'First payment');
+console.log('First payment on Week 1 result:', firstPayResult !== null, '(Expected: true)');
+console.log('Week 1 status after first payment:', testMember.weeks[0].status, '(Expected: paid)');
+console.log('Week 1 amountPaid:', testMember.weeks[0].amountPaid, '(Expected: 1000)');
+
+// Attempt to pay week 1 a SECOND time (double payment attempt):
+const secondPayResult = store.recordPayment(testMember.id, 1, 1000, 'UPI', 'Second duplicate attempt');
+console.log('Second payment on already paid Week 1 result:', secondPayResult, '(Expected: null)');
+console.log('Week 1 amountPaid remained unchanged:', testMember.weeks[0].amountPaid, '(Expected: 1000)');
+console.log('Transactions count remained 1:', store.state.transactions.length, '(Expected: 1)');
+
+if (secondPayResult !== null || testMember.weeks[0].amountPaid !== 1000 || store.state.transactions.length !== 1) {
+  throw new Error('Test 18 failed: recordPayment allowed duplicate payment on an already paid week');
+}
+
+console.log('\n✅ ALL VERIFICATION TESTS (1 to 18) PASSED SUCCESSFULLY! 100% Correct.');
 
 
 

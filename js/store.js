@@ -469,6 +469,14 @@ class BishiStore {
 
     const weeklyAmount = Number(member.weeklyAmount) || 1000;
     const currentPaid = Number(member.weeks[startWeekIndex].amountPaid) || 0;
+    const currentStatus = member.weeks[startWeekIndex].status;
+
+    // जर हा आठवडा आधीच पूर्ण भरला गेला असेल, पुन्हा पेमेंट करण्यास प्रतिबंध करा (Prevent duplicate payment of already paid week)
+    if (currentPaid >= weeklyAmount || currentStatus === 'paid') {
+      console.warn(`[store.recordPayment] आठवडा ${targetWeekNum} आधीच पूर्ण भरला आहे (सदस्य: ${member.name} - ${member.id})`);
+      return null;
+    }
+
     let inputDeposit = depositAmount !== null ? Math.max(0, Number(depositAmount)) : weeklyAmount;
     
     // If the week already had a partial payment and input is an incremental payment:
