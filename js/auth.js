@@ -19,14 +19,8 @@ class AuthManager {
       sessionStorage.removeItem('sukhakarta_admin_session_v1');
       localStorage.removeItem('sukhakarta_bishi_session_v2');
       sessionStorage.removeItem('sukhakarta_bishi_session_v2');
-
-      const stored = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed.isLoggedIn === true) {
-          return parsed;
-        }
-      }
+      localStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
     } catch (e) {
       console.error('Failed to load session', e);
     }
