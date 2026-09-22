@@ -4915,15 +4915,30 @@ body.customer-mode #mobileDrawerAdminMenu,
   background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #10b981 100%);
   background-size: 200% 100%;
   border-radius: 999px;
-  animation: splashFillBar 1.15s cubic-bezier(0.4, 0, 0.2, 1) forwards, splashBarShimmer 1.5s linear infinite;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+  animation: splashFillBar 5s cubic-bezier(0.1, 0.8, 0.2, 1) forwards, splashBarShimmer 1.5s linear infinite;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.85);
 }
 
 .splash-loading-label {
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
   letter-spacing: 0.04em;
+  margin-top: 0.2rem;
+}
+
+.splash-countdown-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.76rem;
+  color: #fbbf24;
+  font-weight: 700;
+  margin-top: 0.5rem;
 }
 
 @keyframes splashSpinClockwise {
@@ -4943,8 +4958,10 @@ body.customer-mode #mobileDrawerAdminMenu,
 
 @keyframes splashFillBar {
   0% { width: 0%; }
-  35% { width: 45%; }
+  20% { width: 25%; }
+  45% { width: 55%; }
   75% { width: 85%; }
+  95% { width: 98%; }
   100% { width: 100%; }
 }
 
@@ -4969,7 +4986,7 @@ body.customer-mode #mobileDrawerAdminMenu,
   background: rgba(16, 185, 129, 0.18);
   color: #6ee7b7;
   border: 1px solid rgba(16, 185, 129, 0.45);
-  padding: 0.5rem 1.35rem;
+  padding: 0.55rem 1.4rem;
   border-radius: 999px;
   font-size: 0.88rem;
   font-weight: 600;
@@ -5017,7 +5034,7 @@ body.customer-mode #mobileDrawerAdminMenu,
 <body>
 
   <!-- ==========================================================================
-       ॲप प्रवेश ॲनिमेशन (App Entry Splash Screen Animation)
+       ॲप प्रवेश ॲनिमेशन (App Entry Splash Screen Animation - ५ सेकंद)
        ========================================================================== -->
   <div id="appEntrySplash" class="app-entry-splash" onclick="window.dismissAppSplash && window.dismissAppSplash()" title="प्रवेश करण्यासाठी स्पर्श करा">
     <div class="splash-content">
@@ -5039,7 +5056,8 @@ body.customer-mode #mobileDrawerAdminMenu,
         <div class="splash-progress-track">
           <div class="splash-progress-fill"></div>
         </div>
-        <div class="splash-loading-label">सुरक्षित प्रणाली सुरू होत आहे...</div>
+        <div class="splash-loading-label" id="splashLoadingLabel">सुरक्षित प्रणाली सुरू होत आहे...</div>
+        <div class="splash-countdown-pill" id="splashCountdownBadge">⏱️ <span id="splashCountdownSec">5</span> सेकंद...</div>
         <button type="button" class="splash-enter-btn" onclick="event.stopPropagation(); window.dismissAppSplash();">
           पोर्टलमध्ये प्रवेश करा ➔
         </button>
@@ -5050,43 +5068,70 @@ body.customer-mode #mobileDrawerAdminMenu,
   <script>
     (function() {
       var splash = document.getElementById('appEntrySplash');
+      var label = document.getElementById('splashLoadingLabel');
+      var badge = document.getElementById('splashCountdownSec');
       var dismissed = false;
+      var countdownTimer = null;
+      var remainingSec = 5;
+
+      function updateCountdown() {
+        if (badge) badge.textContent = remainingSec;
+        if (remainingSec <= 0) {
+          if (label) label.textContent = 'प्रवेश करत आहे...';
+          clearInterval(countdownTimer);
+          window.dismissAppSplash();
+        } else {
+          if (label) label.textContent = 'सुरक्षित प्रणाली लोड होत आहे (' + remainingSec + 's)...';
+          remainingSec--;
+        }
+      }
+
+      function startSplashCountdown(seconds) {
+        clearInterval(countdownTimer);
+        remainingSec = seconds !== undefined ? seconds : 5;
+        if (badge) badge.textContent = remainingSec;
+        countdownTimer = setInterval(updateCountdown, 1000);
+      }
       
       window.dismissAppSplash = function() {
         if (dismissed || !splash) return;
         dismissed = true;
+        clearInterval(countdownTimer);
         splash.classList.add('splash-fade-out');
         setTimeout(function() {
           if (splash && splash.parentNode) {
             splash.style.display = 'none';
           }
-        }, 600);
+        }, 650);
       };
 
       window.playEntrySplashAnimation = function() {
         if (!splash) return;
         dismissed = false;
+        clearInterval(countdownTimer);
         splash.style.display = 'flex';
         splash.classList.remove('splash-fade-out');
         var fill = splash.querySelector('.splash-progress-fill');
         if (fill) {
           fill.style.animation = 'none';
           void fill.offsetWidth;
-          fill.style.animation = '';
+          fill.style.animation = 'splashFillBar 5s cubic-bezier(0.1, 0.8, 0.2, 1) forwards, splashBarShimmer 1.5s linear infinite';
         }
-        setTimeout(window.dismissAppSplash, 2400);
+        startSplashCountdown(5);
+        setTimeout(window.dismissAppSplash, 5100);
       };
 
-      // ॲप पूर्णपणे लोड झाल्यानंतर किमान २.२ सेकंद ॲनिमेशन दाखवून मग आपोआप फेड-आउट होईल
-      function startSplashTimer() {
-        setTimeout(window.dismissAppSplash, 2300);
+      // सर्व डिव्हाइसेसवर ५ पूर्ण सेकंद ॲनिमेशन दाखवून मग फेड-आउट होईल
+      function initSplash() {
+        startSplashCountdown(5);
+        setTimeout(window.dismissAppSplash, 5200);
       }
 
       if (document.readyState === 'complete') {
-        startSplashTimer();
+        initSplash();
       } else {
-        window.addEventListener('load', startSplashTimer);
-        setTimeout(startSplashTimer, 3200);
+        window.addEventListener('load', initSplash);
+        setTimeout(initSplash, 2000);
       }
     })();
   </script>
@@ -7894,12 +7939,12 @@ body.customer-mode #mobileDrawerAdminMenu,
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <!-- Javascript Scripts (Cache-Busted) -->
-  <script src="js/firebase.js?v=2.5.0"></script>
-  <script src="js/store.js?v=2.5.0"></script>
-  <script src="js/auth.js?v=2.5.0"></script>
-  <script src="js/receipt.js?v=2.5.0"></script>
-  <script src="js/export.js?v=2.5.0"></script>
-  <script src="js/ui.js?v=2.5.0"></script>
-  <script src="js/app.js?v=2.5.0"></script>
+  <script src="js/firebase.js?v=2.6.0"></script>
+  <script src="js/store.js?v=2.6.0"></script>
+  <script src="js/auth.js?v=2.6.0"></script>
+  <script src="js/receipt.js?v=2.6.0"></script>
+  <script src="js/export.js?v=2.6.0"></script>
+  <script src="js/ui.js?v=2.6.0"></script>
+  <script src="js/app.js?v=2.6.0"></script>
 </body>
 </html>
