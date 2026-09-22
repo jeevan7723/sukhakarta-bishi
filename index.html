@@ -4585,6 +4585,205 @@ body.customer-mode #mobileDrawerAdminMenu,
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.35rem !important;
   }
+/* ==========================================================================
+   SUKHAKARTA BISHI - LUXURY NATIVE-APP ENTRY & MICRO ANIMATIONS
+   ========================================================================== */
+
+@keyframes pageFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes heroSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardStaggerIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rowEntrance {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes headerSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loginCardPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.88) translateY(24px);
+  }
+  70% {
+    transform: scale(1.015) translateY(-3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 1. Header & Global Nav */
+.header {
+  animation: headerSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 2. Page Views Entrance */
+#dashboardView,
+#membersPageView,
+#loansPageView,
+#customerPortalView {
+  animation: pageFadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 3. Hero Cards */
+.members-page-hero,
+.loans-page-hero,
+.member-section-highlight-card,
+.customer-hero-card {
+  animation: heroSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 4. Staggered Metric Cards */
+.metrics-grid .stat-card,
+.customer-stats-grid .stat-card,
+.audit-grid .audit-card {
+  animation: cardStaggerIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+.metrics-grid .stat-card:nth-child(1),
+.customer-stats-grid .stat-card:nth-child(1),
+.audit-grid .audit-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.metrics-grid .stat-card:nth-child(2),
+.customer-stats-grid .stat-card:nth-child(2),
+.audit-grid .audit-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.metrics-grid .stat-card:nth-child(3),
+.customer-stats-grid .stat-card:nth-child(3),
+.audit-grid .audit-card:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.metrics-grid .stat-card:nth-child(4),
+.customer-stats-grid .stat-card:nth-child(4),
+.audit-grid .audit-card:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+/* 5. Member Rows & Cards Stagger */
+.table tbody tr {
+  animation: rowEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.table tbody tr:nth-child(1) { animation-delay: 0.04s; }
+.table tbody tr:nth-child(2) { animation-delay: 0.08s; }
+.table tbody tr:nth-child(3) { animation-delay: 0.12s; }
+.table tbody tr:nth-child(4) { animation-delay: 0.16s; }
+.table tbody tr:nth-child(5) { animation-delay: 0.20s; }
+.table tbody tr:nth-child(6) { animation-delay: 0.24s; }
+
+.member-card {
+  animation: cardStaggerIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.member-card:nth-child(1) { animation-delay: 0.04s; }
+.member-card:nth-child(2) { animation-delay: 0.08s; }
+.member-card:nth-child(3) { animation-delay: 0.12s; }
+.member-card:nth-child(4) { animation-delay: 0.16s; }
+
+/* 6. Login Screen */
+.login-card {
+  animation: loginCardPop 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 7. Modals Entrance */
+.modal-overlay.active .modal-container {
+  animation: modalZoomIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (max-width: 640px) {
+  .modal-overlay.active .modal-container {
+    animation: none !important;
+  }
+}
+
+/* 8. Interactive Tactile Micro-Animations */
+.btn {
+  transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.15s ease, filter 0.15s ease !important;
+}
+
+.btn:active {
+  transform: scale(0.96) !important;
+}
+
+.stat-card {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease !important;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* 9. Accessibility Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
   </style>
   
