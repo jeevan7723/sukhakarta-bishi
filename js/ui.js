@@ -3490,7 +3490,12 @@ class UIManager {
     if (dashboardView) dashboardView.style.display = 'none';
     if (membersPageView) membersPageView.style.display = 'none';
     if (customerPortalView) customerPortalView.style.display = 'none';
-    if (loansPageView) loansPageView.style.display = 'block';
+    if (loansPageView) {
+      loansPageView.style.display = 'block';
+      loansPageView.classList.remove('view-page-transition');
+      void loansPageView.offsetWidth;
+      loansPageView.classList.add('view-page-transition');
+    }
 
     const btnNavLoans = document.getElementById('btnOpenAdminLoans');
     if (btnNavLoans) {
@@ -3525,7 +3530,12 @@ class UIManager {
     if (loansPageView) loansPageView.style.display = 'none';
     if (membersPageView) membersPageView.style.display = 'none';
     if (customerPortalView) customerPortalView.style.display = 'none';
-    if (dashboardView) dashboardView.style.display = 'block';
+    if (dashboardView) {
+      dashboardView.style.display = 'block';
+      dashboardView.classList.remove('view-page-transition');
+      void dashboardView.offsetWidth;
+      dashboardView.classList.add('view-page-transition');
+    }
 
     const btnNavLoans = document.getElementById('btnOpenAdminLoans');
     if (btnNavLoans) {
@@ -3563,7 +3573,12 @@ class UIManager {
     if (dashboardView) dashboardView.style.display = 'none';
     if (loansPageView) loansPageView.style.display = 'none';
     if (customerPortalView) customerPortalView.style.display = 'none';
-    if (membersPageView) membersPageView.style.display = 'block';
+    if (membersPageView) {
+      membersPageView.style.display = 'block';
+      membersPageView.classList.remove('view-page-transition');
+      void membersPageView.offsetWidth;
+      membersPageView.classList.add('view-page-transition');
+    }
 
     const btnNavLoans = document.getElementById('btnOpenAdminLoans');
     if (btnNavLoans) {

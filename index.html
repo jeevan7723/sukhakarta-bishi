@@ -4964,13 +4964,51 @@ body.customer-mode #mobileDrawerAdminMenu,
   }
 }
 
-/* 11. Accessibility Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+.splash-enter-btn {
+  margin-top: 1.15rem;
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  padding: 0.5rem 1.35rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  animation: splashFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+
+.splash-enter-btn:hover, .splash-enter-btn:active {
+  background: #10b981;
+  color: #ffffff;
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.7);
+}
+
+/* पान बदलताना येणारे सुरेख ॲनिमेशन (Page / View Transition Animation) */
+.view-page-transition {
+  animation: pageFadeSlideIn 0.34s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+@keyframes pageFadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
   }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* लिंक व बटण क्लिक मायक्रो-ॲनिमेशन (Tap / Click micro-animation) */
+.sidebar-nav-item, .btn, .stat-card {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, background-color 0.18s ease !important;
+}
+
+.sidebar-nav-item:active, .btn:active, .stat-card:active {
+  transform: scale(0.96) !important;
 }
   </style>
   
@@ -5002,6 +5040,9 @@ body.customer-mode #mobileDrawerAdminMenu,
           <div class="splash-progress-fill"></div>
         </div>
         <div class="splash-loading-label">सुरक्षित प्रणाली सुरू होत आहे...</div>
+        <button type="button" class="splash-enter-btn" onclick="event.stopPropagation(); window.dismissAppSplash();">
+          पोर्टलमध्ये प्रवेश करा ➔
+        </button>
       </div>
     </div>
   </div>
@@ -5010,6 +5051,7 @@ body.customer-mode #mobileDrawerAdminMenu,
     (function() {
       var splash = document.getElementById('appEntrySplash');
       var dismissed = false;
+      
       window.dismissAppSplash = function() {
         if (dismissed || !splash) return;
         dismissed = true;
@@ -5018,10 +5060,34 @@ body.customer-mode #mobileDrawerAdminMenu,
           if (splash && splash.parentNode) {
             splash.style.display = 'none';
           }
-        }, 550);
+        }, 600);
       };
-      // 1.15 सेकंदांनंतर आपोआप सुरेखपणे फेड-आउट होईल
-      setTimeout(window.dismissAppSplash, 1150);
+
+      window.playEntrySplashAnimation = function() {
+        if (!splash) return;
+        dismissed = false;
+        splash.style.display = 'flex';
+        splash.classList.remove('splash-fade-out');
+        var fill = splash.querySelector('.splash-progress-fill');
+        if (fill) {
+          fill.style.animation = 'none';
+          void fill.offsetWidth;
+          fill.style.animation = '';
+        }
+        setTimeout(window.dismissAppSplash, 2400);
+      };
+
+      // ॲप पूर्णपणे लोड झाल्यानंतर किमान २.२ सेकंद ॲनिमेशन दाखवून मग आपोआप फेड-आउट होईल
+      function startSplashTimer() {
+        setTimeout(window.dismissAppSplash, 2300);
+      }
+
+      if (document.readyState === 'complete') {
+        startSplashTimer();
+      } else {
+        window.addEventListener('load', startSplashTimer);
+        setTimeout(startSplashTimer, 3200);
+      }
     })();
   </script>
 
@@ -5079,6 +5145,12 @@ body.customer-mode #mobileDrawerAdminMenu,
         <div style="margin-top: 1.25rem; font-size: 0.78rem; color: var(--text-muted); text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.9rem;">
           <span>🔒 <strong>प्रशासक:</strong> अधिकृत ॲडमिन पासवर्ड</span> • <span><strong>सदस्य:</strong> आयडी / फोन + पासवर्ड</span>
         </div>
+
+        <div style="margin-top: 0.85rem; text-align: center;">
+          <button type="button" onclick="window.playEntrySplashAnimation && window.playEntrySplashAnimation()" class="btn btn-sm btn-secondary" style="border-radius: 999px; font-size: 0.76rem; padding: 0.35rem 0.95rem; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: var(--emerald-400);">
+            ✨ प्रवेश ॲनिमेशन पुन्हा पहा (Replay)
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -5094,7 +5166,12 @@ body.customer-mode #mobileDrawerAdminMenu,
         </div>
       </div>
 
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.45rem;">
+        <!-- ॲनिमेशन पुन्हा पहा बटण (Replay Splash Animation) -->
+        <button type="button" class="btn btn-secondary btn-icon" id="mobileSplashReplayBtn" onclick="window.playEntrySplashAnimation && window.playEntrySplashAnimation()" title="प्रवेश ॲनिमेशन पहा (Watch Animation)" style="font-size: 1rem; padding: 0.35rem 0.55rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;">
+          ✨
+        </button>
+
         <!-- मोबाईल थीम टॉगल बटण -->
         <button type="button" class="btn btn-secondary btn-icon" id="mobileThemeToggleBtn" title="थीम बदला (Light/Dark)" style="font-size: 1.1rem; padding: 0.35rem 0.55rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;">
           🌓
@@ -5235,6 +5312,12 @@ body.customer-mode #mobileDrawerAdminMenu,
             <button type="button" class="sidebar-nav-item" id="themeToggleBtn" title="थीम बदला (Dark/Light)">
               <span class="sidebar-nav-icon">🌓</span>
               <span class="sidebar-nav-text">थीम बदला (Dark/Light)</span>
+            </button>
+
+            <!-- प्रवेश ॲनिमेशन बटण -->
+            <button type="button" class="sidebar-nav-item" onclick="window.playEntrySplashAnimation && window.playEntrySplashAnimation(); window.ui.closeMobileDrawer();" title="प्रवेश ॲनिमेशन पुन्हा अनुभवा (Watch Animation)">
+              <span class="sidebar-nav-icon">✨</span>
+              <span class="sidebar-nav-text">प्रवेश ॲनिमेशन पहा</span>
             </button>
           </div>
         </div>
@@ -7811,12 +7894,12 @@ body.customer-mode #mobileDrawerAdminMenu,
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <!-- Javascript Scripts (Cache-Busted) -->
-  <script src="js/firebase.js?v=2.4.0"></script>
-  <script src="js/store.js?v=2.4.0"></script>
-  <script src="js/auth.js?v=2.4.0"></script>
-  <script src="js/receipt.js?v=2.4.0"></script>
-  <script src="js/export.js?v=2.4.0"></script>
-  <script src="js/ui.js?v=2.4.0"></script>
-  <script src="js/app.js?v=2.4.0"></script>
+  <script src="js/firebase.js?v=2.5.0"></script>
+  <script src="js/store.js?v=2.5.0"></script>
+  <script src="js/auth.js?v=2.5.0"></script>
+  <script src="js/receipt.js?v=2.5.0"></script>
+  <script src="js/export.js?v=2.5.0"></script>
+  <script src="js/ui.js?v=2.5.0"></script>
+  <script src="js/app.js?v=2.5.0"></script>
 </body>
 </html>
