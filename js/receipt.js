@@ -29,6 +29,7 @@ class ReceiptManager {
     return `
       <div class="receipt-wrapper" id="printableReceiptArea">
         <div class="receipt-header">
+          <img src="assets/logo-emblem.png" alt="सुखकर्ता बीशी" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; margin-bottom: 0.35rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border: 2px solid #f59e0b; background: #fff; padding: 2px; display: inline-block;">
           <div class="receipt-org-title">✨ ${bishiMeta.bishiName}</div>
           <div class="receipt-sub">साप्ताहिक बचत फंड व खातावही पावती</div>
           <div class="receipt-badge">हप्ता जमा पावती • आठवडा ${weekData.weekNumber} / ५०</div>
@@ -330,7 +331,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     modalBody.innerHTML = `
       <div class="receipt-wrapper" style="border: 2px solid var(--gold-400); box-shadow: 0 0 25px rgba(245, 158, 11, 0.2);">
         <div class="receipt-header" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(16, 185, 129, 0.15)); padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
-          <div style="font-size: 2rem; margin-bottom: 0.25rem;">🏆 ✨ 📜</div>
+          <img src="assets/logo-emblem.png" alt="सुखकर्ता बीशी" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; margin-bottom: 0.35rem; box-shadow: 0 2px 10px rgba(0,0,0,0.15); border: 2px solid #f59e0b; background: #fff; padding: 2px; display: inline-block;">
           <div class="receipt-org-title">✨ ${bishiMeta.bishiName}</div>
           <div class="receipt-sub">अधिकृत ५०-आठवडे मॅच्युरिटी वाटप व्हाउचर</div>
           <div class="receipt-badge" style="background: var(--emerald-600); color: #fff;">✅ परतावा वाटप पूर्ण</div>
@@ -474,6 +475,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     return `
       <div class="receipt-wrapper" id="printableReceiptArea">
         <div class="receipt-header" style="${isPaid ? 'background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));' : (isPartiallyPaid ? 'background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(59, 130, 246, 0.15));' : 'background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(245, 158, 11, 0.15));')}">
+          <img src="assets/logo-emblem.png" alt="सुखकर्ता बीशी" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; margin-bottom: 0.35rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border: 2px solid #f59e0b; background: #fff; padding: 2px; display: inline-block;">
           <div class="receipt-org-title">✨ ${bishiMeta.bishiName}</div>
           <div class="receipt-sub">सदस्य कर्ज खातावही व अधिकृत पावती</div>
           <div class="receipt-badge" style="${isPaid ? 'background: rgba(16, 185, 129, 0.2); color: #059669; border-color: rgba(16, 185, 129, 0.4);' : (isPartiallyPaid ? 'background: rgba(245, 158, 11, 0.2); color: #d97706; border-color: rgba(245, 158, 11, 0.4);' : 'background: rgba(59, 130, 246, 0.2); color: #2563eb; border-color: rgba(59, 130, 246, 0.4);')}">
@@ -702,6 +704,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     return `
       <div class="receipt-wrapper" id="printableReceiptArea">
         <div class="receipt-header" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(16, 185, 129, 0.16));">
+          <img src="assets/logo-emblem.png" alt="सुखकर्ता बीशी" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; margin-bottom: 0.35rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border: 2px solid #f59e0b; background: #fff; padding: 2px; display: inline-block;">
           <div class="receipt-org-title">✨ ${bishiMeta.bishiName}</div>
           <div class="receipt-sub">अधिकृत कर्ज वाटप व्हाउचर (Official Loan Assignment Voucher)</div>
           <div class="receipt-badge" style="background: rgba(59, 130, 246, 0.2); color: #2563eb; border-color: rgba(59, 130, 246, 0.45);">
@@ -875,6 +878,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     return `
       <div class="receipt-wrapper" id="printableReceiptArea">
         <div class="receipt-header">
+          <img src="assets/logo-emblem.png" alt="सुखकर्ता बीशी" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; margin-bottom: 0.35rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border: 2px solid #f59e0b; background: #fff; padding: 2px; display: inline-block;">
           <div class="receipt-org-title">✨ ${bishiMeta.bishiName}</div>
           <div class="receipt-sub">अधिकृत ४-आठवडे कर्ज व्याज संकलन पावती</div>
           <div class="receipt-badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border-color: rgba(245, 158, 11, 0.35);">
@@ -1118,9 +1122,22 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     const waUrl = `https://wa.me/${member.phone ? '91' + member.phone.replace(/\D/g, '') : ''}?text=${encodeURIComponent(waText)}`;
 
     if (openDirectly) {
-      window.open(waUrl, '_blank');
-      if (window.ui && window.ui.showToast) {
-        window.ui.showToast(`सदस्य ${member.name} यांना WhatsApp कर्ज व्याज संदेश पाठवला जात आहे...`, 'success');
+      let winOpened = false;
+      try {
+        const newWin = window.open(waUrl, '_blank');
+        if (newWin && !newWin.closed && typeof newWin.closed !== 'undefined') {
+          winOpened = true;
+          if (window.ui && window.ui.showToast) {
+            window.ui.showToast(`सदस्य ${member.name} यांना WhatsApp कर्ज व्याज संदेश पाठवला जात आहे...`, 'success');
+          }
+        }
+      } catch (err) {
+        winOpened = false;
+      }
+
+      // जर ब्राउझरने पॉप-अप ब्लॉक केले असेल, तर लगेच स्मरणपत्र मोडल दाखवा
+      if (!winOpened) {
+        this.showLoanInterestReminderModal(loanId);
       }
     } else {
       this.showLoanInterestReminderModal(loanId);

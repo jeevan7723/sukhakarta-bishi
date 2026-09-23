@@ -750,15 +750,23 @@ button {
   width: 44px;
   height: 44px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--emerald-500), var(--gold-500));
+  background: #ffffff;
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.35rem;
-  font-family: var(--font-display);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
+  overflow: hidden;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: calc(var(--radius-md) - 2px);
+  display: block;
 }
 
 .brand-info {
@@ -3030,20 +3038,48 @@ button.status-completed:hover {
   background: linear-gradient(90deg, var(--emerald-500), var(--gold-500), var(--blue-500));
 }
 
+.login-logo-banner-wrap {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 0.85rem;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 0 0 1.5px rgba(245, 158, 11, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-logo-banner {
+  width: 100%;
+  height: auto;
+  max-height: 105px;
+  object-fit: contain;
+  display: block;
+}
+
 .login-logo {
   width: 64px;
   height: 64px;
   margin: 0 auto 1rem;
-  background: linear-gradient(135deg, var(--emerald-500), var(--gold-500));
-  border-radius: 20px;
+  background: #ffffff;
+  border: 2px solid #f59e0b;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  color: #fff;
-  font-weight: 800;
-  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
-  font-family: var(--font-display);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.35);
+  overflow: hidden;
+  padding: 2px;
+}
+
+.login-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .login-title {
@@ -3365,16 +3401,15 @@ button.status-completed:hover {
   width: 42px;
   height: 42px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--emerald-500), var(--gold-500));
+  background: #ffffff;
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.35rem;
-  font-family: var(--font-display);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
   flex-shrink: 0;
+  overflow: hidden;
+  padding: 2px;
 }
 
 .brand-info {
@@ -4849,25 +4884,30 @@ body.customer-mode #mobileDrawerAdminMenu,
 }
 
 .splash-logo-circle {
-  width: 96px;
-  height: 96px;
+  width: 104px;
+  height: 104px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  background: #ffffff;
+  border: 3px solid #f59e0b;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 38px rgba(16, 185, 129, 0.55), inset 0 0 20px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 45px rgba(245, 158, 11, 0.65), 0 10px 25px rgba(0, 0, 0, 0.4);
   animation: splashLogoFloat 2.4s ease-in-out infinite alternate;
+  overflow: hidden;
+  padding: 3px;
+}
+
+.splash-logo-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .splash-logo-icon {
-  font-size: 3.2rem;
-  font-weight: 900;
-  color: #ffffff;
-  line-height: 1;
-  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
-  display: inline-block;
-  transform: translateY(-2px);
+  display: none;
 }
 
 .splash-title {
@@ -5031,7 +5071,8 @@ body.customer-mode #mobileDrawerAdminMenu,
 }
   </style>
   
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%3E<text y=%2226%22 font-size=%2226%22>💰</text></svg>">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/logo-emblem.png">
 </head>
 <body>
 
@@ -5045,7 +5086,7 @@ body.customer-mode #mobileDrawerAdminMenu,
         <div class="splash-ring-outer"></div>
         <div class="splash-ring-inner"></div>
         <div class="splash-logo-circle">
-          <span class="splash-logo-icon">₹</span>
+          <img src="assets/logo-emblem.png" alt="सुखकर्ता बीशी लोगो" class="splash-logo-img">
         </div>
       </div>
       
@@ -5153,7 +5194,9 @@ body.customer-mode #mobileDrawerAdminMenu,
        ========================================================================== -->
   <div class="login-screen-overlay" id="adminLoginScreen">
     <div class="login-card">
-      <div class="login-logo">₹</div>
+      <div class="login-logo-banner-wrap">
+        <img src="assets/logo.png" alt="सुखकर्ता बीशी - SUKHAKARTA BISHI" class="login-logo-banner">
+      </div>
       <h2 class="login-title">सुखकर्ता बीशी</h2>
       <p class="login-sub">५०-आठवडे बचत फंड व पासबुक पोर्टल</p>
 
@@ -5216,7 +5259,7 @@ body.customer-mode #mobileDrawerAdminMenu,
     <!-- मोबाईल टॉप बार (Mobile & Tablet Header < 1024px) -->
     <header class="mobile-top-bar no-print" id="mobileTopBar">
       <div class="brand-container" onclick="window.ui.navigateToDashboard()" style="cursor: pointer;">
-        <div class="brand-logo">₹</div>
+        <div class="brand-logo"><img src="assets/logo-emblem.png" alt="सुखकर्ता बीशी लोगो" class="brand-logo-img"></div>
         <div class="brand-info">
           <h1 class="brand-title">सुखकर्ता बीशी</h1>
           <div class="brand-subtitle"><span>५०-आठवडे बचत फंड</span></div>
@@ -5253,7 +5296,7 @@ body.customer-mode #mobileDrawerAdminMenu,
       <!-- साइडबार ब्रँड हेडर -->
       <div class="sidebar-header">
         <div class="brand-container" onclick="window.ui.navigateToDashboard(); window.ui.closeMobileDrawer();" style="cursor: pointer;">
-          <div class="brand-logo">₹</div>
+          <div class="brand-logo"><img src="assets/logo-emblem.png" alt="सुखकर्ता बीशी लोगो" class="brand-logo-img"></div>
           <div class="brand-info">
             <h1 class="brand-title">सुखकर्ता बीशी</h1>
             <div class="brand-subtitle">
@@ -7951,12 +7994,12 @@ body.customer-mode #mobileDrawerAdminMenu,
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <!-- Javascript Scripts (Cache-Busted) -->
-  <script src="js/firebase.js?v=2.8.0"></script>
-  <script src="js/store.js?v=2.8.0"></script>
-  <script src="js/auth.js?v=2.8.0"></script>
-  <script src="js/receipt.js?v=2.8.0"></script>
-  <script src="js/export.js?v=2.8.0"></script>
-  <script src="js/ui.js?v=2.8.0"></script>
-  <script src="js/app.js?v=2.8.0"></script>
+  <script src="js/firebase.js?v=2.8.2"></script>
+  <script src="js/store.js?v=2.8.2"></script>
+  <script src="js/auth.js?v=2.8.2"></script>
+  <script src="js/receipt.js?v=2.8.2"></script>
+  <script src="js/export.js?v=2.8.2"></script>
+  <script src="js/ui.js?v=2.8.2"></script>
+  <script src="js/app.js?v=2.8.2"></script>
 </body>
 </html>

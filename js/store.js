@@ -1393,6 +1393,11 @@ class BishiStore {
     };
   }
 
+  // सदस्यनिहाय कर्ज सारांश (Member Loan Summary Alias)
+  getMemberLoansSummary(memberId) {
+    return this.getMemberLoanSummary(memberId);
+  }
+
   // सदस्य एकूण देय रक्कम गणना (Weekly Bishi Deposit + Active Loan Due)
   calculateMemberOverallDue(member) {
     if (!member) return null;

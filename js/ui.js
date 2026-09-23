@@ -1539,8 +1539,8 @@ class UIManager {
                 <option value="collect">💰 चालू आठवडा हप्ता जमा करा</option>
               `}
               ${isInterestDueThisWeek ? `
-                <option value="pay_interest">💰 ३% कर्ज व्याज जमा करा (+${currency}${loanSummary.activeInterest})</option>
-                <option value="loan_msg">💬 व्याज WhatsApp स्मरणपत्र</option>
+                <option value="pay_interest:${firstActiveLoan?.loan?.id || ''}">💰 ३% कर्ज व्याज जमा करा (+${currency}${loanSummary.activeInterest})</option>
+                <option value="loan_msg:${firstActiveLoan?.loan?.id || ''}">💬 व्याज WhatsApp स्मरणपत्र</option>
               ` : ''}
               ${stats.isFullyPaid ? (stats.isPayoutCompleted ? `
                 <option value="voucher">📜 मॅच्युरिटी व्हाउचर पहा</option>
@@ -1569,11 +1569,17 @@ class UIManager {
 
   // --- सदस्य कृती ड्रॉपडाउन लिस्ट हँडलर ---
   handleMemberActionSelect(selectEl, memberId, currentWeek) {
-    const action = selectEl.value;
-    if (!action) return;
+    const rawVal = selectEl?.value;
+    if (!rawVal) return;
 
     // सिलेक्ट रीसेट करा जेणेकरून पुढील कृतीसाठी तयार राहील
-    selectEl.value = '';
+    setTimeout(() => {
+      try { if (selectEl) selectEl.value = ''; } catch(e) {}
+    }, 50);
+
+    const parts = String(rawVal).split(':');
+    const action = parts[0];
+    const paramLoanId = parts[1] || null;
 
     switch (action) {
       case 'profile':
@@ -1589,20 +1595,32 @@ class UIManager {
         this.handleUndoPayment(memberId, currentWeek);
         break;
       case 'pay_interest': {
-        const loanSummary = window.bishiStore.getMemberLoansSummary(memberId);
-        const firstActive = loanSummary.allLoans.find(l => l.status === 'active');
-        if (firstActive) {
-          this.openPayLoanInterestModal(firstActive.id);
+        let loanId = paramLoanId;
+        if (!loanId) {
+          const loanSummary = window.bishiStore.getMemberLoanSummary(memberId);
+          const firstActiveLoan = (loanSummary && loanSummary.activeLoans && loanSummary.activeLoans.length > 0)
+            ? loanSummary.activeLoans[0].loan
+            : (loanSummary?.allLoans ? loanSummary.allLoans.find(l => l.status !== 'paid') : null);
+          loanId = firstActiveLoan?.id;
+        }
+        if (loanId) {
+          this.openPayLoanInterestModal(loanId);
         } else {
           this.showToast('सक्रिय कर्ज सापडले नाही', 'warning');
         }
         break;
       }
       case 'loan_msg': {
-        const loanSummary = window.bishiStore.getMemberLoansSummary(memberId);
-        const firstActive = loanSummary.allLoans.find(l => l.status === 'active');
-        if (firstActive) {
-          window.receiptManager.sendLoanInterestPendingReminder(firstActive.id);
+        let loanId = paramLoanId;
+        if (!loanId) {
+          const loanSummary = window.bishiStore.getMemberLoanSummary(memberId);
+          const firstActiveLoan = (loanSummary && loanSummary.activeLoans && loanSummary.activeLoans.length > 0)
+            ? loanSummary.activeLoans[0].loan
+            : (loanSummary?.allLoans ? loanSummary.allLoans.find(l => l.status !== 'paid') : null);
+          loanId = firstActiveLoan?.id;
+        }
+        if (loanId) {
+          window.receiptManager.sendLoanInterestPendingReminder(loanId);
         } else {
           this.showToast('सक्रिय कर्ज सापडले नाही', 'warning');
         }
