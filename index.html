@@ -3444,6 +3444,129 @@ button.status-completed:hover {
   white-space: nowrap;
 }
 
+/* Official Brand Hero Card */
+.brand-hero-card {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(16, 185, 129, 0.05), rgba(30, 41, 59, 0.7));
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="light"] .brand-hero-card {
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(240, 253, 244, 0.9));
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.12);
+}
+
+.brand-hero-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.brand-hero-logo-box {
+  width: 140px;
+  height: 92px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 5px 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), 0 0 0 1.5px rgba(245, 158, 11, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.brand-hero-logo-box:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.35);
+}
+
+.brand-hero-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.brand-hero-text {
+  flex: 1;
+  min-width: 250px;
+}
+
+.brand-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold-400);
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.brand-hero-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.01em;
+}
+
+.brand-hero-tagline {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: 0.05em;
+}
+
+.brand-hero-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hero-pill {
+  font-size: 0.74rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+@media (max-width: 640px) {
+  .brand-hero-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  .brand-hero-logo-box {
+    margin: 0 auto;
+    width: 150px;
+    height: 98px;
+  }
+  .brand-hero-pills {
+    justify-content: center;
+  }
+}
+
 /* Sidebar Styling for Desktop */
 .app-sidebar {
   width: 275px;
@@ -5448,6 +5571,28 @@ body.customer-mode #mobileDrawerAdminMenu,
            दृश्य १: प्रशासक कलेक्शन डॅशबोर्ड (केवळ प्रशासक)
            ========================================================================== -->
       <div id="dashboardView">
+        <!-- सुखकर्ता बीशी अधिकृत ब्रँड बॅनर (Official Brand Logo Banner) -->
+        <div class="brand-hero-card glass-card">
+          <div class="brand-hero-content">
+            <div class="brand-hero-logo-box">
+              <img src="assets/brand-logo-full.png" alt="सुखकर्ता बीशी - SUKHAKARTA BISHI" class="brand-hero-img">
+            </div>
+            <div class="brand-hero-text">
+              <div class="brand-hero-badge">
+                <span>✨</span> अधिकृत ५०-आठवडे बचत व फंड व्यवस्थापन
+              </div>
+              <h2 class="brand-hero-title">सुखकर्ता बीशी (Sukhakarta Bishi)</h2>
+              <p class="brand-hero-tagline">STABILITY • GROWTH • PROSPERITY • FINANCE & GROUP INVESTMENT</p>
+              <div class="brand-hero-pills">
+                <span class="hero-pill">🏛️ पारदर्शक ५०-आठवडे फंड पूल</span>
+                <span class="hero-pill">💳 ३% नियमावली कर्ज खातावही</span>
+                <span class="hero-pill">🧾 झटपट WhatsApp पावत्या</span>
+                <span class="hero-pill">☁️ २४x७ सुरक्षित क्लाउड बॅकअप</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- मुख्य आकडेवारी कार्ड्स -->
         <section class="metrics-grid">
           <!-- कार्ड १: एकूण सक्रिय सदस्य (सदस्य विभाग) -->
@@ -6051,7 +6196,27 @@ body.customer-mode #mobileDrawerAdminMenu,
            दृश्य २: सदस्य वैयक्तिक पोर्टल (केवळ सदस्य)
            ========================================================================== -->
       <div id="customerPortalView" style="display: none;">
-        
+        <!-- सुखकर्ता बीशी अधिकृत ब्रँड बॅनर -->
+        <div class="brand-hero-card glass-card">
+          <div class="brand-hero-content">
+            <div class="brand-hero-logo-box">
+              <img src="assets/brand-logo-full.png" alt="सुखकर्ता बीशी" class="brand-hero-img">
+            </div>
+            <div class="brand-hero-text">
+              <div class="brand-hero-badge">
+                <span>👤</span> अधिकृत सदस्य बचत व खातावही पोर्टल
+              </div>
+              <h2 class="brand-hero-title">सुखकर्ता बीशी (Sukhakarta Bishi)</h2>
+              <p class="brand-hero-tagline">STABILITY • GROWTH • PROSPERITY • FINANCE & GROUP INVESTMENT</p>
+              <div class="brand-hero-pills">
+                <span class="hero-pill">📖 वैयक्तिक पासबुक</span>
+                <span class="hero-pill">🧾 अधिकृत पावत्या</span>
+                <span class="hero-pill">💳 कर्ज तपशील</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- सदस्य प्रोफाइल हिरो कार्ड -->
         <section class="customer-hero-card">
           <div class="customer-profile-info">
@@ -7994,12 +8159,12 @@ body.customer-mode #mobileDrawerAdminMenu,
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <!-- Javascript Scripts (Cache-Busted) -->
-  <script src="js/firebase.js?v=2.8.3"></script>
-  <script src="js/store.js?v=2.8.3"></script>
-  <script src="js/auth.js?v=2.8.3"></script>
-  <script src="js/receipt.js?v=2.8.3"></script>
-  <script src="js/export.js?v=2.8.3"></script>
-  <script src="js/ui.js?v=2.8.3"></script>
-  <script src="js/app.js?v=2.8.3"></script>
+  <script src="js/firebase.js?v=2.8.4"></script>
+  <script src="js/store.js?v=2.8.4"></script>
+  <script src="js/auth.js?v=2.8.4"></script>
+  <script src="js/receipt.js?v=2.8.4"></script>
+  <script src="js/export.js?v=2.8.4"></script>
+  <script src="js/ui.js?v=2.8.4"></script>
+  <script src="js/app.js?v=2.8.4"></script>
 </body>
 </html>
