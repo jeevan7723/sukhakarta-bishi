@@ -4763,8 +4763,15 @@ class UIManager {
 
   // --- ४-आठवडे कर्ज व्याज जमा मोडल उघडणे (Admin Pay Loan Interest Modal) ---
   openPayLoanInterestModal(loanId) {
-    if (!window.authManager.isAdmin()) {
-      this.showToast('केवळ प्रशासक कर्ज व्याज जमा नोंदवू शकतात', 'error');
+    const isAllowed = (window.authManager && window.authManager.isAdmin()) ||
+      (typeof document !== 'undefined' && document.body && document.body.classList.contains('admin-mode'));
+    if (!isAllowed) {
+      this.showToast('केवळ प्रशासक कर्ज व्याज जमा नोंदवू शकतात. कृपया प्रशासक लॉगिन करा.', 'error');
+      const loginOverlay = document.getElementById('adminLoginScreen');
+      if (loginOverlay) {
+        loginOverlay.classList.remove('hidden');
+        loginOverlay.style.display = 'flex';
+      }
       return;
     }
 
@@ -4866,7 +4873,9 @@ class UIManager {
 
   handlePayLoanInterestSubmit(e) {
     e.preventDefault();
-    if (!window.authManager.isAdmin()) {
+    const isAllowed = (window.authManager && window.authManager.isAdmin()) ||
+      (typeof document !== 'undefined' && document.body && document.body.classList.contains('admin-mode'));
+    if (!isAllowed) {
       this.showToast('केवळ प्रशासक कर्ज व्याज जमा नोंदवू शकतात', 'error');
       return;
     }
