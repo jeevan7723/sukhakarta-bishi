@@ -1115,6 +1115,12 @@ select option:checked {
   pointer-events: auto;
 }
 
+/* Digital Receipts & Vouchers modal stack on top of all secondary modals (e.g. Master Ledger, Loans Table) */
+#receiptModal,
+#payoutVoucherModal {
+  z-index: 2500 !important;
+}
+
 .modal-container {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -1200,7 +1206,7 @@ select option:checked {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 2000;
+  z-index: 3000;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
@@ -5886,8 +5892,11 @@ body.customer-mode #mobileDrawerAdminMenu,
             <button type="button" class="btn btn-emerald hero-main-action-btn" onclick="window.ui.openGiveLoanModal()">
               <span>➕</span> नवीन कर्ज वाटप
             </button>
+            <button type="button" class="btn btn-emerald hero-sub-action-btn" onclick="window.exportManager.exportLoansExcel()" title="कर्ज खातावही Excel (.xlsx) डाऊनलोड करा">
+              <span>📊</span> Excel (.xlsx)
+            </button>
             <button type="button" class="btn btn-secondary hero-sub-action-btn" onclick="window.exportManager.exportLoansCSV()" title="कर्ज खातावही CSV फाईल डाउनलोड करा">
-              <span>📥</span> CSV डाउनलोड
+              <span>📥</span> CSV
             </button>
           </div>
         </div>
@@ -6068,8 +6077,11 @@ body.customer-mode #mobileDrawerAdminMenu,
             <a href="members.html" target="_blank" class="btn btn-secondary hero-sub-action-btn" title="हे सदस्य पेज नवीन टॅब/खिडकीत उघडा">
               <span>🔗</span> नवीन पेजवर उघडा ↗
             </a>
+            <button type="button" class="btn btn-emerald hero-sub-action-btn" onclick="window.exportManager.exportMasterLedgerExcel()" title="सर्व सदस्य खातावही Excel (.xlsx) डाउनलोड करा">
+              <span>📊</span> Excel (.xlsx)
+            </button>
             <button type="button" class="btn btn-secondary hero-sub-action-btn" onclick="window.exportManager.exportMasterLedgerCSV()" title="सर्व सदस्य खातावही CSV डाउनलोड करा">
-              <span>📥</span> सदस्य CSV
+              <span>📥</span> CSV
             </button>
           </div>
         </div>
@@ -6509,8 +6521,16 @@ body.customer-mode #mobileDrawerAdminMenu,
       <form id="addMemberForm">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label" for="addMemberName">सदस्याचे पूर्ण नाव *</label>
-            <input type="text" id="addMemberName" class="form-control" placeholder="उदा. राजेश पाटील" required>
+            <label class="form-label" for="addMemberName">सदस्याचे नाव (इंग्रजी / English) *</label>
+            <input type="text" id="addMemberName" class="form-control" placeholder="उदा. Aditya Patil किंवा राजेश पाटील" required>
+          </div>
+
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label class="form-label" for="addMemberNameMarathi" style="margin-bottom: 0;">सदस्याचे नाव (मराठी देवनागरी) *</label>
+              <span style="font-size: 0.72rem; color: var(--gold-400); font-weight: 700;">✨ Auto-मराठी कन्व्हर्ट</span>
+            </div>
+            <input type="text" id="addMemberNameMarathi" class="form-control" placeholder="उदा. आदित्य पाटील" required>
           </div>
 
           <div class="form-group">
@@ -6618,8 +6638,16 @@ body.customer-mode #mobileDrawerAdminMenu,
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="editMemberName">पूर्ण नाव *</label>
-            <input type="text" id="editMemberName" class="form-control" placeholder="उदा. राजेश पाटील" required>
+            <label class="form-label" for="editMemberName">सदस्याचे नाव (इंग्रजी / English) *</label>
+            <input type="text" id="editMemberName" class="form-control" placeholder="उदा. Aditya Patil किंवा राजेश पाटील" required>
+          </div>
+
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label class="form-label" for="editMemberNameMarathi" style="margin-bottom: 0;">सदस्याचे नाव (मराठी देवनागरी) *</label>
+              <span style="font-size: 0.72rem; color: var(--gold-400); font-weight: 700;">✨ Auto-मराठी कन्व्हर्ट</span>
+            </div>
+            <input type="text" id="editMemberNameMarathi" class="form-control" placeholder="उदा. आदित्य पाटील" required>
           </div>
 
           <div class="form-group">
@@ -6999,7 +7027,7 @@ body.customer-mode #mobileDrawerAdminMenu,
         <h3 class="modal-title">
           <span>🧾</span> अधिकृत पेमेंट पावती
         </h3>
-        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+        <button type="button" class="modal-close" data-modal-close onclick="window.ui.closeModal('receiptModal')" title="बंद करा">&times;</button>
       </div>
       <div class="modal-body" id="receiptModalBody">
         <!-- receiptManager द्वारे भरले जाते -->
@@ -7008,7 +7036,7 @@ body.customer-mode #mobileDrawerAdminMenu,
         <button type="button" class="btn btn-secondary" onclick="window.receiptManager.printReceipt()">
           🖨️ पावती प्रिंट करा
         </button>
-        <button type="button" class="btn btn-primary" data-modal-close onclick="window.closeAllModals()">पूर्ण</button>
+        <button type="button" class="btn btn-primary" data-modal-close onclick="window.ui.closeModal('receiptModal')">पूर्ण</button>
       </div>
     </div>
   </div>
@@ -7260,8 +7288,11 @@ body.customer-mode #mobileDrawerAdminMenu,
               <option value="Cheque">📜 चेक</option>
               <option value="fines">⚠️ दंड भरलेले व्यवहार</option>
             </select>
-            <button class="btn btn-gold btn-sm" onclick="window.exportManager.exportMasterLedgerCSV()">
-              📥 CSV डाउनलोड
+            <button class="btn btn-emerald btn-sm" onclick="window.exportManager.exportMasterLedgerExcel()" title="Excel (.xlsx) फाईल डाउनलोड करा">
+              📊 Excel (.xlsx)
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="window.exportManager.exportMasterLedgerCSV()" title="CSV फाईल डाउनलोड करा">
+              📥 CSV
             </button>
           </div>
         </div>
@@ -7361,8 +7392,11 @@ body.customer-mode #mobileDrawerAdminMenu,
             <button class="btn btn-primary btn-sm" onclick="window.ui.openGiveLoanModal()" style="font-weight: 700;">
               ➕ नवीन कर्ज द्या
             </button>
-            <button class="btn btn-gold btn-sm" onclick="window.exportManager.exportLoansCSV()">
-              📥 CSV डाउनलोड
+            <button class="btn btn-emerald btn-sm" onclick="window.exportManager.exportLoansExcel()" title="कर्ज खातावही Excel (.xlsx) डाउनलोड करा">
+              📊 Excel (.xlsx)
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="window.exportManager.exportLoansCSV()" title="कर्ज खातावही CSV डाउनलोड करा">
+              📥 CSV
             </button>
           </div>
         </div>
@@ -7844,7 +7878,7 @@ body.customer-mode #mobileDrawerAdminMenu,
         <h3 class="modal-title" style="color: var(--gold-400);">
           <span>📜</span> अधिकृत ५०-आठवडे मॅच्युरिटी व्हाउचर
         </h3>
-        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+        <button type="button" class="modal-close" data-modal-close onclick="window.ui.closeModal('payoutVoucherModal')" title="बंद करा">&times;</button>
       </div>
       <div class="modal-body" id="payoutVoucherModalBody">
         <!-- डायनॅमिकली भरले जाते -->
@@ -7858,7 +7892,7 @@ body.customer-mode #mobileDrawerAdminMenu,
             🔄 पुढील प्लॅन सुरू करा
           </button>
         </div>
-        <button type="button" class="btn btn-primary" data-modal-close onclick="window.closeAllModals()">पूर्ण</button>
+        <button type="button" class="btn btn-primary" data-modal-close onclick="window.ui.closeModal('payoutVoucherModal')">पूर्ण</button>
       </div>
     </div>
   </div>
@@ -7966,20 +8000,26 @@ body.customer-mode #mobileDrawerAdminMenu,
       <div class="modal-body">
         <div style="display: flex; flex-direction: column; gap: 1rem;">
           
-          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <div>
               <div style="font-weight: 700; color: var(--text-primary);">चालू आठवड्याचे कलेक्शन पत्रक</div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary);">निवडलेल्या आठवड्याच्या सर्व सदस्यांची CSV फाईल डाउनलोड करा</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">निवडलेल्या आठवड्याच्या सर्व सदस्यांची फाईल डाउनलोड करा</div>
             </div>
-            <button class="btn btn-primary btn-sm" id="btnExportWeeklyCSV">CSV डाउनलोड करा</button>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-emerald btn-sm" id="btnExportWeeklyExcel">📊 Excel (.xlsx)</button>
+              <button class="btn btn-secondary btn-sm" id="btnExportWeeklyCSV">📥 CSV</button>
+            </div>
           </div>
 
-          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <div>
               <div style="font-weight: 700; color: var(--text-primary);">५०-आठवड्यांचे मास्टर खातावही</div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary);">सर्व सदस्यांचे खाते, एकूण जमा बचत व शिल्लक रकमांची एक्सेल CSV</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">सर्व सदस्यांचे खाते, एकूण जमा बचत व शिल्लक रकमांची एक्सेल/CSV फाईल</div>
             </div>
-            <button class="btn btn-gold btn-sm" id="btnExportMasterCSV">मास्टर CSV डाउनलोड करा</button>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-emerald btn-sm" id="btnExportMasterExcel">📊 Excel (.xlsx)</button>
+              <button class="btn btn-secondary btn-sm" id="btnExportMasterCSV">📥 CSV</button>
+            </div>
           </div>
 
           <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
@@ -8159,12 +8199,14 @@ body.customer-mode #mobileDrawerAdminMenu,
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <!-- Javascript Scripts (Cache-Busted) -->
-  <script src="js/firebase.js?v=2.8.4"></script>
-  <script src="js/store.js?v=2.8.4"></script>
-  <script src="js/auth.js?v=2.8.4"></script>
-  <script src="js/receipt.js?v=2.8.4"></script>
-  <script src="js/export.js?v=2.8.4"></script>
-  <script src="js/ui.js?v=2.8.4"></script>
-  <script src="js/app.js?v=2.8.4"></script>
+  <script src="js/xlsx.full.min.js"></script>
+  <script src="js/firebase.js?v=2.8.5"></script>
+  <script src="js/marathi_translit.js?v=2.8.5"></script>
+  <script src="js/store.js?v=2.8.5"></script>
+  <script src="js/auth.js?v=2.8.5"></script>
+  <script src="js/receipt.js?v=2.8.5"></script>
+  <script src="js/export.js?v=2.8.5"></script>
+  <script src="js/ui.js?v=2.8.5"></script>
+  <script src="js/app.js?v=2.8.5"></script>
 </body>
 </html>

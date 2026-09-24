@@ -24,11 +24,37 @@ class ExportManager {
   }
 
   /**
+   * Excel (.xlsx) फाईल थेट ब्राऊझरमधून डाउनलोड करणे
+   */
+  downloadExcel(wb, fileName) {
+    if (typeof XLSX !== 'undefined' && XLSX.writeFile) {
+      XLSX.writeFile(wb, fileName);
+    } else if (typeof XLSX !== 'undefined' && XLSX.write) {
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      this.downloadFile(blob, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    }
+  }
+
+  /**
    * CSV सेल सुरक्षित करणे (Special chars व Quotes escaping)
    */
   escapeCSV(val) {
     if (val === null || val === undefined) return '""';
     const str = String(val);
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+
+  /**
+   * मोबाईल नंबर किंवा आयडी सारखे मजकूर Excel CSV मध्ये शास्त्रीय नोटेशन (1.23E+09) न होता अचूक दिसण्यासाठी
+   */
+  escapeTextCSV(val) {
+    if (val === null || val === undefined || val === '') return '""';
+    const str = String(val).trim();
+    // जर 6 किंवा जास्त अंकी क्रमांक असेल (उदा. मोबाईल नंबर), तर Excel formula ="..." स्वरूपात सेव्ह करणे जेणेकरून 1.23E+09 होणार नाही
+    if (/^\+?\d{6,}$/.test(str)) {
+      return `="""${str}"""`;
+    }
     return `"${str.replace(/"/g, '""')}"`;
   }
 
@@ -65,7 +91,8 @@ class ExportManager {
 
     csv.push([
       this.escapeCSV('सदस्य आयडी'),
-      this.escapeCSV('सदस्याचे नाव'),
+      this.escapeCSV('सदस्याचे नाव (मराठी)'),
+      this.escapeCSV('सदस्याचे नाव (इंग्रजी)'),
       this.escapeCSV('मोबाईल नंबर'),
       this.escapeCSV(`साप्ताहिक हप्ता (${currency})`),
       this.escapeCSV(`आठवडा ${weekNumber} स्थिती`),
@@ -82,6 +109,7 @@ class ExportManager {
 
     members.forEach(m => {
       const stats = store.calculateMemberStats(m);
+      const marathiName = store.getMemberMarathiName ? store.getMemberMarathiName(m) : (m.nameMarathi || m.name);
       const wkData = m.weeks.find(w => w.weekNumber === Number(weekNumber)) || {};
       const paidAmt = Number(wkData.amountPaid || 0);
       const fineAmt = Number(wkData.finePaid || 0);
@@ -92,8 +120,9 @@ class ExportManager {
 
       csv.push([
         this.escapeCSV(m.id),
+        this.escapeCSV(marathiName),
         this.escapeCSV(m.name),
-        this.escapeCSV(m.phone),
+        this.escapeTextCSV(m.phone || '-'),
         stats.weeklyAmount,
         this.escapeCSV(statusStr),
         paidAmt,
@@ -102,7 +131,7 @@ class ExportManager {
         this.escapeCSV(wkData.paymentMode || (isPaid ? 'Cash' : '-')),
         this.escapeCSV(wkData.upiId || '-'),
         this.escapeCSV(dateStr),
-        this.escapeCSV(wkData.receiptNo || (isPaid ? `REC-${m.id}-W${weekNumber}` : '-')),
+        this.escapeTextCSV(wkData.receiptNo || (isPaid ? `REC-${m.id}-W${weekNumber}` : '-')),
         stats.totalDeposited,
         stats.remainingAmount
       ].join(','));
@@ -110,7 +139,104 @@ class ExportManager {
 
     const csvString = csv.join('\r\n');
     this.downloadFile(csvString, `सुखकर्ता_बीशी_आठवडा_${weekNumber}_कलेक्शन.csv`, 'text/csv;charset=utf-8;');
-    window.ui?.showToast(`आठवडा ${weekNumber} चे कलेक्शन पत्रक डाउनलोड झाले!`, 'success');
+    window.ui?.showToast(`आठवडा ${weekNumber} चे कलेक्शन पत्रक CSV डाउनलोड झाले!`, 'success');
+  }
+
+  // --- चालू आठवड्याचे कलेक्शन पत्रक (Weekly Collection Sheet Excel) ---
+  exportWeeklyExcel(weekNumber) {
+    if (typeof XLSX === 'undefined') {
+      this.exportWeeklyCSV(weekNumber);
+      return;
+    }
+    const store = window.bishiStore;
+    const members = store.getMembers().filter(m => m.status === 'active');
+    const currency = store.state.meta.currency || '₹';
+    const todayFormatted = this.formatDate(new Date().toISOString());
+
+    const titleRow = [`✨ ${store.state.meta.bishiName || 'सुखकर्ता बीशी'} - आठवडा ${weekNumber} कलेक्शन पत्रक`];
+    const dateRow = [`📅 डाउनलोड तारीख: ${todayFormatted}`];
+    const emptyRow = [];
+    const headerRow = [
+      'सदस्य आयडी',
+      'सदस्याचे नाव (मराठी)',
+      'सदस्याचे नाव (इंग्रजी)',
+      'मोबाईल नंबर',
+      `साप्ताहिक हप्ता (${currency})`,
+      `आठवडा ${weekNumber} स्थिती`,
+      `या आठवड्यात जमा (${currency})`,
+      `दंड भरणा (${currency})`,
+      `एकूण भरणा (${currency})`,
+      'पेमेंट पद्धत',
+      'UPI आयडी / संदर्भ',
+      'पेमेंट तारीख',
+      'पावती क्र.',
+      `एकूण जमा बचत (${currency})`,
+      `शिल्लक बाकी (${currency})`
+    ];
+
+    const dataRows = members.map(m => {
+      const stats = store.calculateMemberStats(m);
+      const marathiName = store.getMemberMarathiName ? store.getMemberMarathiName(m) : (m.nameMarathi || m.name);
+      const wkData = m.weeks.find(w => w.weekNumber === Number(weekNumber)) || {};
+      const paidAmt = Number(wkData.amountPaid || 0);
+      const fineAmt = Number(wkData.finePaid || 0);
+      const isPaid = (wkData.status === 'paid' && paidAmt > 0) || paidAmt >= stats.weeklyAmount;
+      const isCleared = !isPaid && (Number(weekNumber) <= stats.effectivePaidWeeks);
+      const statusStr = isPaid ? 'जमा (Paid)' : (isCleared ? 'क्लिअर (Advance Clear)' : (wkData.status === 'partial' ? 'अपूर्ण (Partial)' : 'प्रलंबित (Pending)'));
+      const dateStr = this.formatDate(wkData.paidDate);
+
+      return [
+        m.id,
+        marathiName,
+        m.name,
+        String(m.phone || '-'),
+        stats.weeklyAmount,
+        statusStr,
+        paidAmt,
+        fineAmt,
+        paidAmt + fineAmt,
+        wkData.paymentMode || (isPaid ? 'Cash' : '-'),
+        wkData.upiId || '-',
+        dateStr,
+        wkData.receiptNo || (isPaid ? `REC-${m.id}-W${weekNumber}` : '-'),
+        stats.totalDeposited,
+        stats.remainingAmount
+      ];
+    });
+
+    const aoa = [titleRow, dateRow, emptyRow, headerRow, ...dataRows];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    ws['!cols'] = [
+      { wch: 14 }, // सदस्य आयडी
+      { wch: 22 }, // सदस्याचे नाव (मराठी)
+      { wch: 22 }, // सदस्याचे नाव (इंग्रजी)
+      { wch: 16 }, // मोबाईल
+      { wch: 18 }, // साप्ताहिक हप्ता
+      { wch: 22 }, // स्थिती
+      { wch: 18 }, // या आठवड्यात जमा
+      { wch: 16 }, // दंड भरणा
+      { wch: 16 }, // एकूण भरणा
+      { wch: 16 }, // पद्धत
+      { wch: 22 }, // UPI संदर्भ
+      { wch: 16 }, // तारीख
+      { wch: 24 }, // पावती क्र.
+      { wch: 18 }, // एकूण बचत
+      { wch: 18 }  // शिल्लक बाकी
+    ];
+
+    for (let r = 4; r < aoa.length; r++) {
+      const cellRef = XLSX.utils.encode_cell({ r, c: 3 });
+      if (ws[cellRef]) {
+        ws[cellRef].t = 's';
+        ws[cellRef].z = '@';
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `आठवडा ${weekNumber} कलेक्शन`);
+    this.downloadExcel(wb, `सुखकर्ता_बीशी_आठवडा_${weekNumber}_कलेक्शन.xlsx`);
+    window.ui?.showToast(`आठवडा ${weekNumber} चे कलेक्शन पत्रक Excel (.xlsx) डाऊनलोड झाले!`, 'success');
   }
 
   // --- ५०-आठवड्यांचे मास्टर खातावही (Master 50-Week Ledger) ---
@@ -128,7 +254,8 @@ class ExportManager {
 
     csv.push([
       this.escapeCSV('सदस्य आयडी'),
-      this.escapeCSV('सदस्याचे नाव'),
+      this.escapeCSV('सदस्याचे नाव (मराठी)'),
+      this.escapeCSV('सदस्याचे नाव (इंग्रजी)'),
       this.escapeCSV('मोबाईल नंबर'),
       this.escapeCSV('वारसदार'),
       this.escapeCSV(`साप्ताहिक हप्ता (${currency})`),
@@ -145,10 +272,12 @@ class ExportManager {
 
     members.forEach(m => {
       const stats = store.calculateMemberStats(m);
+      const marathiName = store.getMemberMarathiName ? store.getMemberMarathiName(m) : (m.nameMarathi || m.name);
       csv.push([
         this.escapeCSV(m.id),
+        this.escapeCSV(marathiName),
         this.escapeCSV(m.name),
-        this.escapeCSV(m.phone),
+        this.escapeTextCSV(m.phone || '-'),
         this.escapeCSV(m.nominee || '-'),
         stats.weeklyAmount,
         stats.totalTarget,
@@ -165,7 +294,99 @@ class ExportManager {
 
     const csvString = csv.join('\r\n');
     this.downloadFile(csvString, `सुखकर्ता_बीशी_५०_आठवडे_मास्टर_खातावही.csv`, 'text/csv;charset=utf-8;');
-    window.ui?.showToast('५०-आठवड्यांचे मास्टर खातावही डाउनलोड झाले!', 'success');
+    window.ui?.showToast('५०-आठवड्यांचे मास्टर खातावही CSV डाउनलोड झाले!', 'success');
+  }
+
+  // --- ५०-आठवड्यांचे मास्टर खातावही Excel (Master 50-Week Ledger Excel .xlsx) ---
+  exportMasterLedgerExcel() {
+    if (typeof XLSX === 'undefined') {
+      this.exportMasterLedgerCSV();
+      return;
+    }
+    const store = window.bishiStore;
+    const members = store.getMembers();
+    const currency = store.state.meta.currency || '₹';
+    const statsHeaderInterest = store.state.meta.maturityInterestPercent || 8;
+    const todayFormatted = this.formatDate(new Date().toISOString());
+
+    const titleRow = [`✨ ${store.state.meta.bishiName || 'सुखकर्ता बीशी'} - ५०-आठवडे मास्टर खातावही (Master Ledger)`];
+    const dateRow = [`📅 डाउनलोड तारीख: ${todayFormatted}`];
+    const emptyRow = [];
+    const headerRow = [
+      'सदस्य आयडी',
+      'सदस्याचे नाव (मराठी)',
+      'सदस्याचे नाव (इंग्रजी)',
+      'मोबाईल नंबर',
+      'वारसदार',
+      `साप्ताहिक हप्ता (${currency})`,
+      `५०-आठवडे लक्ष्य (${currency})`,
+      'जमा आठवडे',
+      'बाकी आठवडे',
+      `एकूण जमा बचत (${currency})`,
+      `+${statsHeaderInterest}% बोनस (${currency})`,
+      `एकूण परतावा (${currency})`,
+      `शिल्लक बाकी (${currency})`,
+      'खाते स्थिती',
+      'टीप'
+    ];
+
+    const dataRows = members.map(m => {
+      const stats = store.calculateMemberStats(m);
+      const marathiName = store.getMemberMarathiName ? store.getMemberMarathiName(m) : (m.nameMarathi || m.name);
+      return [
+        m.id,
+        marathiName,
+        m.name,
+        String(m.phone || '-'),
+        m.nominee || '-',
+        Number(stats.weeklyAmount) || 0,
+        Number(stats.totalTarget) || 0,
+        Number(stats.paidWeeksCount) || 0,
+        Number(stats.remainingWeeksCount) || 0,
+        Number(stats.totalDeposited) || 0,
+        Number(stats.interestAmount) || 0,
+        Number(stats.maturityTotalPayout) || 0,
+        Number(stats.remainingAmount) || 0,
+        m.status === 'active' ? 'सक्रिय (Active)' : m.status,
+        m.notes || '-'
+      ];
+    });
+
+    const aoa = [titleRow, dateRow, emptyRow, headerRow, ...dataRows];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    // सेट रुंद स्तंभ (Explicit column widths so headers and data never get clipped)
+    ws['!cols'] = [
+      { wch: 14 }, // सदस्य आयडी
+      { wch: 22 }, // सदस्याचे नाव (मराठी)
+      { wch: 22 }, // सदस्याचे नाव (इंग्रजी)
+      { wch: 16 }, // मोबाईल नंबर
+      { wch: 16 }, // वारसदार
+      { wch: 18 }, // साप्ताहिक हप्ता
+      { wch: 20 }, // ५०-आठवडे लक्ष्य
+      { wch: 14 }, // जमा आठवडे
+      { wch: 14 }, // बाकी आठवडे
+      { wch: 18 }, // एकूण जमा बचत
+      { wch: 22 }, // +8% बोनस
+      { wch: 24 }, // एकूण परतावा
+      { wch: 18 }, // शिल्लक बाकी
+      { wch: 18 }, // खाते स्थिती
+      { wch: 22 }  // टीप
+    ];
+
+    // मोबाईल नंबर स्तंभ (Col D, c: 3) 'String' म्हणून सेट करा जेणेकरून Excel मध्ये 1.23E+09 दिसणार नाही
+    for (let r = 4; r < aoa.length; r++) {
+      const cellRef = XLSX.utils.encode_cell({ r, c: 3 });
+      if (ws[cellRef]) {
+        ws[cellRef].t = 's';
+        ws[cellRef].z = '@';
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'मास्टर खातावही');
+    this.downloadExcel(wb, `सुखकर्ता_बीशी_५०_आठवडे_मास्टर_खातावही.xlsx`);
+    window.ui?.showToast('५०-आठवड्यांचे मास्टर खातावही Excel (.xlsx) फाईल डाऊनलोड झाली!', 'success');
   }
 
   // --- सदस्याचे वैयक्तिक ५०-आठवडे पासबुक स्टेटमेंट (Member 50-Week Passbook Statement) ---
@@ -276,7 +497,91 @@ class ExportManager {
     const csvString = csv.join('\r\n');
     const cleanFileName = `सुखकर्ता_बीशी_${member.id}_${member.name.replace(/\s+/g, '_')}_पासबुक_स्टेटमेंट.csv`;
     this.downloadFile(csvString, cleanFileName, 'text/csv;charset=utf-8;');
-    window.ui?.showToast(`${member.name} यांचे पासबुक स्टेटमेंट डाउनलोड झाले!`, 'success');
+    window.ui?.showToast(`${member.name} यांचे पासबुक स्टेटमेंट CSV डाउनलोड झाले!`, 'success');
+  }
+
+  // --- सदस्याचे वैयक्तिक ५०-आठवडे पासबुक स्टेटमेंट Excel (Member Passbook Excel .xlsx) ---
+  downloadMemberLedgerExcel(memberId) {
+    if (typeof XLSX === 'undefined') {
+      this.downloadMemberLedgerCSV(memberId);
+      return;
+    }
+    const store = window.bishiStore;
+    const member = store.getMember(memberId);
+    if (!member) {
+      window.ui?.showToast('सदस्य तपशील सापडला नाही', 'error');
+      return;
+    }
+
+    const stats = store.calculateMemberStats(member);
+    const currency = store.state.meta.currency || '₹';
+    const currentCycleNum = member.currentCycle || 1;
+    const todayFormatted = this.formatDate(new Date().toISOString());
+
+    const titleRow = [`✨ ${store.state.meta.bishiName || 'सुखकर्ता बीशी'} - संपूर्ण बचत इतिहास व पासबुक स्टेटमेंट`];
+    const infoRow1 = [`सदस्य नाव: ${member.name}`, `सदस्य आयडी: ${member.id}`, `मोबाईल: ${member.phone}`, `वारसदार: ${member.nominee || 'N/A'}`];
+    const infoRow2 = [`साप्ताहिक हप्ता: ${currency}${stats.weeklyAmount}`, `५०-आठवडे लक्ष्य: ${currency}${stats.totalTarget}`, `मॅच्युरिटी परतावा (+${stats.maturityInterestPercent}%): ${currency}${stats.maturityTotalPayout}`, `तारीख: ${todayFormatted}`];
+    const emptyRow = [];
+
+    const headerRow = [
+      'आठवडा क्र.',
+      'पावती क्रमांक',
+      'सायकल',
+      `हप्ता जमा (${currency})`,
+      `दंड भरणा (${currency})`,
+      `एकूण भरणा (${currency})`,
+      'पेमेंट पद्धत',
+      'UPI / संदर्भ क्र.',
+      'पेमेंट तारीख',
+      'स्थिती'
+    ];
+
+    const dataRows = [];
+    const allWeeks = member.weeks || [];
+    allWeeks.forEach(w => {
+      const paidAmt = Number(w.amountPaid || 0);
+      const fineAmt = Number(w.finePaid || 0);
+      const isPaid = (w.status === 'paid' && paidAmt > 0) || paidAmt >= stats.weeklyAmount;
+      const isCleared = !isPaid && (w.weekNumber <= stats.effectivePaidWeeks);
+      const statusStr = isPaid ? 'जमा (Paid)' : (isCleared ? 'क्लिअर (Advance Clear)' : (w.status === 'partial' ? 'अपूर्ण (Partial)' : 'प्रलंबित (Pending)'));
+      const dateStr = this.formatDate(w.paidDate);
+      const defaultReceipt = isPaid ? `REC-${member.id}-C${currentCycleNum}-W${w.weekNumber}` : '-';
+
+      dataRows.push([
+        `आठवडा ${w.weekNumber} / ५०`,
+        w.receiptNo || defaultReceipt,
+        `सायकल ${currentCycleNum}`,
+        paidAmt,
+        fineAmt,
+        paidAmt + fineAmt,
+        w.paymentMode || (isPaid ? 'Cash' : '-'),
+        w.upiId || '-',
+        dateStr,
+        statusStr
+      ]);
+    });
+
+    const aoa = [titleRow, infoRow1, infoRow2, emptyRow, headerRow, ...dataRows];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    ws['!cols'] = [
+      { wch: 18 },
+      { wch: 22 },
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 22 },
+      { wch: 16 },
+      { wch: 22 }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'पासबुक');
+    const cleanFileName = `सुखकर्ता_बीशी_${member.id}_${member.name.replace(/\s+/g, '_')}_पासबुक_स्टेटमेंट.xlsx`;
+    this.downloadExcel(wb, cleanFileName);
+    window.ui?.showToast(`${member.name} यांचे पासबुक स्टेटमेंट Excel (.xlsx) डाऊनलोड झाले!`, 'success');
   }
 
   // --- सर्व सदस्यांचे कर्ज तपशील पत्रक (Loans Master CSV Export) ---
@@ -318,6 +623,8 @@ class ExportManager {
       loans.forEach(loan => {
         const details = store.calculateLoanDetails(loan);
         const isPaid = loan.status === 'paid';
+        const member = store.getMember(loan.memberId);
+        const marathiName = member ? (store.getMemberMarathiName ? store.getMemberMarathiName(member) : (member.nameMarathi || member.name)) : (window.marathiHelper ? window.marathiHelper.toMarathi(loan.memberName) : loan.memberName);
         const graceStatus = details.isGracePeriodActive 
           ? `सवलतीत (${details.remainingGraceWeeks} आठवडे बाकी)` 
           : (isPaid ? (loan.interestPaid > 0 ? '३% व्याज आकारले' : '०% सवलतीत पूर्ण') : '४ आठवड्यांच्या पुढे (३% व्याज लागू)');
@@ -325,8 +632,9 @@ class ExportManager {
         csv.push([
           this.escapeCSV(loan.id),
           this.escapeCSV(loan.memberId),
+          this.escapeCSV(marathiName),
           this.escapeCSV(loan.memberName),
-          this.escapeCSV(loan.memberPhone || '-'),
+          this.escapeTextCSV(loan.memberPhone || '-'),
           details.principal,
           loan.issueWeek || 1,
           this.escapeCSV(this.formatDate(loan.issueDate)),
@@ -338,7 +646,7 @@ class ExportManager {
           this.escapeCSV(loan.paidDate ? this.formatDate(loan.paidDate) : '-'),
           loan.paidWeek ? loan.paidWeek : '-',
           this.escapeCSV((isPaid ? loan.paymentMode : loan.disbursementMode) || '-'),
-          this.escapeCSV((isPaid ? loan.receiptNo : `DISB-${loan.id}`) || '-'),
+          this.escapeTextCSV((isPaid ? loan.receiptNo : `DISB-${loan.id}`) || '-'),
           this.escapeCSV(loan.settlementNotes || loan.notes || '-')
         ].join(','));
       });
@@ -348,6 +656,111 @@ class ExportManager {
     const fileName = `सुखकर्ता_बीशी_कर्ज_खातावही_${new Date().toISOString().split('T')[0]}.csv`;
     this.downloadFile(csvString, fileName, 'text/csv;charset=utf-8;');
     window.ui?.showToast('कर्ज खातावही CSV यशस्वीरीत्या डाउनलोड झाली!', 'success');
+  }
+
+  // --- सर्व सदस्यांचे कर्ज तपशील पत्रक Excel (Loans Master Excel .xlsx Export) ---
+  exportLoansExcel() {
+    if (typeof XLSX === 'undefined') {
+      this.exportLoansCSV();
+      return;
+    }
+    const store = window.bishiStore;
+    const loans = store.getLoans();
+    const currency = store.state.meta.currency || '₹';
+    const todayFormatted = this.formatDate(new Date().toISOString());
+
+    const titleRow = [`✨ ${store.state.meta.bishiName} - सर्व सदस्य कर्ज खातावही व परतफेड ताळेबंद`];
+    const dateRow = [`📅 तारीख: ${todayFormatted}`];
+    const emptyRow = [];
+    const headerRow = [
+      'कर्ज क्र. (Loan ID)',
+      'सदस्य आयडी',
+      'सदस्याचे नाव (मराठी)',
+      'सदस्याचे नाव (इंग्रजी)',
+      'मोबाईल नंबर',
+      `मूळ कर्ज (${currency})`,
+      'वाटप आठवडा',
+      'वाटप तारीख',
+      'कालावधी (आठवडे)',
+      'सवलत स्थिती',
+      `३% व्याज (${currency})`,
+      `एकूण देय/परतफेड (${currency})`,
+      'कर्ज स्थिती',
+      'परतफेड तारीख',
+      'परतफेड आठवडा',
+      'पेमेंट पद्धत',
+      'पावती क्र.',
+      'टीप'
+    ];
+
+    const dataRows = loans.map(loan => {
+      const details = store.calculateLoanDetails(loan);
+      const isPaid = loan.status === 'paid';
+      const member = store.getMember(loan.memberId);
+      const marathiName = member ? (store.getMemberMarathiName ? store.getMemberMarathiName(member) : (member.nameMarathi || member.name)) : (window.marathiHelper ? window.marathiHelper.toMarathi(loan.memberName) : loan.memberName);
+      const graceStatus = details.isGracePeriodActive 
+        ? `सवलतीत (${details.remainingGraceWeeks} आठवडे बाकी)` 
+        : (isPaid ? (loan.interestPaid > 0 ? '३% व्याज आकारले' : '०% सवलतीत पूर्ण') : '४ आठवड्यांच्या पुढे (३% व्याज लागू)');
+
+      return [
+        loan.id,
+        loan.memberId,
+        marathiName,
+        loan.memberName,
+        String(loan.memberPhone || '-'),
+        details.principal,
+        loan.issueWeek || 1,
+        this.formatDate(loan.issueDate),
+        details.elapsedWeeks,
+        graceStatus,
+        isPaid ? (Number(loan.interestPaid) || 0) : details.interestAmount,
+        isPaid ? (Number(loan.repaidAmount) || details.totalPayable) : details.totalPayable,
+        isPaid ? 'पूर्ण भरले (Paid)' : 'सक्रिय बाकी (Active)',
+        loan.paidDate ? this.formatDate(loan.paidDate) : '-',
+        loan.paidWeek ? loan.paidWeek : '-',
+        (isPaid ? loan.paymentMode : loan.disbursementMode) || '-',
+        (isPaid ? loan.receiptNo : `DISB-${loan.id}`) || '-',
+        loan.settlementNotes || loan.notes || '-'
+      ];
+    });
+
+    const aoa = [titleRow, dateRow, emptyRow, headerRow, ...dataRows];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    ws['!cols'] = [
+      { wch: 18 }, // कर्ज क्र.
+      { wch: 14 }, // सदस्य आयडी
+      { wch: 22 }, // सदस्याचे नाव (मराठी)
+      { wch: 22 }, // सदस्याचे नाव (इंग्रजी)
+      { wch: 16 }, // मोबाईल
+      { wch: 16 }, // मूळ कर्ज
+      { wch: 14 }, // वाटप आठवडा
+      { wch: 14 }, // तारीख
+      { wch: 16 }, // कालावधी
+      { wch: 26 }, // सवलत स्थिती
+      { wch: 16 }, // ३% व्याज
+      { wch: 20 }, // एकूण देय/परतफेड
+      { wch: 18 }, // स्थिती
+      { wch: 16 }, // परतफेड तारीख
+      { wch: 14 }, // परतफेड आठवडा
+      { wch: 16 }, // पद्धत
+      { wch: 22 }, // पावती क्र.
+      { wch: 24 }  // टीप
+    ];
+
+    for (let r = 4; r < aoa.length; r++) {
+      const cellRef = XLSX.utils.encode_cell({ r, c: 4 });
+      if (ws[cellRef]) {
+        ws[cellRef].t = 's';
+        ws[cellRef].z = '@';
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'कर्ज खातावही');
+    const fileName = `सुखकर्ता_बीशी_कर्ज_खातावही_${new Date().toISOString().split('T')[0]}.xlsx`;
+    this.downloadExcel(wb, fileName);
+    window.ui?.showToast('कर्ज खातावही Excel (.xlsx) फाईल डाऊनलोड झाली!', 'success');
   }
 
   // --- संपूर्ण डेटाबेस बॅकअप (JSON Backup) ---

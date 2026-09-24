@@ -103,6 +103,22 @@ class BishiStore {
     if (this.state.meta.updateVersion === undefined || this.state.meta.updateVersion === null) {
       this.state.meta.updateVersion = 0;
     }
+
+    // सर्व सदस्यांचे मराठी नाव उपलब्ध असल्याची खात्री करणे
+    if (Array.isArray(this.state.members)) {
+      this.state.members.forEach(m => {
+        if (!m.nameMarathi || typeof m.nameMarathi !== 'string' || !m.nameMarathi.trim()) {
+          m.nameMarathi = this.getMemberMarathiName(m);
+        }
+      });
+    }
+    if (Array.isArray(this.state.settledMembers)) {
+      this.state.settledMembers.forEach(m => {
+        if (!m.nameMarathi || typeof m.nameMarathi !== 'string' || !m.nameMarathi.trim()) {
+          m.nameMarathi = this.getMemberMarathiName(m);
+        }
+      });
+    }
   }
 
   // स्थानिक स्टोरेजमधून डेटा लोड करणे
@@ -235,10 +251,14 @@ class BishiStore {
     const rawPhone = data.phone ? data.phone.trim() : '';
     const defaultPass = rawPhone ? rawPhone.replace(/\D/g, '').slice(-4) || '1234' : '1234';
     const memberPassword = (data.password || '').trim() || defaultPass;
+    const rawName = (data.name || '').trim();
+    const marathiName = (data.nameMarathi || '').trim() || 
+      (typeof window !== 'undefined' && window.marathiHelper ? window.marathiHelper.toMarathi(rawName) : (typeof marathiHelper !== 'undefined' ? marathiHelper.toMarathi(rawName) : rawName));
 
     const newMember = {
       id: memberId,
-      name: data.name.trim(),
+      name: rawName,
+      nameMarathi: marathiName,
       phone: rawPhone,
       password: memberPassword,
       weeklyAmount: weeklyAmount,
@@ -317,7 +337,16 @@ class BishiStore {
     const member = this.getMember(id);
     if (!member) return null;
 
-    if (updateData.name) member.name = updateData.name.trim();
+    if (updateData.name) {
+      member.name = updateData.name.trim();
+      if (!updateData.nameMarathi && (!member.nameMarathi || member.nameMarathi === member.name)) {
+        const translit = (typeof window !== 'undefined' && window.marathiHelper ? window.marathiHelper.toMarathi(member.name) : '');
+        if (translit) member.nameMarathi = translit;
+      }
+    }
+    if (updateData.nameMarathi !== undefined) {
+      member.nameMarathi = updateData.nameMarathi.trim();
+    }
     if (updateData.phone) member.phone = updateData.phone.trim();
     if (updateData.password !== undefined && updateData.password.trim() !== '') {
       member.password = updateData.password.trim();
@@ -332,6 +361,37 @@ class BishiStore {
 
     this.saveState();
     return member;
+  }
+
+  // सदस्याचे मराठी नाव मिळवणे (Helper)
+  getMemberMarathiName(member) {
+    if (!member) return '';
+    if (member.nameMarathi && typeof member.nameMarathi === 'string' && member.nameMarathi.trim()) {
+      return member.nameMarathi.trim();
+    }
+    const helper = (typeof window !== 'undefined' && window.marathiHelper) ? window.marathiHelper : (typeof marathiHelper !== 'undefined' ? marathiHelper : null);
+    if (helper && typeof helper.getMemberMarathiName === 'function') {
+      return helper.getMemberMarathiName(member);
+    }
+    if (helper && typeof helper.toMarathi === 'function') {
+      return helper.toMarathi(member.name || '');
+    }
+    return member.name || '';
+  }
+
+  // सदस्य डिस्प्ले नाव (उदा. आदित्य पाटील (aditya patil))
+  getMemberDisplayName(member) {
+    if (!member) return '';
+    const helper = (typeof window !== 'undefined' && window.marathiHelper) ? window.marathiHelper : (typeof marathiHelper !== 'undefined' ? marathiHelper : null);
+    if (helper && typeof helper.getMemberDisplayName === 'function') {
+      return helper.getMemberDisplayName(member);
+    }
+    const marathiName = this.getMemberMarathiName(member);
+    const engName = (member.name || '').trim();
+    if (!marathiName) return engName;
+    if (!engName || marathiName.toLowerCase() === engName.toLowerCase()) return marathiName;
+    if (/[\u0900-\u097F]/.test(engName)) return engName;
+    return `${marathiName} (${engName})`;
   }
 
   // सदस्य खाते सेटल/रद्द करणे (Remove / Settle Member)

@@ -9,6 +9,51 @@ class ReceiptManager {
     this.modal = document.getElementById('receiptModal');
   }
 
+  openReceiptModal() {
+    const modal = document.getElementById('receiptModal');
+    if (modal) {
+      modal.style.zIndex = '2500';
+      modal.classList.add('active');
+    }
+  }
+
+  closeReceiptModal() {
+    const modal = document.getElementById('receiptModal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+  }
+
+  openPayoutVoucherModal() {
+    const modal = document.getElementById('payoutVoucherModal');
+    if (modal) {
+      modal.style.zIndex = '2500';
+      modal.classList.add('active');
+    }
+  }
+
+  closePayoutVoucherModal() {
+    const modal = document.getElementById('payoutVoucherModal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+  }
+
+  getMemberDisplayName(member) {
+    if (!member) return '';
+    if (typeof window !== 'undefined' && window.bishiStore && typeof window.bishiStore.getMemberDisplayName === 'function') {
+      return window.bishiStore.getMemberDisplayName(member);
+    }
+    const helper = (typeof window !== 'undefined' && window.marathiHelper) ? window.marathiHelper : (typeof marathiHelper !== 'undefined' ? marathiHelper : null);
+    if (helper && typeof helper.getMemberDisplayName === 'function') {
+      return helper.getMemberDisplayName(member);
+    }
+    if (member.nameMarathi && member.name && member.nameMarathi !== member.name) {
+      return `${member.nameMarathi} (${member.name})`;
+    }
+    return member.nameMarathi || member.name || '';
+  }
+
   generateReceiptHTML(member, weekData, bishiMeta) {
     const stats = window.bishiStore.calculateMemberStats(member);
     const currency = bishiMeta.currency || '₹';
@@ -46,7 +91,7 @@ class ReceiptManager {
           </div>
           <div>
             <div class="meta-item-lbl">सदस्याचे नाव</div>
-            <div class="meta-item-val">${member.name}</div>
+            <div class="meta-item-val">${this.getMemberDisplayName(member)}</div>
           </div>
           <div style="text-align: right;">
             <div class="meta-item-lbl">सदस्य आयडी</div>
@@ -141,7 +186,7 @@ class ReceiptManager {
     let message = 
 `*🔔 पेमेंट पावती - ${bishiMeta.bishiName.toUpperCase()}*
 ─────────────────────
-प्रिय *${member.name}* (आयडी: ${member.id}),
+प्रिय *${this.getMemberDisplayName(member)}* (आयडी: ${member.id}),
 
 आम्हाला आपला साप्ताहिक बीशी हप्ता यशस्वीरीत्या प्राप्त झाला आहे:
 
@@ -243,7 +288,7 @@ _सुखकर्ता बीशी सोबत नियमित बचत
       </div>
     `;
 
-    document.getElementById('receiptModal').classList.add('active');
+    this.openReceiptModal();
   }
 
   showPayoutVoucherModal(memberId, cycleNumber = null) {
@@ -311,7 +356,7 @@ _सुखकर्ता बीशी सोबत नियमित बचत
     const waText = 
 `*🏆 अधिकृत ५०-आठवडे मॅच्युरिटी परतावा वाटप - ${bishiMeta.bishiName.toUpperCase()}*
 ─────────────────────
-प्रिय *${member.name}* (आयडी: ${member.id}),
+प्रिय *${this.getMemberDisplayName(member)}* (आयडी: ${member.id}),
 
 हार्दिक अभिनंदन! आपले ५० आठवड्यांचे बचत चक्र यशस्वीरीत्या पूर्ण झाले असून आपला पूर्ण परतावा वाटप करण्यात आला आहे:
 
@@ -348,7 +393,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           </div>
           <div>
             <div class="meta-item-lbl">लाभार्थी सदस्य</div>
-            <div class="meta-item-val">${member.name} (${member.id})</div>
+            <div class="meta-item-val">${this.getMemberDisplayName(member)} (${member.id})</div>
           </div>
           <div style="text-align: right;">
             <div class="meta-item-lbl">मोबाईल नंबर</div>
@@ -396,7 +441,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         </table>
 
         <div class="receipt-footer-note" style="border-top: 1px solid var(--border-color); padding-top: 0.85rem; margin-top: 1rem;">
-          🙏 <strong>${member.name}</strong> यांनी <strong>${bishiMeta.bishiName}</strong> सोबत ५० आठवड्यांचे बचत चक्र यशस्वीपणे पूर्ण केल्याबद्दल मनःपूर्वक अभिनंदन!
+          🙏 <strong>${this.getMemberDisplayName(member)}</strong> यांनी <strong>${bishiMeta.bishiName}</strong> सोबत ५० आठवड्यांचे बचत चक्र यशस्वीपणे पूर्ण केल्याबद्दल मनःपूर्वक अभिनंदन!
         </div>
       </div>
 
@@ -435,10 +480,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       }
     }
 
-    const voucherModal = document.getElementById('payoutVoucherModal');
-    if (voucherModal) {
-      voucherModal.classList.add('active');
-    }
+    this.openPayoutVoucherModal();
   }
 
   // --- कर्ज परतफेड व वाटप पावती HTML जनरेटर ---
@@ -494,7 +536,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           </div>
           <div>
             <div class="meta-item-lbl">सदस्याचे नाव</div>
-            <div class="meta-item-val" style="font-weight: 700;">${member.name}</div>
+            <div class="meta-item-val" style="font-weight: 700;">${this.getMemberDisplayName(member)}</div>
           </div>
           <div style="text-align: right;">
             <div class="meta-item-lbl">सदस्य आयडी / कर्ज आयडी</div>
@@ -600,7 +642,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
 
     let message = `✨ *${bishiMeta.bishiName} - अधिकृत कर्ज पावती* ✨\n`;
     message += `─────────────────────\n`;
-    message += `👤 *सदस्याचे नाव:* ${member.name}\n`;
+    message += `👤 *सदस्याचे नाव:* ${this.getMemberDisplayName(member)}\n`;
     message += `🆔 *सदस्य आयडी:* ${member.id} | *कर्ज क्र.:* ${loan.id}\n`;
     message += `📅 *तारीख:* ${isPaid ? (loan.paidDate || '-') : (loan.lastRepaymentDate || loan.issueDate || '-')}\n`;
     message += `─────────────────────\n`;
@@ -681,7 +723,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       </div>
     `;
 
-    document.getElementById('receiptModal').classList.add('active');
+    this.openReceiptModal();
   }
 
   // --- कर्ज वाटप व्हाउचर HTML जनरेटर (Loan Assign / Disbursement Voucher HTML) ---
@@ -723,7 +765,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           </div>
           <div>
             <div class="meta-item-lbl">सदस्याचे नाव (Member Name)</div>
-            <div class="meta-item-val" style="font-weight: 700;">${member.name}</div>
+            <div class="meta-item-val" style="font-weight: 700;">${this.getMemberDisplayName(member)}</div>
           </div>
           <div style="text-align: right;">
             <div class="meta-item-lbl">सदस्य आयडी / कर्ज आयडी</div>
@@ -796,7 +838,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
 
     let message = `✨ *${bishiMeta.bishiName} - अधिकृत कर्ज वाटप व्हाउचर (Loan Assign Voucher)* ✨\n`;
     message += `─────────────────────\n`;
-    message += `👤 *सदस्याचे नाव:* ${member.name}\n`;
+    message += `👤 *सदस्याचे नाव:* ${this.getMemberDisplayName(member)}\n`;
     message += `🆔 *सदस्य आयडी:* ${member.id} | *कर्ज क्र.:* ${loan.id}\n`;
     message += `📅 *वाटप तारीख:* ${loan.issueDate || '-'}\n`;
     message += `─────────────────────\n`;
@@ -858,7 +900,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       </div>
     `;
 
-    document.getElementById('receiptModal').classList.add('active');
+    this.openReceiptModal();
   }
 
   // --- ४-आठवडे कर्ज व्याज पावती HTML जनरेटर (Periodic 4-Week Loan Interest Receipt HTML) ---
@@ -897,7 +939,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           </div>
           <div>
             <div class="meta-item-lbl">सदस्याचे नाव</div>
-            <div class="meta-item-val" style="font-weight: 700;">${member.name}</div>
+            <div class="meta-item-val" style="font-weight: 700;">${this.getMemberDisplayName(member)}</div>
           </div>
           <div style="text-align: right;">
             <div class="meta-item-lbl">सदस्य आयडी / कर्ज आयडी</div>
@@ -980,7 +1022,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
 
     let message = `✨ *${bishiMeta.bishiName} - ४-आठवडे कर्ज व्याज पावती* ✨\n`;
     message += `─────────────────────\n`;
-    message += `👤 *सदस्याचे नाव:* ${member.name}\n`;
+    message += `👤 *सदस्याचे नाव:* ${this.getMemberDisplayName(member)}\n`;
     message += `🆔 *सदस्य आयडी:* ${member.id} | *कर्ज क्र.:* ${loan.id}\n`;
     message += `📅 *व्याज भरणा तारीख:* ${payment.paidDate || '-'}\n`;
     message += `─────────────────────\n`;
@@ -1073,7 +1115,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       </div>
     `;
 
-    document.getElementById('receiptModal')?.classList.add('active');
+    this.openReceiptModal();
   }
 
   // --- ४-आठवडे कर्ज व्याज थकबाकी / स्मरणपत्र WhatsApp संदेश जनरेटर ---
@@ -1086,7 +1128,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
 
     let message = `✨ *${bishiMeta?.bishiName || 'सुखकर्ता बीशी'} - कर्ज व्याज भरणा स्मरणपत्र* ✨\n`;
     message += `─────────────────────\n`;
-    message += `👤 *सदस्याचे नाव:* ${member.name}\n`;
+    message += `👤 *सदस्याचे नाव:* ${this.getMemberDisplayName(member)}\n`;
     message += `🆔 *सदस्य आयडी:* ${member.id} | *कर्ज क्र.:* ${loan.id}\n`;
     message += `📅 *दिनांक:* ${new Date().toLocaleDateString('hi-IN', {day: '2-digit', month: 'short', year: 'numeric'})}\n`;
     message += `─────────────────────\n`;
@@ -1128,7 +1170,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         if (newWin && !newWin.closed && typeof newWin.closed !== 'undefined') {
           winOpened = true;
           if (window.ui && window.ui.showToast) {
-            window.ui.showToast(`सदस्य ${member.name} यांना WhatsApp कर्ज व्याज संदेश पाठवला जात आहे...`, 'success');
+            window.ui.showToast(`सदस्य ${this.getMemberDisplayName(member)} यांना WhatsApp कर्ज व्याज संदेश पाठवला जात आहे...`, 'success');
           }
         }
       } catch (err) {
@@ -1174,7 +1216,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         <div class="receipt-meta-grid">
           <div>
             <div class="meta-item-lbl">सदस्याचे नाव</div>
-            <div class="meta-item-val" style="font-weight: 700;">${member.name}</div>
+            <div class="meta-item-val" style="font-weight: 700;">${this.getMemberDisplayName(member)}</div>
           </div>
           <div style="text-align: right;">
             <div class="meta-item-lbl">मोबाईल नंबर</div>
@@ -1221,7 +1263,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       </div>
     `;
 
-    document.getElementById('receiptModal').classList.add('active');
+    this.openReceiptModal();
   }
 
   copyWhatsAppMessage(encodedText) {

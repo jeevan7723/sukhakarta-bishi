@@ -2,6 +2,11 @@
    SUKHAKARTA BISHI - DIGITAL RECEIPT & WHATSAPP GENERATOR STYLES
    ========================================================================== */
 
+#receiptModal,
+#payoutVoucherModal {
+  z-index: 2500 !important;
+}
+
 .receipt-wrapper {
   background: #ffffff;
   color: #0f172a;

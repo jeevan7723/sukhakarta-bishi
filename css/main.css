@@ -1006,6 +1006,12 @@ select option:checked {
   pointer-events: auto;
 }
 
+/* Digital Receipts & Vouchers modal stack on top of all secondary modals (e.g. Master Ledger, Loans Table) */
+#receiptModal,
+#payoutVoucherModal {
+  z-index: 2500 !important;
+}
+
 .modal-container {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -1091,7 +1097,7 @@ select option:checked {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 2000;
+  z-index: 3000;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;

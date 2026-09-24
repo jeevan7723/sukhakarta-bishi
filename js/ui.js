@@ -335,8 +335,10 @@ class UIManager {
     }
 
     // प्रोफाइल कार्ड
-    document.getElementById('custHeroAvatar').textContent = member.name.charAt(0).toUpperCase();
-    document.getElementById('custHeroName').textContent = member.name;
+    const custMarathiName = window.bishiStore.getMemberMarathiName(member) || member.name;
+    const custShowEng = member.name && member.name !== custMarathiName && !(/[\u0900-\u097F]/.test(member.name));
+    document.getElementById('custHeroAvatar').textContent = (custMarathiName || member.name || 'स').charAt(0);
+    document.getElementById('custHeroName').innerHTML = `${custMarathiName}${custShowEng ? ` <span style="font-size:0.95rem; font-weight:500; color:var(--text-muted);">(${member.name})</span>` : ''}`;
     document.getElementById('custHeroMeta').textContent = `सदस्य आयडी: ${member.id} • 📞 ${member.phone} • वारसदार: ${member.nominee || 'N/A'}${member.currentCycle > 1 ? ` • सायकल ${this.customerViewCycle} / ${member.currentCycle}` : ''}`;
 
     // सायकल स्विचर बार
@@ -598,13 +600,13 @@ class UIManager {
             fineAmt = 0;
             totAmt = depAmt;
           } else if (isLoanInt) {
-            depAmt = 0;
-            fineAmt = Number(t.loanInterestAmount || t.totalAmount || 0);
-            totAmt = fineAmt;
+            depAmt = Number(t.loanInterestAmount || t.totalAmount || 0);
+            fineAmt = 0;
+            totAmt = depAmt;
           } else if (isLoanRep) {
             depAmt = Number(t.loanRepaidAmount || t.totalAmount || 0);
-            fineAmt = Number(t.loanInterestAmount || 0);
-            totAmt = Number(t.totalAmount || (depAmt + fineAmt));
+            fineAmt = 0;
+            totAmt = Number(t.totalAmount || depAmt);
           } else if (isPayout) {
             totAmt = Number(t.totalAmount || 0);
             depAmt = totAmt;
@@ -741,14 +743,17 @@ class UIManager {
             receiptBtnHtml = `<button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${rec.loanId || rec.receiptNo?.replace('DISB-', '')}')" title="कर्ज व्हाऊचर पहा">📄 व्हाऊचर</button>`;
           } else if (isLoanInt) {
             statusPillHtml = `<span class="status-pill status-overdue" style="font-size: 0.72rem; background: rgba(245, 158, 11, 0.15); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 700;">💰 कर्ज व्याज (W${rec.weekNumber || 1})</span>`;
-            depAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
-            fineAmtHtml = `<span style="color: var(--gold-400); font-weight: 700;">+${currency}${fineAmt.toLocaleString('en-IN')} (३%)</span>`;
+            depAmtHtml = `
+              <span style="color: var(--gold-400); font-weight: 700;">${currency}${depAmt.toLocaleString('en-IN')}</span>
+              <div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">(३% कर्ज व्याज)</div>
+            `;
+            fineAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
             totalRecHtml = `<span style="color: var(--gold-400); font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
             receiptBtnHtml = `<button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanInterestReceiptModal('${rec.loanId}', '${rec.receiptNo}')" title="व्याज पावती पहा">🧾 पावती</button>`;
           } else if (isLoanRep) {
             statusPillHtml = `<span class="status-pill status-paid" style="font-size: 0.72rem; font-weight: 700;">✅ कर्ज परतफेड (W${rec.weekNumber || 1})</span>`;
             depAmtHtml = `<span style="color: var(--emerald-400); font-weight: 700;">मुद्दल: ${currency}${depAmt.toLocaleString('en-IN')}</span>`;
-            fineAmtHtml = fineAmt > 0 ? `<span style="color: var(--gold-400); font-weight: 700;">+${currency}${fineAmt.toLocaleString('en-IN')}</span>` : `<span style="color: var(--text-muted);">₹०</span>`;
+            fineAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
             totalRecHtml = `<span style="color: var(--emerald-400); font-weight: 800;">${currency}${totalRec.toLocaleString('en-IN')}</span>`;
             receiptBtnHtml = `<button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${rec.loanId}')" title="कर्ज परतफेड पावती पहा">🧾 पावती</button>`;
           } else if (isPayout) {
@@ -1267,11 +1272,13 @@ class UIManager {
 
     if (this.searchQuery) {
       const q = this.searchQuery.toLowerCase();
-      members = members.filter(m => 
-        m.name.toLowerCase().includes(q) ||
-        m.phone.includes(q) ||
-        m.id.toLowerCase().includes(q)
-      );
+      members = members.filter(m => {
+        const marathiName = window.bishiStore.getMemberMarathiName(m) || '';
+        return (m.name || '').toLowerCase().includes(q) ||
+          marathiName.toLowerCase().includes(q) ||
+          m.phone.includes(q) ||
+          m.id.toLowerCase().includes(q);
+      });
     }
 
     if (this.currentFilter === 'paid') {
@@ -1388,16 +1395,21 @@ class UIManager {
       const isGraceActive = hasActiveLoan && !isInterestDueThisWeek && firstActiveLoan?.details?.isGracePeriodActive;
       const hasPaidInterestRecently = hasActiveLoan && Array.isArray(firstActiveLoan.loan.interestPayments) && firstActiveLoan.loan.interestPayments.some(p => p.paidWeek === currentWeek);
 
+      const marathiName = window.bishiStore.getMemberMarathiName(member) || member.name;
+      const showEng = member.name && member.name !== marathiName && !(/[\u0900-\u097F]/.test(member.name));
+      const avatarInitial = (marathiName || member.name || 'स').charAt(0);
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
           <div class="member-cell">
             <div class="member-avatar ${stats.weeklyAmount >= 2000 ? 'gold' : ''}" onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer;" title="सदस्य पासबुक पहा">
-              ${member.name.charAt(0).toUpperCase()}
+              ${avatarInitial}
             </div>
             <div class="member-meta">
               <div class="member-name">
-                <span onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer;" title="पासबुक पहा">${member.name}</span>
+                <span onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer; font-weight: 700; color: var(--text-primary);" title="पासबुक पहा">${marathiName}</span>
+                ${showEng ? `<span class="member-eng-name" style="font-size:0.8rem; font-weight:500; color:var(--text-muted); margin-left:0.25rem;">(${member.name})</span>` : ''}
                 ${(member.currentCycle && member.currentCycle > 1) ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.4rem; background: rgba(59, 130, 246, 0.2); color: var(--blue-400); border: 1px solid var(--blue-400);">सायकल ${member.currentCycle}</span>` : ''}
                 ${hasActiveLoan ? `
                   <button type="button" class="status-pill" onclick="event.stopPropagation(); window.ui.openAdminLoansModal()" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(59, 130, 246, 0.18); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.4); font-weight:700; cursor:pointer;" title="सक्रिय मुद्दल: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}${loanSummary.activeInterest > 0 ? ` (+३% व्याज: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')})` : ''} • कर्ज व्यवस्थापन पहा">💳 कर्ज: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}</button>
@@ -1730,7 +1742,7 @@ class UIManager {
       defaultAmount = stats.weeklyAmount * countToRecent;
     }
 
-    document.getElementById('collectModalMemberName').textContent = member.name;
+    document.getElementById('collectModalMemberName').textContent = window.bishiStore.getMemberDisplayName(member);
     document.getElementById('collectModalMemberId').textContent = `${member.id} • 📞 ${member.phone}`;
     document.getElementById('collectModalWeekNumber').value = this.selectedCollectWeek;
     document.getElementById('collectModalWeekNumberDisplay').textContent = isTargetPartial
@@ -2089,7 +2101,7 @@ class UIManager {
             const alertModal = document.getElementById('adminMilestoneCelebrationModal');
             if (alertModal) {
               const elName = document.getElementById('adminAlertMemberName');
-              if (elName) elName.textContent = result.member.name;
+              if (elName) elName.textContent = window.bishiStore.getMemberDisplayName(result.member);
               const elId = document.getElementById('adminAlertMemberId');
               if (elId) elId.textContent = `${result.member.id} • 📞 ${result.member.phone} • वारसदार: ${result.member.nominee || 'N/A'}`;
               const elSavings = document.getElementById('adminAlertSavingsAmt');
@@ -2172,7 +2184,7 @@ class UIManager {
       viewWeeks = member.weeks;
     }
 
-    document.getElementById('passbookModalMemberName').textContent = member.name;
+    document.getElementById('passbookModalMemberName').textContent = window.bishiStore.getMemberDisplayName(member);
     document.getElementById('passbookModalMemberInfo').textContent = `${member.id} • 📞 ${member.phone} • वारसदार: ${member.nominee || 'N/A'}${member.currentCycle > 1 ? ` • सायकल ${viewingCycle} / ${member.currentCycle}` : ''}`;
     document.getElementById('passbookWeeklyAmt').textContent = `${currency}${stats.weeklyAmount.toLocaleString('en-IN')}`;
     document.getElementById('passbookTotalPaid').textContent = `${currency}${stats.totalDeposited.toLocaleString('en-IN')}`;
@@ -2431,7 +2443,7 @@ class UIManager {
     this.selectedBulkMemberId = memberId;
     this.selectedBulkWeek = onWeekNumber ? Number(onWeekNumber) : (window.bishiStore.state.meta.currentWeek || 1);
 
-    document.getElementById('bulkPayMemberName').textContent = member.name;
+    document.getElementById('bulkPayMemberName').textContent = window.bishiStore.getMemberDisplayName(member);
     document.getElementById('bulkPayMemberMeta').textContent = `${member.id} • ${currency}${member.weeklyAmount.toLocaleString('en-IN')}/आठवडा • भरणा आठवडा: आठवडा ${this.selectedBulkWeek}`;
     document.getElementById('bulkPayWeeksBadge').textContent = `${stats.remainingWeeksCount} पैकी ५० आठवडे बाकी`;
     document.getElementById('bulkPayTotalAmountDisplay').textContent = `${currency}${stats.remainingAmount.toLocaleString('en-IN')}`;
@@ -2492,7 +2504,7 @@ class UIManager {
         const alertModal = document.getElementById('adminMilestoneCelebrationModal');
         if (alertModal) {
           const elName = document.getElementById('adminAlertMemberName');
-          if (elName) elName.textContent = result.member.name;
+          if (elName) elName.textContent = window.bishiStore.getMemberDisplayName(result.member);
           const elId = document.getElementById('adminAlertMemberId');
           if (elId) elId.textContent = `${result.member.id} • 📞 ${result.member.phone} • वारसदार: ${result.member.nominee || 'N/A'}`;
           const elSavings = document.getElementById('adminAlertSavingsAmt');
@@ -2547,7 +2559,7 @@ class UIManager {
 
     this.selectedPayoutMemberId = memberId;
 
-    document.getElementById('payoutModalMemberName').textContent = member.name;
+    document.getElementById('payoutModalMemberName').textContent = window.bishiStore.getMemberDisplayName(member);
     document.getElementById('payoutModalMemberMeta').textContent = `${member.id} • 📞 ${member.phone} • वारसदार: ${member.nominee || 'N/A'}`;
     document.getElementById('payoutModalTotalDisplay').textContent = `${currency}${stats.maturityTotalPayout.toLocaleString('en-IN')}`;
     document.getElementById('payoutModalSavingsAmount').textContent = `${currency}${stats.totalDeposited.toLocaleString('en-IN')}`;
@@ -2613,7 +2625,7 @@ class UIManager {
     const nextCycle = currentCycle + 1;
 
     document.getElementById('restartPlanMemberId').value = member.id;
-    document.getElementById('restartPlanMemberName').textContent = member.name;
+    document.getElementById('restartPlanMemberName').textContent = window.bishiStore.getMemberDisplayName(member);
     document.getElementById('restartPlanMemberMeta').textContent = `${member.id} • 📞 ${member.phone} • वारसदार: ${member.nominee || 'N/A'}`;
     document.getElementById('restartPlanPrevCycleBadge').textContent = `सायकल ${currentCycle} पूर्ण 🏆`;
 
@@ -2740,7 +2752,9 @@ class UIManager {
       return;
     }
 
-    const name = document.getElementById('addMemberName').value;
+    const name = document.getElementById('addMemberName').value.trim();
+    const nameMarathiInput = document.getElementById('addMemberNameMarathi')?.value.trim();
+    const nameMarathi = nameMarathiInput || (window.marathiHelper ? window.marathiHelper.toMarathi(name) : name);
     const phone = document.getElementById('addMemberPhone').value;
     const password = document.getElementById('addMemberPassword')?.value || '';
     const weeklyAmount = document.getElementById('addMemberWeeklyAmount').value;
@@ -2760,6 +2774,7 @@ class UIManager {
 
     const newMember = window.bishiStore.addMember({
       name,
+      nameMarathi,
       phone,
       password,
       weeklyAmount,
@@ -2803,6 +2818,11 @@ class UIManager {
     }
 
     document.getElementById('editMemberName').value = member.name || '';
+    const editMarathiInput = document.getElementById('editMemberNameMarathi');
+    if (editMarathiInput) {
+      editMarathiInput.value = member.nameMarathi || (window.bishiStore ? window.bishiStore.getMemberMarathiName(member) : (member.name || ''));
+      editMarathiInput.dataset.manual = member.nameMarathi ? 'true' : '';
+    }
     document.getElementById('editMemberPhone').value = member.phone || '';
     const editPassInput = document.getElementById('editMemberPassword');
     if (editPassInput) editPassInput.value = member.password || '';
@@ -2847,6 +2867,8 @@ class UIManager {
     }
 
     const name = document.getElementById('editMemberName')?.value.trim();
+    const nameMarathiInput = document.getElementById('editMemberNameMarathi')?.value.trim();
+    const nameMarathi = nameMarathiInput || (window.marathiHelper ? window.marathiHelper.toMarathi(name) : name);
     const phone = document.getElementById('editMemberPhone')?.value.trim();
     const password = document.getElementById('editMemberPassword')?.value.trim();
     const weeklyAmount = Number(document.getElementById('editMemberWeeklyAmount')?.value);
@@ -2868,6 +2890,7 @@ class UIManager {
 
     const updated = window.bishiStore.updateMember(this.selectedEditMemberId, {
       name,
+      nameMarathi,
       phone,
       password,
       weeklyAmount,
@@ -2898,7 +2921,7 @@ class UIManager {
     const currency = window.bishiStore.state.meta.currency;
 
     const elName = document.getElementById('settleMemberName');
-    if (elName) elName.textContent = member.name;
+    if (elName) elName.textContent = window.bishiStore.getMemberDisplayName(member);
     const elId = document.getElementById('settleMemberId');
     if (elId) elId.textContent = `${member.id} • 📞 ${member.phone}`;
     const elBadge = document.getElementById('settleMemberStatusBadge');
@@ -2928,7 +2951,7 @@ class UIManager {
       return;
     }
 
-    const memberName = member.name;
+    const memberName = window.bishiStore.getMemberDisplayName(member);
     const stats = window.bishiStore.calculateMemberStats(member);
     const currency = window.bishiStore.state.meta.currency || '₹';
 
@@ -2961,7 +2984,7 @@ class UIManager {
     if (!this.selectedMemberId) return;
 
     const member = window.bishiStore.getMember(this.selectedMemberId);
-    const memberName = member ? member.name : 'सदस्य';
+    const memberName = member ? window.bishiStore.getMemberDisplayName(member) : 'सदस्य';
     const memberId = this.selectedMemberId;
 
     if (!confirm(`⚠️ सावधान: आपण नक्की ${memberName} (${memberId}) यांचे खाते कायमचे डिलीट करू इच्छिता?\n\nहा सदस्य आणि त्यांचे सर्व ५० आठवड्यांचे रेकॉर्ड्स वेबसाइट व Firebase क्लाउड डेटाबेसमधून कायमचे नष्ट होतील.`)) {
@@ -3079,14 +3102,12 @@ class UIManager {
         grossTotal += Number(t.loanDisbursedAmount || t.totalAmount || 0);
       } else if (t.type === 'loan_interest_payment') {
         const intAmt = Number(t.loanInterestAmount || t.totalAmount || 0);
-        totalFines += intAmt;
+        totalDeposits += intAmt;
         grossTotal += intAmt;
       } else if (t.type === 'loan_repayment') {
         const repAmt = Number(t.loanRepaidAmount || t.totalAmount || 0);
-        const intAmt = Number(t.loanInterestAmount || 0);
         totalDeposits += repAmt;
-        totalFines += intAmt;
-        grossTotal += Number(t.totalAmount || (repAmt + intAmt));
+        grossTotal += Number(t.totalAmount || repAmt);
       } else if (t.type === 'payout') {
         grossTotal += Number(t.totalAmount || 0);
       } else {
@@ -3148,17 +3169,24 @@ class UIManager {
       } else if (t.type === 'loan_interest_payment') {
         const intAmt = Number(t.loanInterestAmount || t.totalAmount || 0);
         statusPillHtml = `<span class="status-pill status-overdue" style="font-size: 0.72rem; background: rgba(245, 158, 11, 0.15); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 700;">💰 कर्ज व्याज (चक्र ${t.cycleNumber || 1} • W${t.weekNumber || 1})</span>`;
-        depAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
-        fineAmtHtml = `<span style="color: var(--gold-400); font-weight: 700;">+${currency}${intAmt.toLocaleString('en-IN')} (३%)</span>`;
+        depAmtHtml = `
+          <span style="color: var(--gold-400); font-weight: 800;">${currency}${intAmt.toLocaleString('en-IN')}</span>
+          <div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">(३% कर्ज व्याज)</div>
+        `;
+        fineAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
         totalRecHtml = `<span style="color: var(--gold-400); font-weight: 800;">${currency}${intAmt.toLocaleString('en-IN')}</span>`;
         receiptBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanInterestReceiptModal('${t.loanId}', '${t.receiptNo || t.id}')" title="व्याज पावती पहा">🧾 पावती</button>`;
       } else if (t.type === 'loan_repayment') {
         const repAmt = Number(t.loanRepaidAmount || t.totalAmount || 0);
         const intAmt = Number(t.loanInterestAmount || 0);
-        const tot = Number(t.totalAmount || (repAmt + intAmt));
+        const prinAmt = intAmt > 0 && repAmt > intAmt ? (repAmt - intAmt) : repAmt;
+        const tot = Number(t.totalAmount || repAmt);
         statusPillHtml = `<span class="status-pill status-paid" style="font-size: 0.72rem; font-weight: 700;">✅ कर्ज परतफेड (W${t.weekNumber || 1})</span>`;
-        depAmtHtml = `<span style="color: var(--emerald-400); font-weight: 800;">मुद्दल: ${currency}${repAmt.toLocaleString('en-IN')}</span>`;
-        fineAmtHtml = intAmt > 0 ? `<span style="color: var(--gold-400); font-weight: 700;">+${currency}${intAmt.toLocaleString('en-IN')}</span>` : `<span style="color: var(--text-muted);">₹०</span>`;
+        depAmtHtml = `
+          <span style="color: var(--emerald-400); font-weight: 800;">मुद्दल: ${currency}${prinAmt.toLocaleString('en-IN')}</span>
+          ${intAmt > 0 ? `<div style="font-size: 0.7rem; color: var(--gold-400); font-weight: 600;">(+${currency}${intAmt.toLocaleString('en-IN')} व्याज)</div>` : ''}
+        `;
+        fineAmtHtml = `<span style="color: var(--text-muted);">—</span>`;
         totalRecHtml = `<span style="color: var(--emerald-400); font-weight: 800;">${currency}${tot.toLocaleString('en-IN')}</span>`;
         receiptBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showLoanReceiptModal('${t.loanId}')" title="कर्ज परतफेड पावती पहा">🧾 पावती</button>`;
       } else if (t.type === 'payout') {
@@ -3195,7 +3223,10 @@ class UIManager {
           ${t.note ? `<div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-sans); margin-top: 0.2rem;">${t.note}</div>` : ''}
         </td>
         <td>
-          <div style="font-weight: 700; color: var(--text-primary);">${t.memberName}</div>
+          <div style="font-weight: 700; color: var(--text-primary);">
+            ${member ? (window.bishiStore.getMemberMarathiName(member) || member.name) : (window.marathiHelper ? window.marathiHelper.toMarathi(t.memberName) : t.memberName)}
+            ${(t.memberName && t.memberName !== (member ? (window.bishiStore.getMemberMarathiName(member) || member.name) : (window.marathiHelper ? window.marathiHelper.toMarathi(t.memberName) : t.memberName)) && !(/[\u0900-\u097F]/.test(t.memberName))) ? `<span style="font-size:0.75rem; font-weight:500; color:var(--text-muted); margin-left:0.25rem;">(${t.memberName})</span>` : ''}
+          </div>
           <div style="font-size: 0.75rem; color: var(--text-muted);">${t.memberId} ${phone ? `• 📞 ${phone}` : ''}</div>
         </td>
         <td>
@@ -3442,7 +3473,14 @@ class UIManager {
           ${loan.id}
         </td>
         <td>
-          <div style="font-weight: 700; color: var(--text-primary);">${loan.memberName}</div>
+          <div style="font-weight: 700; color: var(--text-primary);">
+            ${(() => {
+              const mem = window.bishiStore.getMember(loan.memberId);
+              const mName = mem ? (window.bishiStore.getMemberMarathiName(mem) || mem.name) : (window.marathiHelper ? window.marathiHelper.toMarathi(loan.memberName) : loan.memberName);
+              const showEng = loan.memberName && loan.memberName !== mName && !(/[\u0900-\u097F]/.test(loan.memberName));
+              return `${mName}${showEng ? ` <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">(${loan.memberName})</span>` : ''}`;
+            })()}
+          </div>
           <div style="font-size: 0.75rem; color: var(--text-muted);">${loan.memberId} • 📞 ${loan.memberPhone || '-'}</div>
         </td>
         <td>
@@ -3693,13 +3731,15 @@ class UIManager {
 
     const q = (this.membersPageSearchQuery || '').toLowerCase().trim();
     if (q) {
-      filteredMembers = filteredMembers.filter(m => 
-        (m.name || '').toLowerCase().includes(q) ||
-        (m.phone || '').includes(q) ||
-        (m.id || '').toLowerCase().includes(q) ||
-        (m.nominee || '').toLowerCase().includes(q) ||
-        (m.notes || '').toLowerCase().includes(q)
-      );
+      filteredMembers = filteredMembers.filter(m => {
+        const marathiName = window.bishiStore.getMemberMarathiName(m) || '';
+        return (m.name || '').toLowerCase().includes(q) ||
+          marathiName.toLowerCase().includes(q) ||
+          (m.phone || '').includes(q) ||
+          (m.id || '').toLowerCase().includes(q) ||
+          (m.nominee || '').toLowerCase().includes(q) ||
+          (m.notes || '').toLowerCase().includes(q);
+      });
     }
 
     const filter = this.membersPageFilter || 'all';
@@ -3796,11 +3836,15 @@ class UIManager {
             <td>
               <div class="member-cell">
                 <div class="member-avatar ${stats.weeklyAmount >= 2000 ? 'gold' : ''}" onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer;" title="पासबुक पहा">
-                  ${(member.name || 'स').charAt(0).toUpperCase()}
+                  ${(() => {
+                    const marathiName = window.bishiStore.getMemberMarathiName(member) || member.name;
+                    return (marathiName || member.name || 'स').charAt(0);
+                  })()}
                 </div>
                 <div class="member-meta">
                   <div class="member-name">
-                    <span onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer;" title="पासबुक पहा">${member.name}</span>
+                    <span onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer; font-weight: 700; color: var(--text-primary);" title="पासबुक पहा">${window.bishiStore.getMemberMarathiName(member) || member.name}</span>
+                    ${(member.name && member.name !== (window.bishiStore.getMemberMarathiName(member) || member.name) && !(/[\u0900-\u097F]/.test(member.name))) ? `<span class="member-eng-name" style="font-size:0.8rem; font-weight:500; color:var(--text-muted); margin-left:0.25rem;">(${member.name})</span>` : ''}
                     ${stats.isFullyPaid ? `<span class="status-pill status-completed" style="font-size:0.65rem; padding:0.1rem 0.4rem;">पूर्ण 🏆</span>` : ''}
                     ${member.currentCycle > 1 ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.4rem; background: rgba(59, 130, 246, 0.2); color: var(--blue-400); border: 1px solid var(--blue-400);">सायकल ${member.currentCycle}</span>` : ''}
                   </div>
@@ -3982,11 +4026,15 @@ class UIManager {
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
               <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <div class="member-avatar ${stats.weeklyAmount >= 2000 ? 'gold' : ''}" onclick="window.ui.openMemberProfileModal('${member.id}')" style="cursor: pointer;" title="संपूर्ण प्रोफाईल पहा">
-                  ${(member.name || 'स').charAt(0).toUpperCase()}
+                  ${(() => {
+                    const marathiName = window.bishiStore.getMemberMarathiName(member) || member.name;
+                    return (marathiName || member.name || 'स').charAt(0);
+                  })()}
                 </div>
                 <div>
                   <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-primary); cursor: pointer;" onclick="window.ui.openMemberProfileModal('${member.id}')" title="संपूर्ण प्रोफाईल पहा">
-                    ${member.name}
+                    ${window.bishiStore.getMemberMarathiName(member) || member.name}
+                    ${(member.name && member.name !== (window.bishiStore.getMemberMarathiName(member) || member.name) && !(/[\u0900-\u097F]/.test(member.name))) ? `<span style="font-size:0.82rem; font-weight:500; color:var(--text-muted); margin-left:0.25rem;">(${member.name})</span>` : ''}
                   </div>
                   <div style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">
                     ${member.id}
@@ -4189,11 +4237,17 @@ class UIManager {
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
             <div style="display: flex; align-items: center; gap: 1rem;">
               <div class="member-avatar ${stats.weeklyAmount >= 2000 ? 'gold' : ''}" style="width: 58px; height: 58px; font-size: 1.7rem; border-radius: var(--radius-md);">
-                ${(member.name || 'स').charAt(0).toUpperCase()}
+                ${(() => {
+                  const mName = window.bishiStore.getMemberMarathiName(member) || member.name;
+                  return (mName || member.name || 'स').charAt(0);
+                })()}
               </div>
               <div>
                 <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                  <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin: 0;">${member.name}</h2>
+                  <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin: 0;">
+                    ${window.bishiStore.getMemberMarathiName(member) || member.name}
+                    ${(member.name && member.name !== (window.bishiStore.getMemberMarathiName(member) || member.name) && !(/[\u0900-\u097F]/.test(member.name))) ? `<span style="font-size: 1.05rem; font-weight: 500; color: var(--text-muted); margin-left: 0.35rem;">(${member.name})</span>` : ''}
+                  </h2>
                   ${stats.isFullyPaid ? `<span class="status-pill status-completed">५० आठवडे पूर्ण 🏆</span>` : `<span class="status-pill status-paid">सक्रिय बचतकर्ता</span>`}
                   ${member.currentCycle > 1 ? `<span class="status-pill" style="background: rgba(59,130,246,0.15); color: var(--blue-400); border: 1px solid var(--blue-400);">सायकल ${member.currentCycle}</span>` : ''}
                 </div>
@@ -4241,6 +4295,16 @@ class UIManager {
 
           <!-- वैयक्तिक नोंदणी व संपर्क माहिती ग्रीड -->
           <div style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px dashed var(--border-color); display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; font-size: 0.83rem;">
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.73rem; text-transform: uppercase; font-weight: 700; display: block;">सदस्याचे नाव (मराठी)</span>
+              <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">${window.bishiStore.getMemberMarathiName(member) || member.name}</span>
+            </div>
+            ${(member.name && member.name !== (window.bishiStore.getMemberMarathiName(member) || member.name) && !(/[\u0900-\u097F]/.test(member.name))) ? `
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.73rem; text-transform: uppercase; font-weight: 700; display: block;">नाव (इंग्रजी / English)</span>
+              <span style="font-weight: 600; color: var(--text-secondary);">${member.name}</span>
+            </div>
+            ` : ''}
             <div>
               <span style="color: var(--text-muted); font-size: 0.73rem; text-transform: uppercase; font-weight: 700; display: block;">वारसदार (Nominee)</span>
               <span style="font-weight: 600; color: var(--text-primary);">${member.nominee || 'नोंदणी केलेली नाही'}</span>
@@ -4448,12 +4512,15 @@ class UIManager {
     const searchInput = document.getElementById('loansPageSearchInput') || document.getElementById('dashLoansSearchInput');
     const query = (searchInput?.value || '').toLowerCase().trim();
     if (query) {
-      loans = loans.filter(l => 
-        (l.memberName || '').toLowerCase().includes(query) ||
-        (l.memberId || '').toLowerCase().includes(query) ||
-        (l.id || '').toLowerCase().includes(query) ||
-        (l.memberPhone || '').includes(query)
-      );
+      loans = loans.filter(l => {
+        const mem = window.bishiStore.getMember(l.memberId);
+        const mName = mem ? (window.bishiStore.getMemberMarathiName(mem) || '') : (window.marathiHelper ? window.marathiHelper.toMarathi(l.memberName) : '');
+        return (l.memberName || '').toLowerCase().includes(query) ||
+          mName.toLowerCase().includes(query) ||
+          (l.memberId || '').toLowerCase().includes(query) ||
+          (l.id || '').toLowerCase().includes(query) ||
+          (l.memberPhone || '').includes(query);
+      });
     }
 
     const gridBody = document.getElementById('loansPageGridBody');
@@ -4513,7 +4580,14 @@ class UIManager {
           ${loan.id}
         </td>
         <td>
-          <div style="font-weight: 700; color: var(--text-primary);">${loan.memberName}</div>
+          <div style="font-weight: 700; color: var(--text-primary);">
+            ${(() => {
+              const mem = window.bishiStore.getMember(loan.memberId);
+              const mName = mem ? (window.bishiStore.getMemberMarathiName(mem) || mem.name) : (window.marathiHelper ? window.marathiHelper.toMarathi(loan.memberName) : loan.memberName);
+              const showEng = loan.memberName && loan.memberName !== mName && !(/[\u0900-\u097F]/.test(loan.memberName));
+              return `${mName}${showEng ? ` <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">(${loan.memberName})</span>` : ''}`;
+            })()}
+          </div>
           <div style="font-size: 0.75rem; color: var(--text-muted);">${loan.memberId} • 📞 ${loan.memberPhone || '-'}</div>
         </td>
         <td>
@@ -4569,7 +4643,14 @@ class UIManager {
         card.innerHTML = `
           <div class="loan-card-header">
             <div class="loan-card-member">
-              <div class="loan-card-member-name">${loan.memberName}</div>
+              <div class="loan-card-member-name">
+                ${(() => {
+                  const mem = window.bishiStore.getMember(loan.memberId);
+                  const mName = mem ? (window.bishiStore.getMemberMarathiName(mem) || mem.name) : (window.marathiHelper ? window.marathiHelper.toMarathi(loan.memberName) : loan.memberName);
+                  const showEng = loan.memberName && loan.memberName !== mName && !(/[\u0900-\u097F]/.test(loan.memberName));
+                  return `${mName}${showEng ? ` <span style="font-size: 0.82rem; font-weight: 500; color: var(--text-muted);">(${loan.memberName})</span>` : ''}`;
+                })()}
+              </div>
               <div class="loan-card-member-meta">
                 <span style="font-family: var(--font-mono); font-weight: 700; color: var(--gold-400);">${loan.id}</span>
                 <span>• ${loan.memberId}</span>
@@ -4677,7 +4758,9 @@ class UIManager {
       activeMembers.forEach(m => {
         const opt = document.createElement('option');
         opt.value = m.id;
-        opt.textContent = `${m.name} (${m.id} • ${m.phone})`;
+        const marathiName = window.bishiStore.getMemberMarathiName(m) || m.name;
+        const showEng = m.name && m.name !== marathiName && !(/[\u0900-\u097F]/.test(m.name));
+        opt.textContent = `${marathiName}${showEng ? ` (${m.name})` : ''} - ${m.id} • ${m.phone}`;
         if (memberId && m.id === memberId) opt.selected = true;
         select.appendChild(opt);
       });
@@ -4788,7 +4871,8 @@ class UIManager {
     const currentCycleNum = (loan.interestPayments ? loan.interestPayments.length : 0) + 1;
 
     document.getElementById('payLoanInterestLoanId').value = loan.id;
-    document.getElementById('payLoanInterestMemberName').textContent = loan.memberName;
+    const loanMemberForInt = window.bishiStore.getMember(loan.memberId);
+    document.getElementById('payLoanInterestMemberName').textContent = loanMemberForInt ? window.bishiStore.getMemberDisplayName(loanMemberForInt) : (window.marathiHelper ? window.marathiHelper.getMemberDisplayName({ name: loan.memberName }) : loan.memberName);
     document.getElementById('payLoanInterestMemberMeta').textContent = `${loan.memberId} • कर्ज क्र.: ${loan.id} (वाटप: W${loan.issueWeek || 1} • ${loan.issueDate || '-'})`;
     
     const badge = document.getElementById('payLoanInterestCycleBadge');
@@ -4931,7 +5015,8 @@ class UIManager {
     const currency = window.bishiStore.state.meta.currency || '₹';
 
     document.getElementById('markLoanPaidId').value = loan.id;
-    document.getElementById('markLoanPaidMemberName').textContent = loan.memberName;
+    const loanMemberForPaid = window.bishiStore.getMember(loan.memberId);
+    document.getElementById('markLoanPaidMemberName').textContent = loanMemberForPaid ? window.bishiStore.getMemberDisplayName(loanMemberForPaid) : (window.marathiHelper ? window.marathiHelper.getMemberDisplayName({ name: loan.memberName }) : loan.memberName);
     document.getElementById('markLoanPaidMemberMeta').textContent = `${loan.memberId} • कर्ज क्र.: ${loan.id} (वाटप: W${loan.issueWeek || 1} • ${loan.issueDate || '-'})`;
     
     const badgeEl = document.getElementById('markLoanPaidStatusBadge');
@@ -5508,6 +5593,33 @@ class UIManager {
     // फॉर्म सबमिट हँडलर्स
     document.getElementById('addMemberForm')?.addEventListener('submit', (e) => this.handleAddMemberSubmit(e));
     document.getElementById('editMemberForm')?.addEventListener('submit', (e) => this.handleEditMemberSubmit(e));
+
+    // ऑटो-मराठी ट्रान्सलिटरेशन इनपुट बाइंडिंग (Realtime English to Marathi conversion)
+    const addNameInput = document.getElementById('addMemberName');
+    const addMarathiInput = document.getElementById('addMemberNameMarathi');
+    if (addNameInput && addMarathiInput) {
+      addNameInput.addEventListener('input', () => {
+        if (window.marathiHelper && (!addMarathiInput.dataset.manual || !addMarathiInput.value)) {
+          addMarathiInput.value = window.marathiHelper.toMarathi(addNameInput.value);
+        }
+      });
+      addMarathiInput.addEventListener('input', () => {
+        addMarathiInput.dataset.manual = addMarathiInput.value.trim() ? 'true' : '';
+      });
+    }
+
+    const editNameInput = document.getElementById('editMemberName');
+    const editMarathiInput = document.getElementById('editMemberNameMarathi');
+    if (editNameInput && editMarathiInput) {
+      editNameInput.addEventListener('input', () => {
+        if (window.marathiHelper && (!editMarathiInput.dataset.manual || !editMarathiInput.value)) {
+          editMarathiInput.value = window.marathiHelper.toMarathi(editNameInput.value);
+        }
+      });
+      editMarathiInput.addEventListener('input', () => {
+        editMarathiInput.dataset.manual = editMarathiInput.value.trim() ? 'true' : '';
+      });
+    }
     document.getElementById('collectPaymentForm')?.addEventListener('submit', (e) => this.handleCollectSubmit(e));
     document.getElementById('bulkPayForm')?.addEventListener('submit', (e) => this.handleBulkPaySubmit(e));
     document.getElementById('payoutCompleteForm')?.addEventListener('submit', (e) => this.handlePayoutCompleteSubmit(e));
@@ -5608,6 +5720,11 @@ class UIManager {
     // Keyboard 'Escape' की दाबल्यावर मोडल किंवा ड्रॉवर बंद करणे
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
+        const topModal = document.querySelector('#receiptModal.active, #payoutVoucherModal.active');
+        if (topModal) {
+          topModal.classList.remove('active');
+          return;
+        }
         this.closeAllModals();
         this.closeMobileDrawer();
       }
@@ -5651,9 +5768,18 @@ class UIManager {
     document.getElementById('mobileThemeToggleBtn')?.addEventListener('click', toggleThemeHandler);
 
     // एक्सपोर्ट ट्रिगर्स
+    document.getElementById('btnExportWeeklyExcel')?.addEventListener('click', () => {
+      const cur = window.bishiStore.state.meta.currentWeek;
+      window.exportManager.exportWeeklyExcel(cur);
+    });
+
     document.getElementById('btnExportWeeklyCSV')?.addEventListener('click', () => {
       const cur = window.bishiStore.state.meta.currentWeek;
       window.exportManager.exportWeeklyCSV(cur);
+    });
+
+    document.getElementById('btnExportMasterExcel')?.addEventListener('click', () => {
+      window.exportManager.exportMasterLedgerExcel();
     });
 
     document.getElementById('btnExportMasterCSV')?.addEventListener('click', () => {
