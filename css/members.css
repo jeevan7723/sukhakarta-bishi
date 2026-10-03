@@ -186,22 +186,42 @@ button.status-completed:hover {
   border: 1px solid rgba(100, 116, 139, 0.3);
 }
 
-/* Interactive 50-Week Matrix */
+/* Interactive 50-Week / 12-Month Matrix */
 .week-matrix-preview {
-  display: flex;
-  align-items: center;
+  display: inline-grid;
+  grid-template-columns: repeat(10, 11px);
+  grid-auto-rows: 11px;
   gap: 3px;
-  max-width: 220px;
-  overflow: hidden;
-  flex-wrap: wrap;
+  width: fit-content;
+  min-width: 141px;
+  max-width: 145px;
+  overflow: visible;
   cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  transition: background var(--transition-fast);
+  padding: 5px 6px;
+  border-radius: 6px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  justify-content: center;
+  align-content: center;
+  margin: 0 auto;
+  transition: all var(--transition-fast);
+}
+
+.week-matrix-preview.monthly {
+  grid-template-columns: repeat(6, 13px);
+  grid-auto-rows: 13px;
+  gap: 4px;
+  min-width: 104px;
+  max-width: 110px;
+}
+
+.week-matrix-preview.monthly .matrix-dot {
+  width: 13px;
+  height: 13px;
 }
 
 .week-matrix-preview:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .matrix-dot {
@@ -212,11 +232,13 @@ button.status-completed:hover {
   border: 1px solid var(--border-color);
   transition: transform var(--transition-fast);
   cursor: pointer;
+  box-sizing: border-box;
+  display: inline-block;
 }
 
 .matrix-dot:hover {
   transform: scale(1.4);
-  z-index: 2;
+  z-index: 5;
 }
 
 .matrix-dot.paid {

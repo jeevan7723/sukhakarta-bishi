@@ -438,14 +438,17 @@
   color: #0f172a !important;
 }
 
-[data-theme="light"] .loans-page-hero {
+[data-theme="light"] .loans-page-hero,
+[data-theme="light"] .reports-page-hero {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
   border: 1px solid #e2e8f0 !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
 }
 
 [data-theme="light"] .loans-page-hero h1,
-[data-theme="light"] .loans-page-hero .loans-hero-title {
+[data-theme="light"] .loans-page-hero .loans-hero-title,
+[data-theme="light"] .reports-page-hero h1,
+[data-theme="light"] .reports-page-hero .hero-page-title {
   color: #0f172a !important;
 }
 
@@ -1867,11 +1870,63 @@ select option:checked {
   border-bottom: none;
 }
 
+/* Column Alignments & Proportions for Members Table */
+#membersTable {
+  min-width: 1060px;
+}
+
+#membersTable th,
+#membersTable td {
+  vertical-align: middle;
+}
+
+#membersTable th:nth-child(1),
+#membersTable td:nth-child(1) {
+  min-width: 220px;
+}
+
+#membersTable th:nth-child(2),
+#membersTable td:nth-child(2) {
+  min-width: 110px;
+  white-space: nowrap;
+}
+
+#membersTable th:nth-child(3),
+#membersTable td:nth-child(3) {
+  min-width: 165px;
+}
+
+#membersTable th:nth-child(4),
+#membersTable td:nth-child(4) {
+  min-width: 140px;
+}
+
+#membersTable th:nth-child(5),
+#membersTable td:nth-child(5) {
+  min-width: 185px;
+  white-space: nowrap;
+}
+
+#membersTable th:nth-child(6),
+#membersTable td:nth-child(6) {
+  width: 165px;
+  min-width: 160px;
+  text-align: center;
+}
+
+#membersTable th:nth-child(7),
+#membersTable td:nth-child(7) {
+  min-width: 175px;
+  text-align: right;
+  white-space: nowrap;
+}
+
 /* ==========================================================================
    PAGE HERO & HIGHLIGHT CARDS (Members Page, Loans Page, Dashboard Highlights)
    ========================================================================== */
 .members-page-hero,
 .loans-page-hero,
+.reports-page-hero,
 .member-section-highlight-card {
   margin-bottom: 1.5rem;
   background: var(--bg-card);
@@ -1887,6 +1942,7 @@ select option:checked {
 
 [data-theme="light"] .members-page-hero,
 [data-theme="light"] .loans-page-hero,
+[data-theme="light"] .reports-page-hero,
 [data-theme="light"] .member-section-highlight-card {
   background: #ffffff !important;
   border-color: #e2e8f0 !important;
@@ -1974,16 +2030,38 @@ select option:checked {
 
 @media (min-width: 900px) {
   .members-page-hero,
-  .loans-page-hero {
+  .loans-page-hero,
+  .reports-page-hero {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "nav nav"
+      "main actions";
     align-items: center;
-    gap: 1.25rem;
+    gap: 1.15rem 1.75rem;
   }
   .hero-top-nav-bar {
-    width: auto;
+    grid-area: nav;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px dashed var(--border-color);
+  }
+  .hero-main-content {
+    grid-area: main;
+    display: flex;
+    align-items: center;
+    gap: 1.15rem;
+    min-width: 0;
   }
   .hero-action-buttons-group {
+    grid-area: actions;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
     justify-content: flex-end;
   }
 
@@ -2353,22 +2431,42 @@ button.status-completed:hover {
   border: 1px solid rgba(100, 116, 139, 0.3);
 }
 
-/* Interactive 50-Week Matrix */
+/* Interactive 50-Week / 12-Month Matrix */
 .week-matrix-preview {
-  display: flex;
-  align-items: center;
+  display: inline-grid;
+  grid-template-columns: repeat(10, 11px);
+  grid-auto-rows: 11px;
   gap: 3px;
-  max-width: 220px;
-  overflow: hidden;
-  flex-wrap: wrap;
+  width: fit-content;
+  min-width: 141px;
+  max-width: 145px;
+  overflow: visible;
   cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  transition: background var(--transition-fast);
+  padding: 5px 6px;
+  border-radius: 6px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  justify-content: center;
+  align-content: center;
+  margin: 0 auto;
+  transition: all var(--transition-fast);
+}
+
+.week-matrix-preview.monthly {
+  grid-template-columns: repeat(6, 13px);
+  grid-auto-rows: 13px;
+  gap: 4px;
+  min-width: 104px;
+  max-width: 110px;
+}
+
+.week-matrix-preview.monthly .matrix-dot {
+  width: 13px;
+  height: 13px;
 }
 
 .week-matrix-preview:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .matrix-dot {
@@ -2379,11 +2477,13 @@ button.status-completed:hover {
   border: 1px solid var(--border-color);
   transition: transform var(--transition-fast);
   cursor: pointer;
+  box-sizing: border-box;
+  display: inline-block;
 }
 
 .matrix-dot:hover {
   transform: scale(1.4);
-  z-index: 2;
+  z-index: 5;
 }
 
 .matrix-dot.paid {
@@ -2403,9 +2503,11 @@ button.status-completed:hover {
 
 /* Member Action Buttons */
 .action-buttons {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.4rem;
+  white-space: nowrap;
 }
 
 .member-action-select {
@@ -2967,12 +3069,281 @@ button.status-completed:hover {
   line-height: 1.4;
 }
 
+/* ==========================================================================
+   MEMBER LEDGER CARD REGISTER REPORT STYLES (Based on Official Template)
+   ========================================================================== */
+
+#memberLedgerModal {
+  z-index: 2600 !important;
+}
+
+.member-ledger-card-register {
+  width: 100%;
+  max-width: 1060px;
+  margin: 0 auto;
+  background: #ffffff;
+  color: #111827;
+  border: 2.5px solid #853d1b;
+  border-radius: 6px;
+  padding: 22px 26px;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  box-shadow: 0 4px 24px rgba(133, 61, 27, 0.09);
+}
+
+.ledger-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.ledger-brand-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #853d1b;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.ledger-doc-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #231610;
+  letter-spacing: -0.01em;
+}
+
+.ledger-top-meta {
+  font-size: 0.86rem;
+  color: #111827;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.ledger-page-num {
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 1px;
+}
+
+.ledger-header-divider {
+  border-bottom: 2px solid #853d1b;
+  margin: 6px 0 14px 0;
+  width: 100%;
+}
+
+.ledger-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  border: 1.5px solid #853d1b;
+}
+
+.ledger-info-table td {
+  padding: 6px 12px;
+  font-size: 0.84rem;
+  border: 1px solid #853d1b;
+  vertical-align: middle;
+}
+
+.ledger-info-table .info-lbl {
+  background-color: #853d1b;
+  color: #ffffff;
+  font-weight: 700;
+  width: 19%;
+  white-space: nowrap;
+}
+
+.ledger-info-table .info-val {
+  background-color: #fffdf5;
+  color: #111827;
+  font-weight: 700;
+  width: 31%;
+  border: 1px solid #cfa890;
+}
+
+.ledger-info-table .info-green {
+  color: #047857;
+  font-weight: 800;
+}
+
+.ledger-info-table .info-blue {
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.ledger-info-table .info-base-int {
+  color: #475569;
+  font-size: 0.85em;
+  font-weight: 600;
+  margin-left: 3px;
+}
+
+.ledger-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+
+.ledger-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  border: 1.5px solid #853d1b;
+}
+
+.ledger-data-table th {
+  background-color: #faede2;
+  color: #111827;
+  font-weight: 700;
+  border: 1px solid #853d1b;
+  padding: 6px 4px;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.ledger-data-table th.th-green {
+  color: #047857;
+}
+
+.ledger-data-table th.th-red {
+  color: #991b1b;
+}
+
+.ledger-data-table th.th-brown {
+  color: #7c2d12;
+}
+
+.ledger-data-table .th-green-sub {
+  color: #047857;
+  font-weight: 700;
+}
+
+.ledger-data-table td {
+  border: 1px solid #dfcec3;
+  padding: 5px 6px;
+  color: #111827;
+  font-size: 0.8rem;
+  vertical-align: middle;
+}
+
+.ledger-data-table tbody tr:nth-child(even) {
+  background-color: #faf5ef;
+}
+
+.ledger-data-table tbody tr:hover {
+  background-color: #f5ece3;
+}
+
+.ledger-data-table .total-row td {
+  background-color: #853d1b !important;
+  color: #ffffff !important;
+  font-weight: 800;
+  border: 1.5px solid #853d1b;
+  padding: 7px 6px;
+  font-size: 0.82rem;
+}
+
+.ledger-bottom-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 14px;
+  gap: 18px;
+}
+
+.ledger-notes-card {
+  background-color: #fffdf5;
+  border: 1.5px solid #853d1b;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: #111827;
+  min-width: 280px;
+}
+
+.ledger-notes-card .notes-takani {
+  font-weight: 700;
+  color: #111827;
+}
+
+.ledger-notes-card .notes-dividend {
+  font-weight: 800;
+  color: #047857;
+}
+
+.ledger-notes-card .notes-acc {
+  font-weight: 700;
+  color: #111827;
+}
+
+.ledger-notes-card .notes-payout {
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.ledger-ack-section {
+  text-align: right;
+  font-size: 0.84rem;
+  color: #111827;
+  flex: 1;
+}
+
+.ledger-ack-text {
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: #111827;
+  margin-bottom: 2.2rem;
+}
+
+.ledger-sign-line {
+  border-top: 2px solid #111827;
+  width: 230px;
+  margin-left: auto;
+  padding-top: 5px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #111827;
+  text-align: center;
+}
+
 /* Print Media Query */
 @media print {
+  @page {
+    size: landscape;
+    margin: 6mm 8mm;
+  }
   body * {
     visibility: hidden;
   }
-  .receipt-wrapper, .receipt-wrapper * {
+  #printableMemberLedgerArea,
+  #printableMemberLedgerArea *,
+  #reportPageContentArea,
+  #reportPageContentArea * {
+    visibility: visible;
+  }
+  #printableMemberLedgerArea,
+  #reportPageContentArea .member-ledger-card-register {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 14px 18px !important;
+    border: 2.5px solid #853d1b !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .receipt-wrapper,
+  .receipt-wrapper * {
     visibility: visible;
   }
   .receipt-wrapper {
@@ -2984,6 +3355,8 @@ button.status-completed:hover {
     margin: 0 auto;
     box-shadow: none;
     border: 1px solid #000;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .modal-overlay, .modal-container {
     background: transparent !important;
@@ -2991,7 +3364,7 @@ button.status-completed:hover {
     border: none !important;
     padding: 0 !important;
   }
-  .modal-header, .modal-footer, .nav-actions, .top-navbar, .no-print {
+  .modal-header, .modal-footer, .nav-actions, .top-navbar, .no-print, .ledger-toolbar {
     display: none !important;
   }
 }
@@ -3571,6 +3944,24 @@ button.status-completed:hover {
   .brand-hero-pills {
     justify-content: center;
   }
+}
+
+/* Reports Page Hero Styling */
+.reports-page-hero {
+  background: linear-gradient(135deg, rgba(133, 61, 27, 0.12), rgba(245, 158, 11, 0.08), rgba(30, 41, 59, 0.7));
+  border: 1.5px solid rgba(133, 61, 27, 0.35);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .reports-page-hero {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.8), rgba(255, 237, 213, 0.7), #ffffff);
+  border-color: rgba(133, 61, 27, 0.35);
+  box-shadow: 0 8px 25px rgba(133, 61, 27, 0.08);
 }
 
 /* Sidebar Styling for Desktop */
@@ -4392,6 +4783,7 @@ body.customer-mode #mobileDrawerAdminMenu,
   /* Hero Cards Mobile Layout (Clean, User-Friendly & Touch-Optimized) */
   .members-page-hero,
   .loans-page-hero,
+  .reports-page-hero,
   .member-section-highlight-card {
     padding: 0.95rem 1rem !important;
     gap: 0.75rem !important;
@@ -4844,6 +5236,7 @@ body.customer-mode #mobileDrawerAdminMenu,
 #dashboardView,
 #membersPageView,
 #loansPageView,
+#reportsPageView,
 #customerPortalView {
   animation: pageFadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -4851,6 +5244,7 @@ body.customer-mode #mobileDrawerAdminMenu,
 /* 3. Hero Cards */
 .members-page-hero,
 .loans-page-hero,
+.reports-page-hero,
 .member-section-highlight-card,
 .customer-hero-card {
   animation: heroSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -5471,10 +5865,16 @@ body.customer-mode #mobileDrawerAdminMenu,
               <span class="badge sidebar-nav-badge" id="navLoansActiveBadge" style="background: rgba(168, 85, 247, 0.25); color: #c084fc; font-size: 0.72rem; padding: 0.15rem 0.45rem; border-radius: 9999px; margin-left: auto; font-weight: 800; border: 1px solid rgba(168, 85, 247, 0.4);">0</span>
             </button>
 
-            <!-- सर्व सदस्यांच्या ठेवी / खातावही (प्रशासक) -->
-            <button type="button" class="sidebar-nav-item" id="btnOpenTxnLog" onclick="window.ui.closeMobileDrawer(); window.ui.renderAdminTransactionsTab(); document.getElementById('adminTxnModal').classList.add('active');" title="सर्व सदस्यांचा ठेवी इतिहास व खातावही">
+            <!-- सर्व सदस्यांच्या ठेवी व कर्ज खातावही (प्रशासक) -->
+            <button type="button" class="sidebar-nav-item" id="btnOpenTxnLog" onclick="window.ui.closeMobileDrawer(); window.ui.switchAdminTxnSubtab('all'); document.getElementById('adminTxnModal').classList.add('active');" title="सर्व सदस्यांचा ठेवी व कर्ज इतिहास खातावही">
               <span class="sidebar-nav-icon">📋</span>
               <span class="sidebar-nav-text">सर्व खातावही</span>
+            </button>
+
+            <!-- अधिकृत सदस्य लेजर कार्ड अहवाल (Official Ledger Card Register Report) -->
+            <button type="button" class="sidebar-nav-item" id="btnNavReports" onclick="window.ui.navigateToReportsPage(); window.ui.closeMobileDrawer();" title="अधिकृत सदस्य खातावही कार्ड रजिस्टर (Member Ledger Card Register Report)">
+              <span class="sidebar-nav-icon">📜</span>
+              <span class="sidebar-nav-text">लेजर कार्ड अहवाल</span>
             </button>
           </div>
         </div>
@@ -5514,6 +5914,10 @@ body.customer-mode #mobileDrawerAdminMenu,
             <button type="button" class="sidebar-nav-item" onclick="window.ui.closeMobileDrawer(); const m = window.authManager.getCurrentCustomerMember(); if(m) window.exportManager.downloadMemberLedgerCSV(m.id);">
               <span class="sidebar-nav-icon">📥</span>
               <span class="sidebar-nav-text">माझी खातावही डाउनलोड</span>
+            </button>
+            <button type="button" class="sidebar-nav-item" onclick="window.ui.closeMobileDrawer(); const m = window.authManager.getCurrentCustomerMember(); if(m) window.ui.navigateToReportsPage(m.id);">
+              <span class="sidebar-nav-icon">📜</span>
+              <span class="sidebar-nav-text">माझे लेजर कार्ड अहवाल</span>
             </button>
           </div>
         </div>
@@ -5793,24 +6197,26 @@ body.customer-mode #mobileDrawerAdminMenu,
 
           <div class="filter-group">
             <button class="filter-btn active" data-filter="all">सर्व सदस्य</button>
-            <button class="filter-btn" data-filter="pending">या आठवड्याची बाकी</button>
+            <button class="filter-btn" data-filter="weekly">📅 साप्ताहिक</button>
+            <button class="filter-btn" data-filter="monthly">🗓️ मासिक</button>
+            <button class="filter-btn" data-filter="pending">या कालावधीची बाकी</button>
             <button class="filter-btn" data-filter="overdue">थकबाकी / लेट</button>
-            <button class="filter-btn" data-filter="paid">या आठवड्यात जमा</button>
-            <button class="filter-btn" data-filter="completed">पूर्ण झालेले (५० आठवडे)</button>
+            <button class="filter-btn" data-filter="paid">जमा झालेले</button>
+            <button class="filter-btn" data-filter="completed">पूर्ण झालेले</button>
           </div>
         </section>
 
-        <!-- साप्ताहिक कलेक्शन टेबल -->
+        <!-- साप्ताहिक व मासिक कलेक्शन टेबल -->
         <section class="table-responsive">
           <table class="custom-table" id="membersTable">
             <thead>
               <tr>
                 <th>सदस्य तपशील</th>
-                <th>साप्ताहिक हप्ता</th>
-                <th>या आठवड्याची स्थिती</th>
+                <th>हप्ता रक्कम</th>
+                <th>सद्य स्थिती</th>
                 <th>एकूण जमा बचत</th>
                 <th>पुढील हप्ता / लक्ष्य</th>
-                <th>५०-आठवडे प्रगती</th>
+                <th>बचत प्रगती</th>
                 <th style="text-align: right;">क्रिया / ऑप्शन्स</th>
               </tr>
             </thead>
@@ -5828,7 +6234,7 @@ body.customer-mode #mobileDrawerAdminMenu,
               <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">सर्व सदस्यांच्या ठेवी, लेट फी दंड आणि मॅच्युरिटी लक्ष्यांचा थेट ताळेबंद.</p>
             </div>
             <div style="display: flex; gap: 0.5rem;">
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('adminTxnModal').classList.add('active'); window.ui.renderAdminTransactionsTab();">
+              <button class="btn btn-secondary btn-sm" onclick="window.ui.switchAdminTxnSubtab('all'); document.getElementById('adminTxnModal').classList.add('active');">
                 📜 सर्व व्यवहार खातावही
               </button>
               <button class="btn btn-gold btn-sm" onclick="document.getElementById('exportModal').classList.add('active')">
@@ -6205,6 +6611,102 @@ body.customer-mode #mobileDrawerAdminMenu,
 
 
       <!-- ==========================================================================
+           दृश्य ५: अधिकृत सदस्य लेजर कार्ड अहवाल रजिस्टर (Dedicated Reports Section)
+           ========================================================================== -->
+      <div id="reportsPageView" style="display: none;">
+        <!-- अहवाल पेज हिरो व हेडर -->
+        <div class="reports-page-hero">
+          <div class="hero-top-nav-bar">
+            <button type="button" class="btn btn-secondary btn-sm hero-back-btn" onclick="window.ui.navigateToDashboard()" title="मुख्य बचत डॅशबोर्डवर परत जा">
+              <span>⬅️</span> मुख्य डॅशबोर्ड
+            </button>
+            <span class="status-pill" style="font-size: 0.75rem; padding: 0.22rem 0.75rem; background: rgba(133, 61, 27, 0.15); color: #853d1b; border: 1px solid rgba(133, 61, 27, 0.35); font-weight: 700;">
+              📋 अधिकृत खातावही कार्ड रजिस्टर
+            </span>
+          </div>
+
+          <div class="hero-main-content">
+            <div class="hero-icon-container" style="background: linear-gradient(135deg, rgba(133, 61, 27, 0.2), rgba(245, 158, 11, 0.25)); color: #853d1b; font-size: 2rem;">
+              📜
+            </div>
+            <div class="hero-heading-block">
+              <h1 class="hero-page-title">बीशी अहवाल व अधिकृत सदस्य खातावही कार्ड रजिस्टर</h1>
+              <p class="hero-page-desc">
+                शासकीय व अधिकृत लेजर कार्ड रजिस्टर अहवाल — हप्ते, मुद्दल, व्याज व अंतिम परतावा गणना
+              </p>
+            </div>
+          </div>
+
+          <div class="hero-action-buttons-group">
+            <button type="button" class="btn btn-emerald hero-main-action-btn" onclick="window.receiptManager.printMemberLedgerCard()" title="हा अहवाल त्वरित प्रिंट करा">
+              <span>🖨️</span> अहवाल प्रिंट करा
+            </button>
+            <button type="button" class="btn btn-secondary hero-sub-action-btn" onclick="window.receiptManager.printMemberLedgerCard()" title="हा अहवाल PDF स्वरूपात सेव्ह करा">
+              <span>📥</span> PDF सेव्ह करा
+            </button>
+            <a id="btnReportsShareWhatsApp" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-emerald hero-sub-action-btn" style="background: #25d366; color: #000; border-color: #25d366; font-weight: 700;" title="हा अहवाल सदस्यास WhatsApp वर पाठवा">
+              <span>💬</span> WhatsApp वर पाठवा
+            </a>
+          </div>
+        </div>
+
+        <!-- अहवाल नियंत्रक टूलबार (Controls Toolbar) -->
+        <div class="glass-card" style="padding: 1.15rem 1.35rem; margin-bottom: 1.5rem; border: 1.5px solid rgba(133, 61, 27, 0.25); background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; flex: 1;">
+              <!-- सदस्य निवड ड्रॉपडाउन -->
+              <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                <label for="reportsMemberSelect" style="font-size: 0.78rem; font-weight: 700; color: #853d1b; text-transform: uppercase;">
+                  👤 सदस्य निवडा:
+                </label>
+                <select id="reportsMemberSelect" class="form-control" style="font-weight: 700; font-size: 0.88rem; min-width: 260px; border-color: #853d1b; background: #fffdf5;" onchange="window.ui.onReportsMemberChange(this.value)">
+                  <!-- डायनॅमिकली भरले जाईल -->
+                </select>
+              </div>
+
+              <!-- सायकल स्विचर (असल्यास) -->
+              <div id="reportsCycleWrap" style="display: none; flex-direction: column; gap: 0.3rem;">
+                <label for="reportsCycleSelect" style="font-size: 0.78rem; font-weight: 700; color: #4b5563; text-transform: uppercase;">
+                  🔄 सायकल:
+                </label>
+                <select id="reportsCycleSelect" class="form-control" style="font-size: 0.88rem; font-weight: 600; width: auto;" onchange="window.ui.onReportsCycleChange(this.value)">
+                  <!-- पर्यायी सायकल्स -->
+                </select>
+              </div>
+
+              <!-- आठवडे फिल्टर टॉगल -->
+              <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                <label style="font-size: 0.78rem; font-weight: 700; color: #4b5563; text-transform: uppercase;">
+                  👁️ आठवडे दृश्य:
+                </label>
+                <div class="btn-group" style="display: flex; gap: 0.35rem;">
+                  <button type="button" id="btnReportsFilterActive" class="btn btn-sm btn-primary" onclick="window.ui.toggleReportsWeekFilter(false)" style="font-size: 0.78rem; font-weight: 700;">
+                    ✓ भरलेले / चालू आठवडे
+                  </button>
+                  <button type="button" id="btnReportsFilterAll" class="btn btn-sm btn-secondary" onclick="window.ui.toggleReportsWeekFilter(true)" style="font-size: 0.78rem; font-weight: 700;">
+                    सर्व ५० आठवडे
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- जलद सदस्य माहिती बॅज -->
+            <div id="reportsMemberInfoBadge" style="background: #fffdf5; border: 1px solid #cfa890; border-radius: var(--radius-md); padding: 0.5rem 0.9rem; font-size: 0.82rem; color: #111827; display: flex; align-items: center; gap: 0.75rem;">
+              <!-- भरले जाईल -->
+            </div>
+          </div>
+        </div>
+
+        <!-- मुख्य अधिकृत खातावही कार्ड अहवाल डिस्प्ले एरिया -->
+        <div style="background: #f8fafc; padding: 1.5rem 1rem; border-radius: var(--radius-lg); border: 1px solid #e2e8f0; overflow-x: auto; margin-bottom: 2.5rem; display: flex; justify-content: center; box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);">
+          <div id="reportPageContentArea" style="width: 100%; max-width: 1060px;">
+            <!-- डायनॅमिकली generateMemberLedgerReportHTML भरले जाईल -->
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ==========================================================================
            दृश्य २: सदस्य वैयक्तिक पोर्टल (केवळ सदस्य)
            ========================================================================== -->
       <div id="customerPortalView" style="display: none;">
@@ -6242,6 +6744,9 @@ body.customer-mode #mobileDrawerAdminMenu,
           <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
             <button class="btn btn-secondary" id="btnCustHeroPassbook" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.1rem; font-size: 0.88rem; font-weight: 700; border-color: rgba(59, 130, 246, 0.4); color: var(--blue-300); background: rgba(59, 130, 246, 0.12);" title="सदस्य ५०-आठवडे पासबुक व खातावही पहा">
               <span>📖</span> सदस्य खातावही (पासबुक पहा)
+            </button>
+            <button class="btn btn-secondary" id="btnCustHeroPrintLedgerCard" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.1rem; font-size: 0.88rem; font-weight: 700; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08);" title="अधिकृत लेजर कार्ड रजिस्टर पहा व प्रिंट करा">
+              <span>📋</span> लेजर कार्ड रिपोर्ट
             </button>
             <button class="btn btn-secondary" id="btnCustHeroDownloadLedger" style="padding: 0.65rem 1.1rem; font-size: 0.88rem;">
               📥 स्टेटमेंट डाउनलोड करा
@@ -6475,9 +6980,14 @@ body.customer-mode #mobileDrawerAdminMenu,
               <h3 style="font-size: 1.15rem; color: var(--text-primary);">📜 माझे सर्व व्यवहार व पेमेंट इतिहास</h3>
               <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">आपल्या ५०-आठवडे बीशीचे जमा हप्ते आणि डिजिटल पावत्यांचा संपूर्ण तपशील.</p>
             </div>
-            <button class="btn btn-secondary btn-sm" id="btnCustDownloadMyLedger">
-              📥 माझे स्टेटमेंट डाउनलोड करा
-            </button>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm" id="btnCustPrintLedgerCard" style="font-weight: 700; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08);">
+                📋 माझे लेजर कार्ड पहा / प्रिंट करा
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btnCustDownloadMyLedger">
+                📥 माझे स्टेटमेंट डाउनलोड करा
+              </button>
+            </div>
           </div>
           <div class="table-responsive" style="border: none; box-shadow: none;">
             <table class="custom-table">
@@ -6520,6 +7030,21 @@ body.customer-mode #mobileDrawerAdminMenu,
       </div>
       <form id="addMemberForm">
         <div class="modal-body">
+          <!-- बीसी प्रकार निवडा (साप्ताहिक ५० आठवडे किंवा मासिक १२ महिने) -->
+          <div class="form-group" style="background: rgba(245, 158, 11, 0.06); padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid rgba(245, 158, 11, 0.25);">
+            <label class="form-label" style="color: var(--gold-400); font-weight: 700; margin-bottom: 0.5rem;">बीसी प्रकार निवडा (Bishi Frequency) *</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-primary); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;">
+                <input type="radio" name="addMemberType" id="addMemberTypeWeekly" value="weekly" checked style="accent-color: var(--gold-500); width: 16px; height: 16px;">
+                <span style="font-weight: 600; font-size: 0.88rem;">📅 साप्ताहिक (५० आठवडे)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-primary); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;">
+                <input type="radio" name="addMemberType" id="addMemberTypeMonthly" value="monthly" style="accent-color: var(--gold-500); width: 16px; height: 16px;">
+                <span style="font-weight: 600; font-size: 0.88rem;">🗓️ मासिक (१२ महिने)</span>
+              </label>
+            </div>
+          </div>
+
           <div class="form-group">
             <label class="form-label" for="addMemberName">सदस्याचे नाव (इंग्रजी / English) *</label>
             <input type="text" id="addMemberName" class="form-control" placeholder="उदा. Aditya Patil किंवा राजेश पाटील" required>
@@ -6539,8 +7064,8 @@ body.customer-mode #mobileDrawerAdminMenu,
           </div>
 
           <div class="form-group">
-            <label class="form-label">साप्ताहिक हप्ता रक्कम निवडा (₹) *</label>
-            <div class="amount-presets">
+            <label class="form-label" id="addMemberAmountLabel">साप्ताहिक हप्ता रक्कम निवडा (₹) *</label>
+            <div class="amount-presets" id="addMemberAmountPresets">
               <button type="button" class="preset-btn" data-amount="500">₹५०० / आठवडा</button>
               <button type="button" class="preset-btn active" data-amount="1000">₹१,००० / आठवडा</button>
               <button type="button" class="preset-btn" data-amount="2000">₹२,००० / आठवडा</button>
@@ -6549,18 +7074,18 @@ body.customer-mode #mobileDrawerAdminMenu,
             <input type="number" id="addMemberWeeklyAmount" class="form-control" value="1000" min="10" step="any" required>
           </div>
 
-          <!-- ५०-आठवडे एकूण लक्ष्य प्रिव्ह्यू कार्ड -->
+          <!-- ५०-आठवडे / १२-महिने एकूण लक्ष्य प्रिव्ह्यू कार्ड -->
           <div style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.15rem; display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">५०-आठवड्यांचे एकूण उद्दिष्ट</div>
-              <div style="font-size: 0.8rem; color: var(--text-muted);">साप्ताहिक हप्ता × ५० आठवडे</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;" id="addMemberAccumulationTitle">५०-आठवड्यांचे एकूण उद्दिष्ट</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);" id="addMemberAccumulationSub">साप्ताहिक हप्ता × ५० आठवडे</div>
             </div>
             <div style="font-size: 1.35rem; font-weight: 800; color: var(--gold-400); font-family: var(--font-display);" id="addMemberTotalAccumulationPreview">₹५०,०००</div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
-              <label class="form-label" for="addMemberStartWeek">सुरुवातीचा आठवडा</label>
+              <label class="form-label" for="addMemberStartWeek" id="addMemberStartPeriodLabel">सुरुवातीचा आठवडा</label>
               <input type="number" id="addMemberStartWeek" class="form-control" value="1" min="1" max="50">
             </div>
             <div class="form-group">
@@ -6582,10 +7107,10 @@ body.customer-mode #mobileDrawerAdminMenu,
           <!-- पहिला हप्ता आत्ताच जमा करा चेकबॉक्स -->
           <div style="background: var(--bg-tertiary); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-top: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
             <div>
-              <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); cursor: pointer;" for="addMemberInitialDeposit">
+              <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); cursor: pointer;" for="addMemberInitialDeposit" id="addMemberInitialDepositLabel">
                 पहिल्या आठवड्याचा हप्ता आत्ताच जमा करायचा आहे का?
               </label>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">पहिला हप्ता लगेच जमा म्हणून नोंदवला जाईल</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);" id="addMemberInitialDepositSub">पहिला हप्ता लगेच जमा म्हणून नोंदवला जाईल</div>
             </div>
             <input type="checkbox" id="addMemberInitialDeposit" style="width: 20px; height: 20px; cursor: pointer;">
           </div>
@@ -6712,12 +7237,12 @@ body.customer-mode #mobileDrawerAdminMenu,
     </div>
   </div>
 
-  <!-- मोडल २: साप्ताहिक हप्ता जमा नोंदवा (प्रशासक) -->
+  <!-- मोडल २: हप्ता जमा नोंदवा (प्रशासक) -->
   <div class="modal-overlay" id="collectPaymentModal">
     <div class="modal-container">
       <div class="modal-header">
         <h3 class="modal-title">
-          <span>💰</span> साप्ताहिक हप्ता जमा नोंदवा
+          <span>💰</span> <span id="collectPaymentModalTitle">हप्ता जमा नोंदवा</span>
         </h3>
         <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
       </div>
@@ -6745,7 +7270,7 @@ body.customer-mode #mobileDrawerAdminMenu,
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
-              <label class="form-label">आठवडा क्र.</label>
+              <label class="form-label" id="collectModalPeriodLabel">कालावधी / हप्ता क्र.</label>
               <input type="hidden" id="collectModalWeekNumber">
               <div style="font-weight: 700; font-size: 1.1rem; color: var(--emerald-400); padding: 0.6rem 0;" id="collectModalWeekNumberDisplay">आठवडा १</div>
             </div>
@@ -6755,10 +7280,10 @@ body.customer-mode #mobileDrawerAdminMenu,
             </div>
           </div>
 
-          <!-- हप्ते कालावधी / आठवडे निवडा (Quick Week Multipliers) -->
+          <!-- हप्ते कालावधी / आठवडे / महिने निवडा (Quick Multipliers) -->
           <div class="form-group" style="margin-top: -0.25rem; margin-bottom: 0.85rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-              <label class="form-label" style="color: var(--text-secondary); margin-bottom: 0; font-size: 0.8rem;">
+              <label class="form-label" id="collectModalPeriodMultiplierLabel" style="color: var(--text-secondary); margin-bottom: 0; font-size: 0.8rem;">
                 हप्ते कालावधी निवडा (आगाऊ भरणा):
               </label>
               <span id="collectModalWeeksBadge" class="status-pill status-paid" style="font-size: 0.72rem; padding: 0.15rem 0.5rem; background: rgba(16, 185, 129, 0.15); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.3);">१ आठवडा</span>
@@ -6852,7 +7377,7 @@ body.customer-mode #mobileDrawerAdminMenu,
     <div class="modal-container large">
       <div class="modal-header">
         <h3 class="modal-title">
-          <span>📖</span> सदस्य ५०-आठवडे पासबुक
+          <span>📖</span> <span id="passbookModalTitle">सदस्य पासबुक</span>
         </h3>
         <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
       </div>
@@ -6872,10 +7397,13 @@ body.customer-mode #mobileDrawerAdminMenu,
             <button type="button" class="btn btn-secondary btn-sm" id="passbookBtnWipeDeposits" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: var(--gold-400); border-color: rgba(245, 158, 11, 0.4);" title="या सदस्याचा जमा भरणा डेटा पुसा (Wipe Deposits)">
               🧹 भरणा पुसा
             </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="passbookBtnLedgerCard" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08); font-weight: 700;" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
+              📋 लेजर कार्ड
+            </button>
           </div>
           <div style="display: flex; gap: 1.5rem; text-align: right; flex-wrap: wrap;">
             <div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">साप्ताहिक हप्ता</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;" id="passbookInstallmentLabel">हप्ता रक्कम</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--emerald-400);" id="passbookWeeklyAmt">₹0</div>
             </div>
             <div>
@@ -6883,7 +7411,7 @@ body.customer-mode #mobileDrawerAdminMenu,
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--gold-400);" id="passbookTotalPaid">₹0</div>
             </div>
             <div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">आठवडे जमा</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;" id="passbookPeriodsLabel">कालावधी प्रगती</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary);" id="passbookWeeksCompleted">0 / 50</div>
             </div>
             <div>
@@ -6913,6 +7441,9 @@ body.customer-mode #mobileDrawerAdminMenu,
           </button>
           <button type="button" class="btn btn-emerald" id="btnPassbookRestartPlan" style="display: none; font-weight: 800; background: linear-gradient(135deg, var(--emerald-600), var(--blue-600));">
             🔄 नवीन प्लॅन सुरू करा (पुढील सायकल)
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnPassbookLedgerCardFooter" style="color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08); font-weight: 700;" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
+            📋 लेजर कार्ड रजिस्टर
           </button>
           <button type="button" class="btn btn-secondary btn-sm" id="btnPassbookWipeDepositsFooter" style="color: var(--gold-400); border-color: rgba(245, 158, 11, 0.4); font-weight: 700;">
             🧹 भरणा डेटा पुसा
@@ -7266,28 +7797,53 @@ body.customer-mode #mobileDrawerAdminMenu,
   </div>
 
   <!-- मोडल ७: सर्व सदस्यांचा ठेवी इतिहास व खातावही (प्रशासक) -->
+  <!-- मोडल ७: सर्व सदस्यांचा ठेवी व कर्ज इतिहास व खातावही (प्रशासक) -->
   <div class="modal-overlay" id="adminTxnModal">
-    <div class="modal-container large">
+    <div class="modal-container large" style="max-width: 1080px;">
       <div class="modal-header">
         <h3 class="modal-title">
-          <span>📋</span> सर्व सदस्यांच्या ठेवींचा तपशील व खातावही
+          <span>📋</span> सर्व सदस्यांच्या ठेवी व कर्ज तपशील खातावही
         </h3>
-        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" title="बंद करा">&times;</button>
       </div>
       <div class="modal-body" style="padding: 0;">
-        <div style="padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem; background: var(--bg-tertiary);">
+        <!-- Sub-Tabs / View Switcher (ठेवी vs कर्ज खातावही व तपशील) -->
+        <div class="modal-tab-bar" style="display: flex; gap: 0.5rem; padding: 0.75rem 1.25rem 0; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); overflow-x: auto; -webkit-overflow-scrolling: touch;">
+          <button type="button" class="btn btn-sm btn-primary modal-subtab-btn active" id="adminTxnSubtabAll" onclick="window.ui.switchAdminTxnSubtab('all')" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 0.45rem 0.85rem; font-weight: 700;">
+            📋 सर्व व्यवहार (ठेवी + कर्ज)
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary modal-subtab-btn" id="adminTxnSubtabDeposits" onclick="window.ui.switchAdminTxnSubtab('deposits')" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 0.45rem 0.85rem; font-weight: 700;">
+            💰 फक्त बीशी ठेवी
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary modal-subtab-btn" id="adminTxnSubtabLoans" onclick="window.ui.switchAdminTxnSubtab('loans')" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 0.45rem 0.85rem; font-weight: 700;">
+            💳 सर्व कर्ज व्यवहार (वाटप / व्याज / परतफेड)
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary modal-subtab-btn" id="adminTxnSubtabLoanAccounts" onclick="window.ui.switchAdminTxnSubtab('loanAccounts')" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 0.45rem 0.85rem; font-weight: 700;">
+            📊 सर्व सदस्यांचे कर्ज तपशील व खाती
+          </button>
+        </div>
+
+        <div style="padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem; background: var(--bg-tertiary);">
           <div style="display: flex; gap: 0.75rem; flex: 1; max-width: 480px;">
-            <input type="text" id="adminTxnSearchInput" class="form-control" placeholder="सदस्याचे नाव, आयडी किंवा पावती नंबर शोधा..." style="padding: 0.5rem 0.85rem; font-size: 0.88rem;">
+            <input type="text" id="adminTxnSearchInput" class="form-control" placeholder="सदस्याचे नाव, आयडी, कर्ज क्र. किंवा पावती नंबर शोधा..." style="padding: 0.5rem 0.85rem; font-size: 0.88rem;">
           </div>
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
             <select id="adminTxnModeFilter" class="form-control" style="width: auto; padding: 0.5rem 2rem 0.5rem 0.85rem; font-size: 0.88rem;">
-              <option value="all">सर्व पेमेंट पद्धती</option>
+              <option value="all">सर्व व्यवहार (ठेवी + कर्ज)</option>
+              <option value="deposits">💰 फक्त बीशी ठेवी</option>
+              <option value="loans">💳 सर्व कर्ज व्यवहार</option>
+              <option value="loan_disbursed">💳 फक्त कर्ज वाटप</option>
+              <option value="loan_interest">💰 फक्त कर्ज व्याज जमा</option>
+              <option value="loan_repayment">✅ फक्त कर्ज परतफेड</option>
               <option value="Cash">💵 फक्त रोख (Cash)</option>
               <option value="UPI">📱 फक्त UPI</option>
               <option value="Bank Transfer">🏦 बँक ट्रान्सफर</option>
               <option value="Cheque">📜 चेक</option>
               <option value="fines">⚠️ दंड भरलेले व्यवहार</option>
             </select>
+            <button type="button" class="btn btn-primary btn-sm" onclick="window.ui.openGiveLoanModal()" style="font-weight: 700;" title="सदस्यास नवीन कर्ज द्या">
+              ➕ नवीन कर्ज
+            </button>
             <button class="btn btn-emerald btn-sm" onclick="window.exportManager.exportMasterLedgerExcel()" title="Excel (.xlsx) फाईल डाउनलोड करा">
               📊 Excel (.xlsx)
             </button>
@@ -7297,16 +7853,17 @@ body.customer-mode #mobileDrawerAdminMenu,
           </div>
         </div>
 
-        <div class="table-responsive" style="border: none; box-shadow: none; max-height: 420px; overflow-y: auto;">
+        <!-- View 1: व्यवहार खातावही (ठेवी + कर्ज नोंदी) -->
+        <div id="adminTxnTableView" class="table-responsive" style="border: none; box-shadow: none; max-height: 420px; overflow-y: auto;">
           <table class="custom-table">
             <thead>
               <tr>
                 <th>पावती क्र.</th>
-                <th>सदस्य तपशील</th>
+                <th>सदस्य तपशील व कर्ज स्थिती</th>
                 <th>आठवडा क्र.</th>
-                <th>हप्ता रक्कम</th>
+                <th>हप्ता / कर्ज रक्कम</th>
                 <th>लेट फी दंड</th>
-                <th>एकूण मिळालेली रक्कम</th>
+                <th>एकूण रक्कम</th>
                 <th>पेमेंट पद्धत</th>
                 <th>तारीख व वेळ</th>
                 <th style="text-align: right;">पावती</th>
@@ -7318,27 +7875,65 @@ body.customer-mode #mobileDrawerAdminMenu,
           </table>
         </div>
 
-        <div style="padding: 1rem 1.25rem; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <!-- View 2: सर्व सदस्यांचे कर्ज तपशील व खाती (Loan Accounts Overview) -->
+        <div id="adminTxnLoanAccountsView" class="table-responsive" style="display: none; border: none; box-shadow: none; max-height: 420px; overflow-y: auto; overflow-x: auto; width: 100%;">
+          <table class="custom-table" style="width: 100%; min-width: 900px;">
+            <thead>
+              <tr>
+                <th>कर्ज क्र.</th>
+                <th>सदस्य तपशील</th>
+                <th>मंजूर कर्ज मुद्दल</th>
+                <th>वाटप आठवडा/तारीख</th>
+                <th>कालावधी</th>
+                <th>३% व्याज स्थिती</th>
+                <th>परत केलेली मुद्दल</th>
+                <th>उर्वरित बाकी मुद्दल</th>
+                <th>स्थिती</th>
+                <th style="text-align: right;">क्रिया</th>
+              </tr>
+            </thead>
+            <tbody id="adminTxnLoanAccountsTableBody">
+              <!-- डायनॅमिकली भरले जाते -->
+            </tbody>
+          </table>
+        </div>
+
+        <div style="padding: 0.85rem 1.25rem; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
           <div style="font-size: 0.85rem; color: var(--text-secondary);">
             दाखवत आहे: <strong id="adminTxnFilteredCount" style="color: var(--text-primary);">0</strong> नोंदी
           </div>
-          <div style="display: flex; gap: 1.5rem; font-size: 0.9rem;">
+          <div style="display: flex; gap: 1.15rem; font-size: 0.84rem; flex-wrap: wrap; align-items: center;">
             <div>
-              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">एकूण बचत: </span>
+              <span style="color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase;">एकूण बचत: </span>
               <strong id="adminTxnTotalDeposits" style="color: var(--emerald-400);">₹0</strong>
             </div>
             <div>
-              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">एकूण दंड: </span>
+              <span style="color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase;">एकूण दंड: </span>
               <strong id="adminTxnTotalFines" style="color: var(--rose-400);">₹0</strong>
             </div>
             <div>
-              <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">एकूण जमा: </span>
-              <strong id="adminTxnGrossTotal" style="color: var(--gold-400);">₹0</strong>
+              <span style="color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase;">कर्ज वाटप: </span>
+              <strong id="adminTxnTotalLoansDisbursed" style="color: var(--blue-400);">₹0</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase;">कर्ज व्याज: </span>
+              <strong id="adminTxnTotalLoanInterest" style="color: var(--gold-400);">₹0</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase;">कर्ज परतफेड: </span>
+              <strong id="adminTxnTotalLoansRepaid" style="color: var(--emerald-400);">₹0</strong>
+            </div>
+            <div style="border-left: 1px solid var(--border-color); padding-left: 0.75rem;">
+              <span style="color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase;">एकूण जमा: </span>
+              <strong id="adminTxnGrossTotal" style="color: var(--gold-400); font-size: 0.95rem;">₹0</strong>
             </div>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 0.78rem; color: var(--text-muted);">
+          💡 <strong>माहिती:</strong> सदस्यांचे ठेवी हप्ते, लेट फी, कर्ज वाटप, ३% व्याज जमा आणि कर्ज परतफेड सर्व नोंदी येथे समाविष्ट आहेत.
+        </div>
         <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
       </div>
     </div>
@@ -7893,6 +8488,32 @@ body.customer-mode #mobileDrawerAdminMenu,
           </button>
         </div>
         <button type="button" class="btn btn-primary" data-modal-close onclick="window.ui.closeModal('payoutVoucherModal')">पूर्ण</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल १३: अधिकृत सदस्य खातावही कार्ड रजिस्टर (Member Ledger Card Register) -->
+  <div class="modal-overlay" id="memberLedgerModal">
+    <div class="modal-container" style="max-width: 1100px; width: 96%; background: var(--bg-secondary);">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(124, 58, 30, 0.15), rgba(245, 158, 11, 0.15)); border-bottom: 2px solid #7c3a1e;">
+        <h3 class="modal-title" style="color: #7c3a1e;">
+          <span>📋</span> अधिकृत सदस्य खातावही कार्ड रजिस्टर
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.ui.closeModal('memberLedgerModal')" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body" id="memberLedgerModalBody" style="padding: 1.25rem 1rem; overflow-x: auto; background: #fdfaf8;">
+        <!-- डायनॅमिकली भरले जाते (Populated via window.receiptManager.showMemberLedgerCard) -->
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary" onclick="window.receiptManager.printMemberLedgerCard()" style="font-weight: 700; color: #7c3a1e; border-color: #7c3a1e;">
+            🖨️ लेजर कार्ड प्रिंट करा
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="window.receiptManager.printMemberLedgerCard()" style="font-weight: 700;">
+            📥 PDF सेव्ह करा
+          </button>
+        </div>
+        <button type="button" class="btn btn-primary" data-modal-close onclick="window.ui.closeModal('memberLedgerModal')">पूर्ण</button>
       </div>
     </div>
   </div>

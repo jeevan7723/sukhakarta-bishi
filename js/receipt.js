@@ -54,8 +54,32 @@ class ReceiptManager {
     return member.nameMarathi || member.name || '';
   }
 
+  getMemberMarathiName(member) {
+    if (!member) return '';
+    if (typeof window !== 'undefined' && window.bishiStore && typeof window.bishiStore.getMemberMarathiName === 'function') {
+      return window.bishiStore.getMemberMarathiName(member);
+    }
+    const helper = (typeof window !== 'undefined' && window.marathiHelper) ? window.marathiHelper : (typeof marathiHelper !== 'undefined' ? marathiHelper : null);
+    if (helper && typeof helper.getMemberMarathiName === 'function') {
+      return helper.getMemberMarathiName(member);
+    }
+    if (member.nameMarathi && typeof member.nameMarathi === 'string' && member.nameMarathi.trim()) {
+      return member.nameMarathi.trim();
+    }
+    if (helper && typeof helper.toMarathi === 'function') {
+      return helper.toMarathi(member.name || '');
+    }
+    return member.nameMarathi || member.name || '';
+  }
+
   generateReceiptHTML(member, weekData, bishiMeta) {
     const stats = window.bishiStore.calculateMemberStats(member);
+    const isMonthly = stats.isMonthly;
+    const periodUnit = stats.periodUnit;
+    const periodUnitPlural = stats.periodUnitPlural;
+    const totalPeriods = stats.totalPeriods;
+    const installmentAmount = stats.installmentAmount;
+
     const currency = bishiMeta.currency || '₹';
     const depositAmt = Number(weekData.amountPaid) || 0;
     const fineAmt = Number(weekData.finePaid) || 0;
@@ -67,8 +91,8 @@ class ReceiptManager {
       year: 'numeric'
     }) : new Date().toLocaleDateString('hi-IN');
 
-    const isExtraDeposit = depositAmt > member.weeklyAmount;
-    const regularAmt = member.weeklyAmount;
+    const isExtraDeposit = depositAmt > installmentAmount;
+    const regularAmt = installmentAmount;
     const extraDepositAmt = isExtraDeposit ? (depositAmt - regularAmt) : 0;
 
     return `
@@ -76,8 +100,8 @@ class ReceiptManager {
         <div class="receipt-header">
           <img src="assets/logo-emblem.png" alt="सुखकर्ता बीशी" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; margin-bottom: 0.35rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border: 2px solid #f59e0b; background: #fff; padding: 2px; display: inline-block;">
           <div class="receipt-org-title">✨ ${bishiMeta.bishiName}</div>
-          <div class="receipt-sub">साप्ताहिक बचत फंड व खातावही पावती</div>
-          <div class="receipt-badge">हप्ता जमा पावती • आठवडा ${weekData.weekNumber} / ५०</div>
+          <div class="receipt-sub">${isMonthly ? 'मासिक' : 'साप्ताहिक'} बचत फंड व खातावही पावती</div>
+          <div class="receipt-badge">${isMonthly ? 'मासिक' : 'साप्ताहिक'} हप्ता जमा पावती • ${periodUnit} ${weekData.weekNumber} / ${totalPeriods}</div>
         </div>
 
         <div class="receipt-meta-grid">
@@ -111,7 +135,7 @@ class ReceiptManager {
         </div>
 
         <div class="receipt-amount-box">
-          <div class="receipt-amount-lbl">आठवडा ${weekData.weekNumber} साठी मिळालेली एकूण रक्कम</div>
+          <div class="receipt-amount-lbl">${periodUnit} ${weekData.weekNumber} साठी मिळालेली एकूण रक्कम</div>
           <div class="receipt-amount-val">${currency}${totalCollected.toLocaleString('en-IN')}</div>
           ${isExtraDeposit ? `<div style="font-size: 0.8rem; color: #d97706; font-weight: 700; margin-top: 0.2rem;">⭐ नियमित हप्ता: ${currency}${regularAmt.toLocaleString('en-IN')} + अतिरिक्त भरणा: +${currency}${extraDepositAmt.toLocaleString('en-IN')}</div>` : ''}
           ${fineAmt > 0 ? `<div style="font-size: 0.8rem; opacity: 0.9; margin-top: 0.2rem;">(हप्ता: ${currency}${depositAmt.toLocaleString('en-IN')} + लेट फी दंड: ${currency}${fineAmt.toLocaleString('en-IN')})</div>` : ''}
@@ -119,7 +143,7 @@ class ReceiptManager {
 
         <table class="receipt-ledger-table">
           <tr>
-            <td>नियमित साप्ताहिक बचत हप्ता</td>
+            <td>नियमित ${isMonthly ? 'मासिक' : 'साप्ताहिक'} बचत हप्ता</td>
             <td>${currency}${regularAmt.toLocaleString('en-IN')}</td>
           </tr>
           ${isExtraDeposit ? `
@@ -135,8 +159,8 @@ class ReceiptManager {
             </tr>
           ` : ''}
           <tr>
-            <td>एकूण जमा झालेले आठवडे</td>
-            <td>${stats.paidWeeksCount} / ५० आठवडे</td>
+            <td>एकूण जमा झालेले ${periodUnitPlural}</td>
+            <td>${stats.paidWeeksCount} / ${totalPeriods} ${periodUnitPlural}</td>
           </tr>
           <tr>
             <td>आतापर्यंत एकूण जमा बचत</td>
@@ -153,11 +177,11 @@ class ReceiptManager {
             </tr>
           ` : `
             <tr>
-              <td>५०-आठवड्यांचे एकूण उद्दिष्ट</td>
+              <td>${totalPeriods}-${periodUnitPlural}चे एकूण उद्दिष्ट</td>
               <td>${currency}${stats.totalTarget.toLocaleString('en-IN')} <span style="font-size: 0.75rem; color: #059669;">(+${stats.maturityInterestPercent}% = ${currency}${stats.projectedMaturityTotal.toLocaleString('en-IN')})</span></td>
             </tr>
             <tr>
-              <td>पुढील आठवडा (${Math.min(50, weekData.weekNumber + 1)}) देय हप्ता</td>
+              <td>पुढील ${periodUnit} (${Math.min(totalPeriods, weekData.weekNumber + 1)}) देय हप्ता</td>
               <td style="color: #d97706;">${currency}${stats.nextDueAmount.toLocaleString('en-IN')}</td>
             </tr>
           `}
@@ -165,8 +189,8 @@ class ReceiptManager {
 
         <div class="receipt-footer-note">
           ${stats.isFullyPaid 
-            ? `🎉 सर्व ५० आठवडे पूर्ण केल्याबद्दल हार्दिक अभिनंदन! आपला ${stats.maturityInterestPercent}% व्याजासह एकूण परतावा ${currency}${stats.maturityTotalPayout.toLocaleString('en-IN')} आहे.` 
-            : `🙏 हप्ता जमा केल्याबद्दल धन्यवाद! ५० आठवडे पूर्ण झाल्यावर आपणास ८% व्याज बोनससह ${currency}${stats.projectedMaturityTotal.toLocaleString('en-IN')} परतावा मिळेल.`}
+            ? `🎉 सर्व ${totalPeriods} ${periodUnitPlural} पूर्ण केल्याबद्दल हार्दिक अभिनंदन! आपला ${stats.maturityInterestPercent}% व्याजासह एकूण परतावा ${currency}${stats.maturityTotalPayout.toLocaleString('en-IN')} आहे.` 
+            : `🙏 हप्ता जमा केल्याबद्दल धन्यवाद! ${totalPeriods} ${periodUnitPlural} पूर्ण झाल्यावर आपणास ${stats.maturityInterestPercent}% व्याज बोनससह ${currency}${stats.projectedMaturityTotal.toLocaleString('en-IN')} परतावा मिळेल.`}
         </div>
       </div>
     `;
@@ -174,13 +198,19 @@ class ReceiptManager {
 
   generateWhatsAppText(member, weekData, bishiMeta) {
     const stats = window.bishiStore.calculateMemberStats(member);
+    const isMonthly = stats.isMonthly;
+    const periodUnit = stats.periodUnit;
+    const periodUnitPlural = stats.periodUnitPlural;
+    const totalPeriods = stats.totalPeriods;
+    const installmentAmount = stats.installmentAmount;
+
     const currency = bishiMeta.currency || '₹';
-    const nextWeek = Math.min(50, weekData.weekNumber + 1);
+    const nextWeek = Math.min(totalPeriods, weekData.weekNumber + 1);
     const depositAmt = Number(weekData.amountPaid) || 0;
     const fineAmt = Number(weekData.finePaid) || 0;
     const totalCollected = depositAmt + fineAmt;
-    const isExtraDeposit = depositAmt > member.weeklyAmount;
-    const regularAmt = member.weeklyAmount;
+    const isExtraDeposit = depositAmt > installmentAmount;
+    const regularAmt = installmentAmount;
     const extraDepositAmt = isExtraDeposit ? (depositAmt - regularAmt) : 0;
 
     let message = 
@@ -188,9 +218,9 @@ class ReceiptManager {
 ─────────────────────
 प्रिय *${this.getMemberDisplayName(member)}* (आयडी: ${member.id}),
 
-आम्हाला आपला साप्ताहिक बीशी हप्ता यशस्वीरीत्या प्राप्त झाला आहे:
+आम्हाला आपला ${isMonthly ? 'मासिक' : 'साप्ताहिक'} बीशी हप्ता यशस्वीरीत्या प्राप्त झाला आहे:
 
-💰 *साप्ताहिक हप्ता:* ${currency}${regularAmt.toLocaleString('en-IN')}`;
+💰 *${isMonthly ? 'मासिक हप्ता' : 'साप्ताहिक हप्ता'}:* ${currency}${regularAmt.toLocaleString('en-IN')}`;
 
     if (isExtraDeposit) {
       message += `\n⭐ *अतिरिक्त भरणा (Extra):* +${currency}${extraDepositAmt.toLocaleString('en-IN')}`;
@@ -201,13 +231,13 @@ class ReceiptManager {
     }
 
     message += `
-💵 *या आठवड्याची एकूण रक्कम:* ${currency}${totalCollected.toLocaleString('en-IN')}
-📅 *आठवडा क्र.:* आठवडा ${weekData.weekNumber} / ५०
+💵 *या ${periodUnit}ची एकूण रक्कम:* ${currency}${totalCollected.toLocaleString('en-IN')}
+📅 *${periodUnit} क्र.:* ${periodUnit} ${weekData.weekNumber} / ${totalPeriods}
 💳 *पेमेंट पद्धत:* ${weekData.paymentMode || 'रोख'}${weekData.upiId ? ` (UPI ID: ${weekData.upiId})` : ''}
 🧾 *पावती क्र.:* ${weekData.receiptNo || 'N/A'}
 ─────────────────────
 *📊 आपल्या बचतीचा ताळेबंद:*
-• जमा आठवडे: *${stats.paidWeeksCount} / ५०*
+• जमा ${periodUnitPlural}: *${stats.paidWeeksCount} / ${totalPeriods}*
 • आतापर्यंत एकूण जमा बचत: *${currency}${stats.totalDeposited.toLocaleString('en-IN')}*`;
 
     if (stats.isFullyPaid) {
@@ -216,9 +246,9 @@ class ReceiptManager {
 • 🏆 *एकूण मॅच्युरिटी परतावा:* *${currency}${stats.maturityTotalPayout.toLocaleString('en-IN')}*`;
     } else {
       message += `
-• ५०-आठवड्यांचे एकूण उद्दिष्ट: *${currency}${stats.totalTarget.toLocaleString('en-IN')}* (+${stats.maturityInterestPercent}% बोनस = *${currency}${stats.projectedMaturityTotal.toLocaleString('en-IN')}*)
+• ${totalPeriods}-${periodUnitPlural}चे एकूण उद्दिष्ट: *${currency}${stats.totalTarget.toLocaleString('en-IN')}* (+${stats.maturityInterestPercent}% बोनस = *${currency}${stats.projectedMaturityTotal.toLocaleString('en-IN')}*)
 • शिल्लक बाकी रक्कम: *${currency}${stats.remainingAmount.toLocaleString('en-IN')}*
-• पुढील देय हप्ता (आठवडा ${nextWeek}): *${currency}${stats.nextDueAmount.toLocaleString('en-IN')}*`;
+• पुढील देय हप्ता (${periodUnit} ${nextWeek}): *${currency}${stats.nextDueAmount.toLocaleString('en-IN')}*`;
     }
 
     message += `
@@ -1264,6 +1294,578 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     `;
 
     this.openReceiptModal();
+  }
+
+  // --- सदस्य खातावही कार्ड रजिस्टर (Member Ledger Card Register HTML Generator) ---
+  generateMemberLedgerReportHTML(member, cycleNumber = null, showAllWeeks = false) {
+    if (!member) return '<div class="alert alert-error">सदस्य सापडला नाही</div>';
+
+    const bishiMeta = window.bishiStore?.state?.meta || { bishiName: 'Sushant Bishi', currency: '₹' };
+    const currency = bishiMeta.currency || '₹';
+    const activeCycleNum = member.currentCycle || 1;
+    const viewingCycle = cycleNumber ? Number(cycleNumber) : activeCycleNum;
+    const isPastCycle = viewingCycle < activeCycleNum;
+
+    let weeksList = member.weeks || [];
+    let stats = null;
+
+    if (isPastCycle && member.pastCycles && member.pastCycles.length > 0) {
+      const pastCycle = member.pastCycles.find(c => c.cycleNumber === viewingCycle);
+      if (pastCycle) {
+        weeksList = pastCycle.weeks || [];
+        stats = pastCycle.stats || (window.bishiStore ? window.bishiStore.calculateMemberStats(pastCycle) : null);
+      }
+    }
+
+    if (!stats) {
+      stats = window.bishiStore ? window.bishiStore.calculateMemberStats(member) : {
+        weeklyAmount: member.weeklyAmount || 2000,
+        totalTarget: (member.weeklyAmount || 2000) * 50,
+        totalDeposited: 0,
+        totalFinePaid: 0,
+        effectivePaidWeeks: 0,
+        remainingAmount: 0,
+        interestAmount: 0,
+        maturityInterestPercent: 10
+      };
+    }
+    const isMonthly = stats.isMonthly || member.frequency === 'monthly';
+    const periodUnit = isMonthly ? 'महिना' : 'आठवडा';
+    const periodUnitPlural = isMonthly ? 'महिने' : 'आठवडे';
+    const totalPeriods = isMonthly ? 12 : 50;
+    const weeklyAmount = Number(member.monthlyAmount) || Number(member.weeklyAmount) || Number(stats.installmentAmount) || 2000;
+    const accountNo = member.accountNo || (member.id ? member.id.replace(/\D/g, '') || member.id : '1');
+    const rawMemberName = this.getMemberMarathiName(member) || member.nameMarathi || member.name || 'सर्वेश नलावडे';
+    const memberName = rawMemberName.replace(/\s*\([a-zA-Z\s.-]+\)/g, '').trim();
+    const rawAddress = member.address || member.notes || 'सांगली';
+    const address = (rawAddress === 'N/A' || rawAddress.toLowerCase() === 'n/a') ? 'सांगली' : rawAddress.replace(/\s*\([a-zA-Z\s.-]+\)/g, '').trim();
+    const phone = member.phone || '0000000000';
+    const interestPercent = Number(bishiMeta.maturityInterestPercent !== undefined ? bishiMeta.maturityInterestPercent : 10);
+
+    let nomineeDisplay = 'वारस: लागू नाही';
+    if (member.nominee && member.nominee.trim() && member.nominee.trim().toUpperCase() !== 'N/A') {
+      const cleanNom = member.nominee.replace(/\s*\([a-zA-Z\s.-]+\)/g, '').trim();
+      nomineeDisplay = cleanNom ? `वारस: ${cleanNom}` : 'वारस: लागू नाही';
+    }
+
+    // Member loans for this cycle/period
+    const allLoans = window.bishiStore?.getMemberLoans ? window.bishiStore.getMemberLoans(member.id) : ((window.bishiStore?.state?.loans || []).filter(l => l.memberId === member.id));
+
+    // Calculate loan totals for this member
+    let totalLoanDisbursed = 0;
+    let totalLoanPrincipalRepaid = 0;
+    let totalLoanInterestDeposited = 0;
+    allLoans.forEach(l => {
+      totalLoanDisbursed += Number(l.originalPrincipal || l.principalAmount) || 0;
+      totalLoanPrincipalRepaid += Number(l.principalRepaid || l.repaidAmount) || 0;
+      totalLoanInterestDeposited += Number(l.totalInterestPaid || l.interestPaid) || 0;
+    });
+    const remainingLoanPrincipal = Math.max(0, totalLoanDisbursed - totalLoanPrincipalRepaid);
+
+    // Filter weeks to show:
+    // If showAllWeeks is true: show all 50 weeks
+    // If showAllWeeks is false: show weeks where Bishi deposit was given, OR loan was disbursed, OR loan principal/interest was paid
+    let weeksToShow;
+    if (showAllWeeks) {
+      weeksToShow = weeksList;
+    } else {
+      const activeWeeks = weeksList.filter(w => {
+        const dep = Number(w.amountPaid) || 0;
+        const fine = Number(w.finePaid) || 0;
+        const hasLoanDisbursed = allLoans.some(l => Number(l.issueWeek) === w.weekNumber);
+        const hasRepayment = allLoans.some(l => 
+          (Array.isArray(l.repayments) && l.repayments.some(r => Number(r.paidWeek) === w.weekNumber)) ||
+          (Array.isArray(l.interestPayments) && l.interestPayments.some(p => Number(p.paidWeek) === w.weekNumber))
+        );
+        return dep > 0 || fine > 0 || hasLoanDisbursed || hasRepayment;
+      });
+      weeksToShow = activeWeeks.length > 0 ? activeWeeks : [weeksList[0] || { weekNumber: 1, amountPaid: 0, status: 'pending' }];
+    }
+
+    // Marathi month names (compact 3-4 letters)
+    const marathiMonthsRow = [
+      'जाने', 'फेब्रु', 'मार्च', 'एप्रिल', 'मे', 'जून',
+      'जुलै', 'ऑग', 'सप्टें', 'ऑक्टो', 'नोव्हें', 'डिसें'
+    ];
+
+    // Date formatting helper: "३ ऑक्टो २०२६"
+    const formatRegDate = (dVal) => {
+      if (dVal) {
+        try {
+          const d = new Date(dVal);
+          if (!isNaN(d.getTime())) {
+            const day = d.getDate();
+            const month = marathiMonthsRow[d.getMonth()];
+            const year = d.getFullYear();
+            return `${day} ${month} ${year}`;
+          }
+        } catch (_) {}
+      }
+      return '-';
+    };
+
+    let runningDeposit = 0;
+    let runningPenalty = 0;
+    let runningLoanGiven = 0;
+    let runningLoanRepayPrincipal = 0;
+    let runningLoanRepayInterest = 0;
+    let runningExpected = 0;
+
+    let rowsHTML = '';
+    weeksToShow.forEach((w, idx) => {
+      const depositAmt = Number(w.amountPaid) || 0;
+      const fineAmt = Number(w.finePaid) || 0;
+      runningDeposit += depositAmt;
+      runningPenalty += fineAmt;
+
+      // Check loan disbursed on this week
+      const loanIssued = allLoans.find(l => Number(l.issueWeek) === w.weekNumber);
+      const loanGivenAmt = loanIssued ? (Number(loanIssued.originalPrincipal || loanIssued.principalAmount) || 0) : 0;
+      runningLoanGiven += loanGivenAmt;
+
+      // Check repayments on this week
+      let repaidPrincipal = 0;
+      let repaidInterest = 0;
+      let loanTransDate = null;
+
+      allLoans.forEach(l => {
+        if (Array.isArray(l.repayments)) {
+          l.repayments.forEach(r => {
+            if (Number(r.paidWeek) === w.weekNumber) {
+              repaidPrincipal += (Number(r.principalPaid || r.principalRepaid || r.amount) || 0);
+              repaidInterest += (Number(r.interestPaid) || 0);
+              if (r.paidDate || r.date) loanTransDate = r.paidDate || r.date;
+            }
+          });
+        }
+        if (Array.isArray(l.interestPayments)) {
+          l.interestPayments.forEach(p => {
+            if (Number(p.paidWeek) === w.weekNumber) {
+              repaidInterest += (Number(p.amount || p.interestAmount) || 0);
+              if (p.paidDate || p.date) loanTransDate = p.paidDate || p.date;
+            }
+          });
+        }
+      });
+      runningLoanRepayPrincipal += repaidPrincipal;
+      runningLoanRepayInterest += repaidInterest;
+
+      // Determine date: Bishi paidDate > Loan issueDate > Repayment/Interest paidDate
+      let dateStr = formatRegDate(w.paidDate);
+      if (dateStr === '-') {
+        if (loanIssued && loanIssued.issueDate) {
+          dateStr = formatRegDate(loanIssued.issueDate);
+        } else if (loanTransDate) {
+          dateStr = formatRegDate(loanTransDate);
+        }
+      }
+
+      // Check if this week is an interest pay date or has loan interest/repayment
+      let isInterestPayWeek = false;
+      let interestAmtForWeek = repaidInterest;
+
+      // Check scheduled interest pay dates for active loans (every gracePeriodWeeks)
+      if (allLoans.length > 0) {
+        allLoans.forEach(loan => {
+          const isLoanPaid = loan.status === 'paid';
+          const loanPaidWeek = (loan.paidWeek !== undefined && loan.paidWeek !== null && loan.paidWeek !== '') 
+            ? Number(loan.paidWeek) 
+            : (Array.isArray(loan.repayments) && loan.repayments.length > 0 ? Math.max(...loan.repayments.map(r => Number(r.paidWeek) || 0)) : (isLoanPaid ? (Number(loan.issueWeek) || 1) : null));
+
+          // If loan is already paid and current week is after the paid week, loan is closed (next weeks never show combined value)
+          if (isLoanPaid && loanPaidWeek !== null && w.weekNumber > loanPaidWeek) {
+            return;
+          }
+
+          const origP = Number(loan.originalPrincipal || loan.principalAmount) || 0;
+          let repPUpToThisWeek = 0;
+          if (Array.isArray(loan.repayments)) {
+            loan.repayments.forEach(r => {
+              if (Number(r.paidWeek) <= w.weekNumber) {
+                repPUpToThisWeek += (Number(r.principalPaid || r.principalRepaid || r.amount) || 0);
+              }
+            });
+          } else {
+            repPUpToThisWeek = Number(loan.principalRepaid || 0);
+          }
+
+          const remPAtWeek = Math.max(0, origP - repPUpToThisWeek);
+          // If all principal was repaid on or before this week, loan is closed - no subsequent interest
+          if (remPAtWeek <= 0) {
+            return;
+          }
+
+          const issueWk = Number(loan.issueWeek) || 1;
+          const cycleWeeks = Number(loan.gracePeriodWeeks !== undefined ? loan.gracePeriodWeeks : 4);
+          const rate = Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : 3);
+          const diffWeeks = w.weekNumber - issueWk;
+
+          if (diffWeeks > 0 && diffWeeks % cycleWeeks === 0) {
+            isInterestPayWeek = true;
+            if (interestAmtForWeek === 0) {
+              interestAmtForWeek = Math.round(remPAtWeek * (rate / 100));
+            }
+          }
+        });
+      }
+
+      if (repaidInterest > 0) {
+        isInterestPayWeek = true;
+      }
+
+      // Expected amount calculation:
+      // Regular weekly installment (weeklyAmount)
+      // + Any loan interest on interest pay date (interestAmtForWeek)
+      // + Any loan principal repaid (repaidPrincipal)
+      let rowExpected = weeklyAmount;
+      let expectedBreakdown = '';
+      if (isInterestPayWeek && interestAmtForWeek > 0) {
+        rowExpected += interestAmtForWeek;
+      }
+      if (repaidPrincipal > 0) {
+        rowExpected += repaidPrincipal;
+      }
+      runningExpected += rowExpected;
+
+      const expectedAmtStr = currency + rowExpected.toLocaleString('en-IN');
+      if (isInterestPayWeek && interestAmtForWeek > 0) {
+        expectedBreakdown = `<div style="font-size: 0.65rem; font-weight: 700; color: #b45309; line-height: 1.1; margin-top: 2px;">(${currency}${weeklyAmount.toLocaleString('en-IN')} हप्ता + ${currency}${interestAmtForWeek.toLocaleString('en-IN')} व्याज${repaidPrincipal > 0 ? ` + ${currency}${repaidPrincipal.toLocaleString('en-IN')} मुद्दल` : ''})</div>`;
+      } else if (repaidPrincipal > 0) {
+        expectedBreakdown = `<div style="font-size: 0.65rem; font-weight: 700; color: #047857; line-height: 1.1; margin-top: 2px;">(${currency}${weeklyAmount.toLocaleString('en-IN')} हप्ता + ${currency}${repaidPrincipal.toLocaleString('en-IN')} मुद्दल)</div>`;
+      }
+
+      // Balance due for this row entry
+      const totalPaidForRow = depositAmt + repaidPrincipal + repaidInterest;
+      const rowBalanceDue = Math.max(0, rowExpected - totalPaidForRow);
+      const hasPayment = depositAmt > 0 || repaidInterest > 0 || repaidPrincipal > 0;
+
+      rowsHTML += `
+        <tr>
+          <td style="text-align: center; font-weight: 700; color: #111;">${idx + 1}</td>
+          <td style="text-align: center; font-weight: 700; color: #111; white-space: nowrap;">${dateStr}</td>
+          <td style="text-align: right; font-weight: 700; color: #047857;">
+            ${depositAmt > 0 ? currency + depositAmt.toLocaleString('en-IN') : '<span style="color: #991b1b;">-</span>'}
+          </td>
+          <td style="text-align: right; font-weight: 700; color: #047857;">
+            ${runningDeposit > 0 ? currency + runningDeposit.toLocaleString('en-IN') : '<span style="color: #991b1b;">-</span>'}
+          </td>
+          <td style="text-align: center; font-weight: 700; color: #991b1b;">
+            ${fineAmt > 0 ? currency + fineAmt.toLocaleString('en-IN') : '-'}
+          </td>
+          <td style="text-align: right; font-weight: 700; color: #111;">
+            ${expectedAmtStr}
+            ${expectedBreakdown}
+          </td>
+          <td style="text-align: center; font-weight: 700; color: #7c2d12;">
+            ${loanGivenAmt > 0 ? currency + loanGivenAmt.toLocaleString('en-IN') : '-'}
+          </td>
+          <td style="text-align: center; font-weight: 700; color: #047857;">
+            ${repaidPrincipal > 0 ? currency + repaidPrincipal.toLocaleString('en-IN') : '-'}
+          </td>
+          <td style="text-align: center; font-weight: 700; color: #047857;">
+            ${repaidInterest > 0 ? currency + repaidInterest.toLocaleString('en-IN') : '-'}
+          </td>
+          <td style="text-align: center; font-weight: 700; color: #991b1b;">-</td>
+          <td style="text-align: right; font-weight: 700; color: ${rowBalanceDue > 0 ? '#b91c1c' : '#047857'};">
+            ${hasPayment ? (currency + rowBalanceDue.toLocaleString('en-IN')) : ((w.status === 'overdue' || (w.weekNumber && w.weekNumber < (window.bishiStore?.state?.meta?.currentWeek || 1))) ? (currency + rowBalanceDue.toLocaleString('en-IN')) : '-')}
+          </td>
+        </tr>
+      `;
+    });
+
+    const totalExpectedForRows = runningExpected;
+    const totalReceived = runningDeposit + runningLoanRepayPrincipal + runningLoanRepayInterest;
+    const finalBalanceDue = Math.max(0, totalExpectedForRows - totalReceived);
+
+    // Base and Annual Interest calculations for Summary Card
+    // Note: 8% interest applies annually ONLY at the time of payout (50 weeks completed or payout processed)
+    const isPayoutTime = !!((stats && (stats.isFullyPaid || stats.isPayoutCompleted)) || 
+                          member.payoutStatus === 'completed' || 
+                          member.status === 'completed' || 
+                          isPastCycle);
+
+    const baseDeposited = runningDeposit > 0 ? runningDeposit : (weeksToShow.length * weeklyAmount);
+    const annualInterestPercent = interestPercent;
+    const interestAmount = isPayoutTime ? Math.round(baseDeposited * (annualInterestPercent / 100)) : 0;
+    const totalWithInterest = baseDeposited + interestAmount;
+    const projectedPayoutInterest = Math.round(baseDeposited * (annualInterestPercent / 100));
+
+    const today = new Date();
+    const todayStr = `${today.getDate()} ${marathiMonthsRow[today.getMonth()]} ${today.getFullYear()}`;
+
+    return `
+      <div class="member-ledger-card-register" id="printableMemberLedgerArea">
+        <!-- Top Title & Office Header -->
+        <div class="ledger-top-header">
+          <div>
+            <div class="ledger-brand-title">${bishiMeta.bishiName || 'सुखकर्ता बीशी'}</div>
+            <div class="ledger-doc-title">सदस्य खातावही कार्ड रजिस्टर</div>
+          </div>
+          <div class="ledger-top-meta">
+            <div style="font-weight: 700; color: #111;">कार्यालय: ${bishiMeta.officeName || 'मुख्य कार्यालय'} | तारीख: ${todayStr}</div>
+            <div class="ledger-page-num">पृष्ठ: १ / १</div>
+          </div>
+        </div>
+        <div class="ledger-header-divider"></div>
+
+        <!-- Member Info Card Table (Terracotta Saddle Brown Headers, Cream Values) -->
+        <table class="ledger-info-table">
+          <tr>
+            <td class="info-lbl">खाते क्र.:</td>
+            <td class="info-val info-acc">${accountNo}</td>
+            <td class="info-lbl">सभासदाचे नाव:</td>
+            <td class="info-val info-name">${memberName}</td>
+          </tr>
+          <tr>
+            <td class="info-lbl">${isMonthly ? 'मासिक हप्ता:' : 'साप्ताहिक हप्ता:'}</td>
+            <td class="info-val info-inst">
+              <span class="info-green">${currency}${weeklyAmount.toLocaleString('en-IN')} (${isMonthly ? 'दर महिना' : 'दर आठवडा'})</span>
+            </td>
+            <td class="info-lbl">पत्ता व मोबाईल:</td>
+            <td class="info-val info-addr">${address} (${phone})</td>
+          </tr>
+          <tr>
+            <td class="info-lbl">एकूण बीशी परतावा:</td>
+            <td class="info-val info-bishi">
+              <span class="info-green">${currency}${totalWithInterest.toLocaleString('en-IN')}</span>
+              <span class="info-base-int">${isPayoutTime 
+                ? `(मूळ बचत: ${currency}${baseDeposited.toLocaleString('en-IN')} + ${annualInterestPercent}% वार्षिक व्याज: +${currency}${interestAmount.toLocaleString('en-IN')})` 
+                : `(चालू मूळ बचत: ${currency}${baseDeposited.toLocaleString('en-IN')} • ${annualInterestPercent}% वार्षिक व्याज परताव्याच्या वेळी लागू)`}</span>
+            </td>
+            <td class="info-lbl">लाभांश व व्याज दर:</td>
+            <td class="info-val info-dividend">
+              <span class="info-blue">${annualInterestPercent}% (वार्षिक परतावा)</span>
+            </td>
+          </tr>
+          ${totalLoanDisbursed > 0 ? `
+            <tr>
+              <td class="info-lbl" style="background: #7c2d12; color: #ffffff;">कर्ज तपशील:</td>
+              <td class="info-val" style="background: #fffdf5; font-weight: 700; color: #7c2d12;">
+                एकूण वाटप: <strong>${currency}${totalLoanDisbursed.toLocaleString('en-IN')}</strong> • बाकी मुद्दल: <strong style="color: ${remainingLoanPrincipal > 0 ? '#dc2626' : '#059669'};">${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}</strong>
+              </td>
+              <td class="info-lbl" style="background: #047857; color: #ffffff;">कर्ज व्याज जमा:</td>
+              <td class="info-val" style="background: #f0fdf4; font-weight: 700; color: #047857;">
+                एकूण जमा व्याज: <span style="background: #d1fae5; color: #047857; padding: 0.15rem 0.55rem; border-radius: 4px; border: 1px solid #10b981; font-weight: 800;">+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')} (३% दर)</span>
+              </td>
+            </tr>
+          ` : ''}
+        </table>
+
+        <!-- Main Ledger Data Table -->
+        <div class="ledger-table-wrap">
+          <table class="ledger-data-table">
+            <thead>
+              <tr>
+                <th style="width: 42px;">अ.क्र.</th>
+                <th style="width: 95px;">तारीख</th>
+                <th style="width: 95px;" class="th-green">जमा हप्ता<br><span class="th-green-sub">(${currency})</span></th>
+                <th style="width: 105px;" class="th-green">एकूण जमा<br><span class="th-green-sub">(${currency})</span></th>
+                <th style="width: 65px;" class="th-red">दंड<br><span style="font-size: 0.72rem; font-weight: 600;">(${currency})</span></th>
+                <th style="width: 85px;">अपेक्षित<br><span style="font-size: 0.72rem; font-weight: 600; opacity: 0.9;">(${currency})</span></th>
+                <th style="width: 85px;" class="th-brown">कर्ज वाटप<br><span style="font-size: 0.72rem; font-weight: 600; color: #7c2d12;">(${currency})</span></th>
+                <th style="width: 110px;" class="th-brown">कर्ज परतफेड मुद्दल<br><span class="th-green-sub">(${currency})</span></th>
+                <th style="width: 110px;" class="th-brown">कर्ज व्याज जमा<br><span class="th-green-sub">(${currency})</span></th>
+                <th style="width: 60px;" class="th-red">दंड<br><span style="font-size: 0.72rem; font-weight: 600;">(${currency})</span></th>
+                <th style="width: 90px;">शिल्लक बाकी<br><span style="font-size: 0.72rem; font-weight: 600; opacity: 0.9;">(${currency})</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHTML}
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td style="text-align: center; font-weight: 800; color: #ffffff;">-</td>
+                <td style="text-align: center; font-weight: 800; color: #ffffff; letter-spacing: 0.05em;">एकूण</td>
+                <td style="text-align: right; font-weight: 800; color: #a7f3d0;">${currency}${runningDeposit.toLocaleString('en-IN')}</td>
+                <td style="text-align: right; font-weight: 800; color: #a7f3d0;">${currency}${runningDeposit.toLocaleString('en-IN')}</td>
+                <td style="text-align: center; font-weight: 800; color: #fecaca;">${runningPenalty > 0 ? currency + runningPenalty.toLocaleString('en-IN') : '-'}</td>
+                <td style="text-align: right; font-weight: 800; color: #ffffff;">${currency}${totalExpectedForRows.toLocaleString('en-IN')}</td>
+                <td style="text-align: center; font-weight: 800; color: #fecaca;">${runningLoanGiven > 0 ? currency + runningLoanGiven.toLocaleString('en-IN') : '-'}</td>
+                <td style="text-align: center; font-weight: 800; color: #a7f3d0;">${runningLoanRepayPrincipal > 0 ? currency + runningLoanRepayPrincipal.toLocaleString('en-IN') : '-'}</td>
+                <td style="text-align: center; font-weight: 800; color: #a7f3d0;">${runningLoanRepayInterest > 0 ? currency + runningLoanRepayInterest.toLocaleString('en-IN') : '-'}</td>
+                <td style="text-align: center; font-weight: 800; color: #fecaca;">-</td>
+                <td style="text-align: right; font-weight: 800; color: #fecaca;">${currency}${finalBalanceDue.toLocaleString('en-IN')}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Bottom Summary & Signature Section -->
+        <div class="ledger-bottom-section">
+          <!-- Notes box -->
+          <div class="ledger-notes-card">
+            <div class="notes-line notes-takani">१) टाकणी: ${nomineeDisplay}</div>
+            <div class="notes-line notes-dividend">२) लाभांश / परतावा व्याज (${annualInterestPercent}% वार्षिक): ${isPayoutTime ? currency + interestAmount.toLocaleString('en-IN') : 'परताव्याच्या वेळी लागू (अंदाजे +' + currency + projectedPayoutInterest.toLocaleString('en-IN') + ')'}</div>
+            <div class="notes-line notes-acc">३) खाते क्र.: ${accountNo}</div>
+            <div class="notes-line notes-payout">४) एकूण अंतिम परतावा: ${currency}${totalWithInterest.toLocaleString('en-IN')} ${!isPayoutTime ? '(चालू बचत • ' + totalPeriods + ' ' + periodUnitPlural + ' पूर्ण झाल्यावर ' + annualInterestPercent + '% वार्षिक व्याजासह वाटप)' : ''}</div>
+            ${totalLoanDisbursed > 0 ? `
+              <div class="notes-line" style="color: #7c2d12; font-weight: 700; border-top: 1px dashed #d1d5db; padding-top: 3px; margin-top: 2px;">
+                ५) कर्ज व व्याज ताळेबंद: एकूण कर्ज ${currency}${totalLoanDisbursed.toLocaleString('en-IN')} (बाकी मुद्दल: ${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}) • एकूण जमा ३% व्याज: +${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Signature Section -->
+          <div class="ledger-ack-section">
+            <div class="ledger-sign-line">
+              सचिव / अध्यक्ष
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- सदस्य खातावही WhatsApp मजकूर ---
+  generateMemberLedgerWhatsAppText(member, cycleNumber = null) {
+    const stats = window.bishiStore ? window.bishiStore.calculateMemberStats(member) : {};
+    const isMonthly = stats.isMonthly || member.frequency === 'monthly';
+    const periodUnit = isMonthly ? 'महिना' : 'आठवडा';
+    const periodUnitPlural = isMonthly ? 'महिने' : 'आठवडे';
+    const totalPeriods = isMonthly ? 12 : 50;
+    const bishiMeta = window.bishiStore?.state?.meta || { bishiName: 'सुखकर्ता बीशी' };
+    const currency = bishiMeta.currency || '₹';
+    const weeklyAmount = Number(member.monthlyAmount) || Number(member.weeklyAmount) || Number(stats.installmentAmount) || 2000;
+    const interestPercent = Number(bishiMeta.maturityInterestPercent !== undefined ? bishiMeta.maturityInterestPercent : 10);
+    const isPayoutTime = !!((stats && (stats.isFullyPaid || stats.isPayoutCompleted)) || 
+                          member.payoutStatus === 'completed' || 
+                          member.status === 'completed');
+    const baseDeposited = stats.totalDeposited || 0;
+    const annualInterestPercent = interestPercent;
+    const interestAmt = isPayoutTime ? Math.round(baseDeposited * (annualInterestPercent / 100)) : 0;
+    const totalWithInterest = baseDeposited + interestAmt;
+    const projectedInterest = Math.round(baseDeposited * (annualInterestPercent / 100));
+
+    const allLoans = window.bishiStore?.getMemberLoans ? window.bishiStore.getMemberLoans(member.id) : ((window.bishiStore?.state?.loans || []).filter(l => l.memberId === member.id));
+    let totalLoanDisbursed = 0;
+    let totalLoanPrincipalRepaid = 0;
+    let totalLoanInterestDeposited = 0;
+    allLoans.forEach(l => {
+      totalLoanDisbursed += Number(l.originalPrincipal || l.principalAmount) || 0;
+      totalLoanPrincipalRepaid += Number(l.principalRepaid || l.repaidAmount) || 0;
+      totalLoanInterestDeposited += Number(l.totalInterestPaid || l.interestPaid) || 0;
+    });
+    const remainingLoanPrincipal = Math.max(0, totalLoanDisbursed - totalLoanPrincipalRepaid);
+
+    const rawMName = this.getMemberMarathiName(member) || member.nameMarathi || member.name || '';
+    const mName = rawMName.replace(/\s*\([a-zA-Z\s.-]+\)/g, '').trim();
+
+    let msg = `*📋 ${bishiMeta.bishiName} - सदस्य खातावही कार्ड रजिस्टर*\n`;
+    msg += `─────────────────────\n`;
+    msg += `👤 *खातेदार:* ${mName}\n`;
+    msg += `🔢 *खाते क्र.:* ${member.accountNo || member.id}\n`;
+    msg += `📞 *मोबाईल:* ${member.phone || '-'}\n`;
+    msg += `💰 *${isMonthly ? 'मासिक हप्ता' : 'साप्ताहिक हप्ता'}:* ${currency}${weeklyAmount.toLocaleString('en-IN')} (${isMonthly ? 'दर महिना' : 'दर आठवडा'})\n`;
+    msg += `─────────────────────\n`;
+    msg += `📊 *खातावही ताळेबंद:*\n`;
+    msg += `• जमा ${periodUnitPlural}: *${stats.paidWeeksCount || 0} / ${totalPeriods} ${periodUnitPlural}*\n`;
+    msg += `• एकूण मूळ जमा बचत: *${currency}${baseDeposited.toLocaleString('en-IN')}*\n`;
+    msg += `• लाभांश / परतावा व्याज (+${annualInterestPercent}% वार्षिक): *${isPayoutTime ? '+' + currency + interestAmt.toLocaleString('en-IN') : 'परताव्याच्या वेळी लागू (+ ' + currency + projectedInterest.toLocaleString('en-IN') + ' अंदाजे)'}*\n`;
+    msg += `🏆 *एकूण अंतिम परतावा:* *${currency}${totalWithInterest.toLocaleString('en-IN')}*${!isPayoutTime ? ' (चालू बचत)' : ''}\n`;
+    msg += `• शिल्लक बाकी: *${currency}${(stats.remainingAmount || 0).toLocaleString('en-IN')}*\n`;
+    if (totalLoanDisbursed > 0) {
+      msg += `─────────────────────\n`;
+      msg += `💳 *कर्ज व व्याज ताळेबंद:*\n`;
+      msg += `• एकूण कर्ज वाटप: *${currency}${totalLoanDisbursed.toLocaleString('en-IN')}*\n`;
+      msg += `• परतफेड मुद्दल: *${currency}${totalLoanPrincipalRepaid.toLocaleString('en-IN')}*\n`;
+      msg += `• बाकी कर्ज मुद्दल: *${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}*\n`;
+      msg += `• एकूण जमा ३% व्याज: *+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}*\n`;
+    }
+    msg += `─────────────────────\n`;
+    msg += `_अधिकृत डिजिटल स्वाक्षरीसह जारी - ${bishiMeta.bishiName}_`;
+    return msg;
+  }
+
+  // --- सदस्य खातावही कार्ड रजिस्टर मोडल दाखवणे ---
+  showMemberLedgerCard(memberId, cycleNumber = null, showAllWeeks = false) {
+    const member = window.bishiStore?.getMember(memberId);
+    if (!member) {
+      if (window.ui?.showToast) window.ui.showToast('सदस्य सापडला नाही', 'error');
+      return;
+    }
+
+    const modal = document.getElementById('memberLedgerModal');
+    const modalBody = document.getElementById('memberLedgerModalBody');
+    if (!modal || !modalBody) return;
+
+    this.currentLedgerMemberId = memberId;
+    this.currentLedgerCycleNumber = cycleNumber;
+    this.currentLedgerShowAllWeeks = showAllWeeks;
+
+    const reportHTML = this.generateMemberLedgerReportHTML(member, cycleNumber, showAllWeeks);
+    const activeCycleNum = member.currentCycle || 1;
+    const curCycle = cycleNumber ? Number(cycleNumber) : activeCycleNum;
+
+    // Member dropdown selector to switch members directly in report view
+    const allMembers = window.bishiStore?.getAllMembers ? window.bishiStore.getAllMembers() : [];
+    let memberSelectorHTML = '';
+    if (allMembers && allMembers.length > 1) {
+      memberSelectorHTML = `
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <span style="font-size: 0.78rem; font-weight: 700; color: #853d1b;">👤 सदस्य:</span>
+          <select class="form-control" style="padding: 0.25rem 0.6rem; font-size: 0.78rem; width: auto; font-weight: 700; border-color: rgba(133, 61, 27, 0.4); background: #fff;" onchange="window.receiptManager.showMemberLedgerCard(this.value, null, ${showAllWeeks})">
+            ${allMembers.map(m => {
+              const acc = m.accountNo || (m.id ? m.id.replace(/\D/g, '') || m.id : '');
+              const sel = m.id === member.id ? 'selected' : '';
+              const mName = (this.getMemberMarathiName(m) || m.name || '').replace(/\s*\([a-zA-Z\s.-]+\)/g, '').trim();
+              return `<option value="${m.id}" ${sel}>#${acc} - ${mName}</option>`;
+            }).join('')}
+          </select>
+        </div>
+      `;
+    }
+
+    // Build interactive top bar for modal (toggle view, cycles, whatsapp)
+    let cycleSelectorHTML = '';
+    if (member.pastCycles && member.pastCycles.length > 0) {
+      cycleSelectorHTML = `
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <span style="font-size: 0.78rem; font-weight: 700; color: #4b5563;">सायकल:</span>
+          <select class="form-control" style="padding: 0.2rem 0.6rem; font-size: 0.78rem; width: auto;" onchange="window.receiptManager.showMemberLedgerCard('${member.id}', this.value, ${showAllWeeks})">
+            <option value="${activeCycleNum}" ${curCycle === activeCycleNum ? 'selected' : ''}>चालू सायकल ${activeCycleNum}</option>
+            ${member.pastCycles.map(pc => `<option value="${pc.cycleNumber}" ${curCycle === pc.cycleNumber ? 'selected' : ''}>जतन सायकल ${pc.cycleNumber}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    }
+
+    const waText = this.generateMemberLedgerWhatsAppText(member, curCycle);
+    const cleanPhone = (member.phone || '').replace(/\D/g, '');
+    const waUrl = `https://wa.me/${cleanPhone ? '91' + cleanPhone : ''}?text=${encodeURIComponent(waText)}`;
+
+    modalBody.innerHTML = `
+      <div class="ledger-toolbar no-print" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; background: #ffffff; padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          ${memberSelectorHTML}
+          ${cycleSelectorHTML}
+          <div class="btn-group" style="display: flex; gap: 0.35rem;">
+            <button type="button" class="btn btn-sm ${!showAllWeeks ? 'btn-primary' : 'btn-secondary'}" onclick="window.receiptManager.showMemberLedgerCard('${member.id}', ${curCycle}, false)" style="font-size: 0.75rem; font-weight: 700;">
+              ✓ भरलेले / चालू आठवडे
+            </button>
+            <button type="button" class="btn btn-sm ${showAllWeeks ? 'btn-primary' : 'btn-secondary'}" onclick="window.receiptManager.showMemberLedgerCard('${member.id}', ${curCycle}, true)" style="font-size: 0.75rem; font-weight: 700;">
+              सर्व ५० आठवडे
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="background: #25d366; color: #000; font-weight: 700; font-size: 0.75rem; text-decoration: none;">
+            💬 WhatsApp वर पाठवा
+          </a>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.printMemberLedgerCard()" style="font-size: 0.75rem; font-weight: 700; color: #7c3a1e; border-color: #7c3a1e;">
+            🖨️ लेजर प्रिंट करा
+          </button>
+        </div>
+      </div>
+
+      ${reportHTML}
+    `;
+
+    modal.classList.add('active');
+  }
+
+  printMemberLedgerCard() {
+    window.print();
   }
 
   copyWhatsAppMessage(encodedText) {

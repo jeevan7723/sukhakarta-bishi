@@ -119,6 +119,100 @@ class BishiStore {
         }
       });
     }
+
+    // मासिक सदस्यांची महिनेवार खात्री व दुरुस्ती (Self-healing: ensure no holes in monthly installment sequence)
+    let hasHealedAnyMonthly = false;
+    if (Array.isArray(this.state.members)) {
+      this.state.members.forEach(member => {
+        const isMonthly = member.frequency === 'monthly' || member.totalPeriods === 12;
+        if (!isMonthly || !Array.isArray(member.weeks)) return;
+
+        const installmentAmt = Number(member.monthlyAmount || member.weeklyAmount) || 2000;
+        
+        // शोध: सुरुवातीचा महिना रिकामा असून पुढील महिना भरलेला आहे का? (उदा. महिना १ रिकामा, महिना २ भरलेला)
+        const hasHole = member.weeks.some((w, idx) => {
+          if (idx === 0) return false;
+          const prev = member.weeks[idx - 1];
+          const curPaid = Number(w.amountPaid || 0) > 0 || w.status === 'paid';
+          const prevPaid = Number(prev.amountPaid || 0) > 0 || prev.status === 'paid';
+          return curPaid && !prevPaid;
+        });
+
+        if (hasHole) {
+          hasHealedAnyMonthly = true;
+          let totalDepositedToShift = 0;
+          let totalFineToShift = 0;
+          let paymentMeta = null;
+
+          member.weeks.forEach(w => {
+            const amt = Number(w.amountPaid || 0);
+            if (amt > 0 || w.status === 'paid') {
+              totalDepositedToShift += (amt > 0 ? amt : installmentAmt);
+              totalFineToShift += Number(w.finePaid || 0);
+              if (!paymentMeta && w.paidDate) {
+                paymentMeta = {
+                  paidDate: w.paidDate,
+                  paymentMode: w.paymentMode,
+                  receiptNo: w.receiptNo,
+                  notes: w.notes,
+                  upiId: w.upiId
+                };
+              }
+            }
+          });
+
+          // महिना १ पासून क्रमाने रक्कम पुनर्वितरित करा
+          let remainingDeposit = totalDepositedToShift;
+          member.weeks.forEach((w, idx) => {
+            if (remainingDeposit >= installmentAmt) {
+              w.amountPaid = installmentAmt;
+              w.status = 'paid';
+              w.paidDate = paymentMeta ? paymentMeta.paidDate : (w.paidDate || new Date().toISOString().split('T')[0]);
+              w.paymentMode = paymentMeta ? paymentMeta.paymentMode : (w.paymentMode || 'Cash');
+              w.receiptNo = paymentMeta ? (paymentMeta.receiptNo || '').replace(/W\d+/, 'W1').replace(/M\d+/, 'M1') : w.receiptNo;
+              w.notes = paymentMeta ? paymentMeta.notes : w.notes;
+              w.upiId = paymentMeta ? paymentMeta.upiId : w.upiId;
+              w.finePaid = (idx === 0) ? totalFineToShift : 0;
+              remainingDeposit -= installmentAmt;
+            } else if (remainingDeposit > 0) {
+              w.amountPaid = remainingDeposit;
+              w.status = 'partial';
+              w.paidDate = paymentMeta ? paymentMeta.paidDate : (w.paidDate || new Date().toISOString().split('T')[0]);
+              w.paymentMode = paymentMeta ? paymentMeta.paymentMode : (w.paymentMode || 'Cash');
+              w.receiptNo = paymentMeta ? paymentMeta.receiptNo : w.receiptNo;
+              w.notes = paymentMeta ? paymentMeta.notes : w.notes;
+              w.upiId = paymentMeta ? paymentMeta.upiId : w.upiId;
+              w.finePaid = (idx === 0) ? totalFineToShift : 0;
+              remainingDeposit = 0;
+            } else {
+              w.amountPaid = 0;
+              w.status = 'pending';
+              w.paidDate = null;
+              w.paymentMode = '';
+              w.receiptNo = null;
+              w.notes = '';
+              w.upiId = '';
+              w.finePaid = 0;
+            }
+          });
+
+          // या सदस्याच्या व्यवहारांमधील (transactions) weekNumber सुद्धा महिना १ करा
+          if (Array.isArray(this.state.transactions)) {
+            const memberTxns = this.state.transactions.filter(t => t.memberId === member.id && !t.isLoanTransaction);
+            if (memberTxns.length === 1 && memberTxns[0].weekNumber > 1) {
+              memberTxns[0].weekNumber = 1;
+              if (memberTxns[0].note) {
+                memberTxns[0].note = memberTxns[0].note.replace(/महिना \d+/g, 'महिना १').replace(/W\d+/g, 'W1');
+              }
+            }
+          }
+        }
+      });
+    }
+
+    if (hasHealedAnyMonthly) {
+      this.saveStateLocalOnly();
+    }
   }
 
   // स्थानिक स्टोरेजमधून डेटा लोड करणे
@@ -239,6 +333,7 @@ class BishiStore {
   }
 
   // नवीन सदस्य जोडणे (Add Member)
+  // नवीन सदस्य जोडणे (Add Member - Supports Weekly and Monthly Bishi)
   addMember(data) {
     if (window.authManager && !window.authManager.isAdmin()) {
       console.warn('Unauthorized attempt to add member: Admin login required');
@@ -246,8 +341,10 @@ class BishiStore {
     }
 
     const memberId = this.generateMemberId();
-    const weeklyAmount = Number(data.weeklyAmount) || 1000;
-    const startWeek = Number(data.startWeek) || 1;
+    const frequency = (data.frequency || data.memberType || 'weekly').toLowerCase() === 'monthly' ? 'monthly' : 'weekly';
+    const totalPeriods = frequency === 'monthly' ? 12 : 50;
+    const installmentAmount = Number(data.monthlyAmount || data.weeklyAmount) || (frequency === 'monthly' ? 2000 : 1000);
+    const startPeriod = Math.max(1, Math.min(totalPeriods, Number(data.startPeriod || data.startMonth || data.startWeek) || 1));
     const rawPhone = data.phone ? data.phone.trim() : '';
     const defaultPass = rawPhone ? rawPhone.replace(/\D/g, '').slice(-4) || '1234' : '1234';
     const memberPassword = (data.password || '').trim() || defaultPass;
@@ -261,8 +358,11 @@ class BishiStore {
       nameMarathi: marathiName,
       phone: rawPhone,
       password: memberPassword,
-      weeklyAmount: weeklyAmount,
-      startWeek: startWeek,
+      frequency: frequency, // 'weekly' किंवा 'monthly'
+      totalPeriods: totalPeriods, // 50 आठवडे किंवा 12 महिने
+      weeklyAmount: installmentAmount, // सुसंगततेसाठी साप्ताहिक/मासिक हप्ता
+      monthlyAmount: installmentAmount,
+      startWeek: startPeriod,
       nominee: (data.nominee || '').trim(),
       notes: (data.notes || '').trim(),
       joinDate: data.joinDate || new Date().toISOString().split('T')[0],
@@ -274,11 +374,11 @@ class BishiStore {
       weeks: []
     };
 
-    // ५० आठवड्यांचे वेळापत्रक तयार करणे
-    for (let w = 1; w <= 50; w++) {
+    // कालावधी वेळापत्रक तयार करणे (साप्ताहिक: ५० आठवडे, मासिक: १२ महिने)
+    for (let w = 1; w <= totalPeriods; w++) {
       newMember.weeks.push({
         weekNumber: w,
-        status: w < startWeek ? 'skipped' : 'pending',
+        status: w < startPeriod ? 'skipped' : 'pending',
         amountPaid: 0,
         finePaid: 0,
         paidDate: null,
@@ -288,15 +388,17 @@ class BishiStore {
       });
     }
 
-    // पहिल्या आठवड्याचा हप्ता त्वरित जमा करणे (संपूर्ण रक्कम निवडलेल्या आठवड्यात जमा करणे)
+    // पहिल्या आठवड्याचा/महिन्याचा हप्ता त्वरित जमा करणे (संपूर्ण रक्कम निवडलेल्या कालावधीत जमा करणे)
     if (data.initialDeposit && Number(data.initialDeposit) > 0) {
       const initAmt = Number(data.initialDeposit);
-      const currentWk = startWeek;
+      const currentWk = startPeriod;
       const todayStr = new Date().toISOString().split('T')[0];
       const isUpi = (data.paymentMode || '').toLowerCase().includes('upi');
       const upiId = isUpi ? (data.upiId || '').trim() : '';
-      const receiptNo = `REC-${memberId}-W${currentWk}-${Date.now().toString().slice(-4)}`;
-      const initStatus = initAmt >= weeklyAmount ? 'paid' : (initAmt > 0 ? 'partial' : 'pending');
+      const prefix = frequency === 'monthly' ? 'M' : 'W';
+      const receiptNo = `REC-${memberId}-${prefix}${currentWk}-${Date.now().toString().slice(-4)}`;
+      const initStatus = initAmt >= installmentAmount ? 'paid' : (initAmt > 0 ? 'partial' : 'pending');
+      const periodLabel = frequency === 'monthly' ? `महिना ${currentWk}` : `आठवडा ${currentWk}`;
 
       newMember.weeks[currentWk - 1] = {
         weekNumber: currentWk,
@@ -307,7 +409,7 @@ class BishiStore {
         paymentMode: data.paymentMode || 'Cash',
         upiId: upiId,
         receiptNo: receiptNo,
-        notes: initAmt > weeklyAmount ? `नवीन सदस्य प्रवेश हप्ता (अतिरिक्त भरणा: ₹${initAmt - weeklyAmount})` : 'नवीन सदस्य प्रवेश हप्ता'
+        notes: initAmt > installmentAmount ? `नवीन सदस्य प्रवेश ${periodLabel} हप्ता (अतिरिक्त भरणा: ₹${initAmt - installmentAmount})` : `नवीन सदस्य प्रवेश ${periodLabel} हप्ता`
       };
 
       this.state.transactions.unshift({
@@ -323,7 +425,7 @@ class BishiStore {
         paymentMode: data.paymentMode || 'Cash',
         upiId: upiId,
         receiptNo: receiptNo,
-        note: 'नवीन सदस्य प्रारंभिक हप्ता भरणा'
+        note: `नवीन सदस्य प्रारंभिक ${periodLabel} हप्ता भरणा`
       });
     }
 
@@ -490,9 +592,11 @@ class BishiStore {
   clearAllPaymentsOnly() {
     const currentWeek = this.state.meta.currentWeek || 1;
     (this.state.members || []).forEach(member => {
-      member.weeks = Array.from({ length: 50 }, (_, i) => ({
+      const isMonthly = member.frequency === 'monthly' || member.totalPeriods === 12;
+      const totalPeriods = isMonthly ? 12 : 50;
+      member.weeks = Array.from({ length: totalPeriods }, (_, i) => ({
         weekNumber: i + 1,
-        status: (i + 1) < currentWeek ? 'overdue' : 'pending',
+        status: (i + 1) < (isMonthly ? 1 : currentWeek) ? 'overdue' : 'pending',
         amountPaid: 0,
         finePaid: 0,
         paidDate: null,
@@ -523,7 +627,19 @@ class BishiStore {
     const member = this.getMember(memberId);
     if (!member) return null;
 
-    const targetWeekNum = Number(weekNumber);
+    const isMonthly = member.frequency === 'monthly' || member.totalPeriods === 12;
+    let targetWeekNum = Number(weekNumber);
+
+    // मासिक सभासदांसाठी: हप्ता नेहमी सुरुवातीच्या बाकी (unpaid) महिन्यामध्येच जमा झाला पाहिजे
+    // (महिना २ वर आधी भरणा होऊन महिना १ रिकामा राहू नये)
+    if (isMonthly) {
+      const instAmt = Number(member.monthlyAmount || member.weeklyAmount) || 2000;
+      const firstDue = member.weeks.find(w => w.status !== 'paid' && Number(w.amountPaid || 0) < instAmt);
+      if (firstDue && (!targetWeekNum || targetWeekNum > firstDue.weekNumber || targetWeekNum > 12)) {
+        targetWeekNum = firstDue.weekNumber;
+      }
+    }
+
     const startWeekIndex = member.weeks.findIndex(w => w.weekNumber === targetWeekNum);
     if (startWeekIndex === -1) return null;
 
@@ -864,9 +980,11 @@ class BishiStore {
     member.payoutDetails = null;
     member.startWeek = Number(startWeek) || 1;
 
-    // नवीन ५० रिकामे आठवडे तयार करणे
+    // नवीन रिकामे आठवडे/महिने तयार करणे
+    const isMonthly = member.frequency === 'monthly' || member.totalPeriods === 12;
+    const totalPeriods = isMonthly ? 12 : 50;
     member.weeks = [];
-    for (let w = 1; w <= 50; w++) {
+    for (let w = 1; w <= totalPeriods; w++) {
       member.weeks.push({
         weekNumber: w,
         status: w < member.startWeek ? 'skipped' : 'pending',
@@ -1496,10 +1614,13 @@ class BishiStore {
   // 📊 आकडेवारी व गणना इंजिन (Stats & Calculation Engine)
   // ==========================================================================
 
-  // सदस्यनिहाय आकडेवारी गणना
+  // सदस्यनिहाय आकडेवारी गणना (Supports Weekly 50 weeks & Monthly 12 months)
   calculateMemberStats(member) {
-    const weeklyAmount = Number(member.weeklyAmount) || 0;
-    const totalTarget = weeklyAmount * 50;
+    const isMonthly = member.frequency === 'monthly' || member.totalPeriods === 12 || (Array.isArray(member.weeks) && member.weeks.length <= 12 && member.totalPeriods !== 50);
+    const totalPeriods = isMonthly ? 12 : 50;
+    const installmentAmount = Number(member.monthlyAmount || member.weeklyAmount) || 0;
+    const weeklyAmount = installmentAmount; // सुसंगततेसाठी साप्ताहिक/मासिक हप्ता
+    const totalTarget = installmentAmount * totalPeriods;
     let totalDeposited = 0;
     let totalFinePaid = 0;
     let paidWeeksCount = 0;
@@ -1509,7 +1630,7 @@ class BishiStore {
     const maturityInterestPercent = Number(this.state.meta.maturityInterestPercent !== undefined ? this.state.meta.maturityInterestPercent : 8);
     const currentWeek = this.state.meta.currentWeek || 1;
 
-    member.weeks.forEach(w => {
+    (member.weeks || []).forEach(w => {
       const amt = Number(w.amountPaid) || 0;
       if (amt > 0) {
         totalDeposited += amt;
@@ -1520,26 +1641,34 @@ class BishiStore {
       }
     });
 
-    // पूर्ण झालेले आठवडे (Effective Paid Weeks = Maximum of distinctly paid weeks or covered by total deposited)
-    const effectiveByDeposit = Math.min(50, Math.floor(totalDeposited / (weeklyAmount || 1)));
-    const effectivePaidWeeks = Math.min(50, Math.max(paidWeeksCount, effectiveByDeposit));
-    const isFullyPaid = totalDeposited >= totalTarget || effectivePaidWeeks >= 50;
+    // पूर्ण झालेले हप्ते (Effective Paid Periods = Maximum of distinctly paid periods or covered by total deposited)
+    const effectiveByDeposit = Math.min(totalPeriods, Math.floor(totalDeposited / (installmentAmount || 1)));
+    const effectivePaidWeeks = Math.min(totalPeriods, Math.max(paidWeeksCount, effectiveByDeposit));
+    const isFullyPaid = totalDeposited >= totalTarget || effectivePaidWeeks >= totalPeriods;
     const remainingAmount = Math.max(0, totalTarget - totalDeposited);
-    const progressPercent = Math.min(100, Math.round((Math.max(totalDeposited, effectivePaidWeeks * weeklyAmount) / (totalTarget || 1)) * 100));
-    const nextDueAmount = weeklyAmount;
-    const remainingWeeksCount = Math.max(0, 50 - effectivePaidWeeks);
+    const progressPercent = Math.min(100, Math.round((Math.max(totalDeposited, effectivePaidWeeks * installmentAmount) / (totalTarget || 1)) * 100));
+    const nextDueAmount = installmentAmount;
+    const remainingWeeksCount = Math.max(0, totalPeriods - effectivePaidWeeks);
 
-    // Calculate overdue weeks based on cumulative expected deposit for PAST completed weeks (weeks < currentWeek)
-    const pastCompletedWeeks = Math.max(0, Math.min(50, currentWeek - 1));
-    const expectedPastDeposit = pastCompletedWeeks * weeklyAmount;
-    const depositDeficit = Math.max(0, expectedPastDeposit - Math.max(totalDeposited, effectivePaidWeeks * weeklyAmount));
-    const overdueWeeksCount = Math.ceil(depositDeficit / (weeklyAmount || 1));
-
-    // Determine next due week: the next week following the covered weeks
-    if (isFullyPaid) {
-      nextDueWeek = 50;
+    // थकबाकी गणना (Overdue Periods Calculation)
+    let overdueWeeksCount = 0;
+    if (isMonthly) {
+      const activeMonth = Math.min(12, Math.max(1, Math.ceil((currentWeek || 1) / 4.16)));
+      const pastMonths = Math.max(0, Math.min(12, activeMonth - 1));
+      const expectedPast = pastMonths * installmentAmount;
+      const deficit = Math.max(0, expectedPast - Math.max(totalDeposited, effectivePaidWeeks * installmentAmount));
+      overdueWeeksCount = Math.ceil(deficit / (installmentAmount || 1));
     } else {
-      nextDueWeek = Math.min(50, effectivePaidWeeks + 1);
+      const pastCompletedWeeks = Math.max(0, Math.min(50, currentWeek - 1));
+      const expectedPastDeposit = pastCompletedWeeks * weeklyAmount;
+      const depositDeficit = Math.max(0, expectedPastDeposit - Math.max(totalDeposited, effectivePaidWeeks * weeklyAmount));
+      overdueWeeksCount = Math.ceil(depositDeficit / (weeklyAmount || 1));
+    }
+
+    if (isFullyPaid) {
+      nextDueWeek = totalPeriods;
+    } else {
+      nextDueWeek = Math.min(totalPeriods, effectivePaidWeeks + 1);
     }
 
     // ८% मॅच्युरिटी व्याज बोनस गणना
@@ -1557,6 +1686,12 @@ class BishiStore {
     const canRestartPlan = isFullyPaid;
 
     return {
+      isMonthly,
+      frequency: isMonthly ? 'monthly' : 'weekly',
+      totalPeriods,
+      periodUnit: isMonthly ? 'महिना' : 'आठवडा',
+      periodUnitPlural: isMonthly ? 'महिने' : 'आठवडे',
+      installmentAmount,
       weeklyAmount,
       totalTarget,
       totalDeposited,
@@ -1564,7 +1699,7 @@ class BishiStore {
       paidWeeksCount: effectivePaidWeeks,
       effectivePaidWeeks,
       remainingWeeksCount,
-      nextDueWeek: nextDueWeek || 50,
+      nextDueWeek: nextDueWeek || totalPeriods,
       nextDueAmount,
       remainingAmount,
       progressPercent,
@@ -1574,6 +1709,7 @@ class BishiStore {
       projectedMaturityTotal,
       maturityInterestPercent,
       overdueWeeksCount,
+      isNextWeekOverdue,
       suggestedFine,
       accruedPendingFine,
       isFullyPaid,
@@ -1693,13 +1829,24 @@ class BishiStore {
     const weekNum = Math.max(1, Math.min(50, Number(w)));
     this.state.meta.currentWeek = weekNum;
 
-    // थकीत आठवड्यांचे स्टेटस अपडेट
+    // थकीत आठवड्यांचे/महिन्यांचे स्टेटस अपडेट
     this.state.members.forEach(m => {
-      m.weeks.forEach(wk => {
-        if (wk.status !== 'paid' && wk.status !== 'skipped') {
-          wk.status = wk.weekNumber < weekNum ? 'overdue' : 'pending';
-        }
-      });
+      const isMonthly = m.frequency === 'monthly' || m.totalPeriods === 12;
+      if (isMonthly) {
+        // मासिक सदस्यांसाठी: चालू आठवड्यानुसार सक्रिय महिना ठरवा (उदा. आठवडे १-४ = महिना १)
+        const activeMonth = Math.min(12, Math.max(1, Math.ceil(weekNum / 4.16)));
+        m.weeks.forEach(wk => {
+          if (wk.status !== 'paid' && wk.status !== 'skipped') {
+            wk.status = wk.weekNumber < activeMonth ? 'overdue' : 'pending';
+          }
+        });
+      } else {
+        m.weeks.forEach(wk => {
+          if (wk.status !== 'paid' && wk.status !== 'skipped') {
+            wk.status = wk.weekNumber < weekNum ? 'overdue' : 'pending';
+          }
+        });
+      }
     });
 
     this.saveState();

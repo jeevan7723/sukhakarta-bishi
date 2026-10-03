@@ -167,12 +167,281 @@
   line-height: 1.4;
 }
 
+/* ==========================================================================
+   MEMBER LEDGER CARD REGISTER REPORT STYLES (Based on Official Template)
+   ========================================================================== */
+
+#memberLedgerModal {
+  z-index: 2600 !important;
+}
+
+.member-ledger-card-register {
+  width: 100%;
+  max-width: 1060px;
+  margin: 0 auto;
+  background: #ffffff;
+  color: #111827;
+  border: 2.5px solid #853d1b;
+  border-radius: 6px;
+  padding: 22px 26px;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  box-shadow: 0 4px 24px rgba(133, 61, 27, 0.09);
+}
+
+.ledger-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.ledger-brand-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #853d1b;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.ledger-doc-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #231610;
+  letter-spacing: -0.01em;
+}
+
+.ledger-top-meta {
+  font-size: 0.86rem;
+  color: #111827;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.ledger-page-num {
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 1px;
+}
+
+.ledger-header-divider {
+  border-bottom: 2px solid #853d1b;
+  margin: 6px 0 14px 0;
+  width: 100%;
+}
+
+.ledger-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  border: 1.5px solid #853d1b;
+}
+
+.ledger-info-table td {
+  padding: 6px 12px;
+  font-size: 0.84rem;
+  border: 1px solid #853d1b;
+  vertical-align: middle;
+}
+
+.ledger-info-table .info-lbl {
+  background-color: #853d1b;
+  color: #ffffff;
+  font-weight: 700;
+  width: 19%;
+  white-space: nowrap;
+}
+
+.ledger-info-table .info-val {
+  background-color: #fffdf5;
+  color: #111827;
+  font-weight: 700;
+  width: 31%;
+  border: 1px solid #cfa890;
+}
+
+.ledger-info-table .info-green {
+  color: #047857;
+  font-weight: 800;
+}
+
+.ledger-info-table .info-blue {
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.ledger-info-table .info-base-int {
+  color: #475569;
+  font-size: 0.85em;
+  font-weight: 600;
+  margin-left: 3px;
+}
+
+.ledger-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+
+.ledger-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  border: 1.5px solid #853d1b;
+}
+
+.ledger-data-table th {
+  background-color: #faede2;
+  color: #111827;
+  font-weight: 700;
+  border: 1px solid #853d1b;
+  padding: 6px 4px;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.ledger-data-table th.th-green {
+  color: #047857;
+}
+
+.ledger-data-table th.th-red {
+  color: #991b1b;
+}
+
+.ledger-data-table th.th-brown {
+  color: #7c2d12;
+}
+
+.ledger-data-table .th-green-sub {
+  color: #047857;
+  font-weight: 700;
+}
+
+.ledger-data-table td {
+  border: 1px solid #dfcec3;
+  padding: 5px 6px;
+  color: #111827;
+  font-size: 0.8rem;
+  vertical-align: middle;
+}
+
+.ledger-data-table tbody tr:nth-child(even) {
+  background-color: #faf5ef;
+}
+
+.ledger-data-table tbody tr:hover {
+  background-color: #f5ece3;
+}
+
+.ledger-data-table .total-row td {
+  background-color: #853d1b !important;
+  color: #ffffff !important;
+  font-weight: 800;
+  border: 1.5px solid #853d1b;
+  padding: 7px 6px;
+  font-size: 0.82rem;
+}
+
+.ledger-bottom-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 14px;
+  gap: 18px;
+}
+
+.ledger-notes-card {
+  background-color: #fffdf5;
+  border: 1.5px solid #853d1b;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: #111827;
+  min-width: 280px;
+}
+
+.ledger-notes-card .notes-takani {
+  font-weight: 700;
+  color: #111827;
+}
+
+.ledger-notes-card .notes-dividend {
+  font-weight: 800;
+  color: #047857;
+}
+
+.ledger-notes-card .notes-acc {
+  font-weight: 700;
+  color: #111827;
+}
+
+.ledger-notes-card .notes-payout {
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.ledger-ack-section {
+  text-align: right;
+  font-size: 0.84rem;
+  color: #111827;
+  flex: 1;
+}
+
+.ledger-ack-text {
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: #111827;
+  margin-bottom: 2.2rem;
+}
+
+.ledger-sign-line {
+  border-top: 2px solid #111827;
+  width: 230px;
+  margin-left: auto;
+  padding-top: 5px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #111827;
+  text-align: center;
+}
+
 /* Print Media Query */
 @media print {
+  @page {
+    size: landscape;
+    margin: 6mm 8mm;
+  }
   body * {
     visibility: hidden;
   }
-  .receipt-wrapper, .receipt-wrapper * {
+  #printableMemberLedgerArea,
+  #printableMemberLedgerArea *,
+  #reportPageContentArea,
+  #reportPageContentArea * {
+    visibility: visible;
+  }
+  #printableMemberLedgerArea,
+  #reportPageContentArea .member-ledger-card-register {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 14px 18px !important;
+    border: 2.5px solid #853d1b !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .receipt-wrapper,
+  .receipt-wrapper * {
     visibility: visible;
   }
   .receipt-wrapper {
@@ -184,6 +453,8 @@
     margin: 0 auto;
     box-shadow: none;
     border: 1px solid #000;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .modal-overlay, .modal-container {
     background: transparent !important;
@@ -191,7 +462,7 @@
     border: none !important;
     padding: 0 !important;
   }
-  .modal-header, .modal-footer, .nav-actions, .top-navbar, .no-print {
+  .modal-header, .modal-footer, .nav-actions, .top-navbar, .no-print, .ledger-toolbar {
     display: none !important;
   }
 }
