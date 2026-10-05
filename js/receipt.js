@@ -1518,7 +1518,6 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       // + Any loan interest on interest pay date (interestAmtForWeek)
       // + Any loan principal repaid (repaidPrincipal)
       let rowExpected = weeklyAmount;
-      let expectedBreakdown = '';
       if (isInterestPayWeek && interestAmtForWeek > 0) {
         rowExpected += interestAmtForWeek;
       }
@@ -1526,13 +1525,6 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         rowExpected += repaidPrincipal;
       }
       runningExpected += rowExpected;
-
-      const expectedAmtStr = currency + rowExpected.toLocaleString('en-IN');
-      if (isInterestPayWeek && interestAmtForWeek > 0) {
-        expectedBreakdown = `<div style="font-size: 0.65rem; font-weight: 700; color: #b45309; line-height: 1.1; margin-top: 2px;">(${currency}${weeklyAmount.toLocaleString('en-IN')} हप्ता + ${currency}${interestAmtForWeek.toLocaleString('en-IN')} व्याज${repaidPrincipal > 0 ? ` + ${currency}${repaidPrincipal.toLocaleString('en-IN')} मुद्दल` : ''})</div>`;
-      } else if (repaidPrincipal > 0) {
-        expectedBreakdown = `<div style="font-size: 0.65rem; font-weight: 700; color: #047857; line-height: 1.1; margin-top: 2px;">(${currency}${weeklyAmount.toLocaleString('en-IN')} हप्ता + ${currency}${repaidPrincipal.toLocaleString('en-IN')} मुद्दल)</div>`;
-      }
 
       // Balance due for this row entry
       const totalPaidForRow = depositAmt + repaidPrincipal + repaidInterest;
@@ -1551,10 +1543,6 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           </td>
           <td style="text-align: center; font-weight: 700; color: #991b1b;">
             ${fineAmt > 0 ? currency + fineAmt.toLocaleString('en-IN') : '-'}
-          </td>
-          <td style="text-align: right; font-weight: 700; color: #111;">
-            ${expectedAmtStr}
-            ${expectedBreakdown}
           </td>
           <td style="text-align: center; font-weight: 700; color: #7c2d12;">
             ${loanGivenAmt > 0 ? currency + loanGivenAmt.toLocaleString('en-IN') : '-'}
@@ -1665,7 +1653,6 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
                 <th style="width: 95px;" class="th-green">जमा हप्ता<br><span class="th-green-sub">(${currency})</span></th>
                 <th style="width: 105px;" class="th-green">एकूण जमा<br><span class="th-green-sub">(${currency})</span></th>
                 <th style="width: 65px;" class="th-red">दंड<br><span style="font-size: 0.72rem; font-weight: 600;">(${currency})</span></th>
-                <th style="width: 85px;">अपेक्षित<br><span style="font-size: 0.72rem; font-weight: 600; opacity: 0.9;">(${currency})</span></th>
                 <th style="width: 85px;" class="th-brown">कर्ज वाटप<br><span style="font-size: 0.72rem; font-weight: 600; color: #7c2d12;">(${currency})</span></th>
                 <th style="width: 110px;" class="th-brown">कर्ज परतफेड मुद्दल<br><span class="th-green-sub">(${currency})</span></th>
                 <th style="width: 110px;" class="th-brown">कर्ज व्याज जमा<br><span class="th-green-sub">(${currency})</span></th>
@@ -1683,7 +1670,6 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
                 <td style="text-align: right; font-weight: 800; color: #a7f3d0;">${currency}${runningDeposit.toLocaleString('en-IN')}</td>
                 <td style="text-align: right; font-weight: 800; color: #a7f3d0;">${currency}${runningDeposit.toLocaleString('en-IN')}</td>
                 <td style="text-align: center; font-weight: 800; color: #fecaca;">${runningPenalty > 0 ? currency + runningPenalty.toLocaleString('en-IN') : '-'}</td>
-                <td style="text-align: right; font-weight: 800; color: #ffffff;">${currency}${totalExpectedForRows.toLocaleString('en-IN')}</td>
                 <td style="text-align: center; font-weight: 800; color: #fecaca;">${runningLoanGiven > 0 ? currency + runningLoanGiven.toLocaleString('en-IN') : '-'}</td>
                 <td style="text-align: center; font-weight: 800; color: #a7f3d0;">${runningLoanRepayPrincipal > 0 ? currency + runningLoanRepayPrincipal.toLocaleString('en-IN') : '-'}</td>
                 <td style="text-align: center; font-weight: 800; color: #a7f3d0;">${runningLoanRepayInterest > 0 ? currency + runningLoanRepayInterest.toLocaleString('en-IN') : '-'}</td>
