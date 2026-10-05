@@ -4244,18 +4244,56 @@ select.member-action-select:active {
 }
 
 @media (max-width: 640px) {
+  .brand-hero-card {
+    padding: 1rem 0.85rem !important;
+    margin-bottom: 0.85rem !important;
+    border-radius: var(--radius-lg, 16px) !important;
+  }
   .brand-hero-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 0.65rem !important;
   }
   .brand-hero-logo-box {
-    margin: 0 auto;
-    width: 150px;
-    height: 98px;
+    margin: 0 auto !important;
+    width: 110px !important;
+    height: 70px !important;
+    padding: 4px 8px !important;
+    border-radius: var(--radius-md, 10px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  }
+  .brand-hero-badge {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0.65rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+  .brand-hero-title {
+    font-size: 1.22rem !important;
+    margin-bottom: 0.2rem !important;
+    line-height: 1.3 !important;
+  }
+  .brand-hero-tagline {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.04em !important;
+    margin-bottom: 0.65rem !important;
+    line-height: 1.3 !important;
   }
   .brand-hero-pills {
-    justify-content: center;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.45rem !important;
+    width: 100% !important;
+  }
+  .hero-pill {
+    height: auto !important;
+    min-height: 30px !important;
+    font-size: 0.68rem !important;
+    padding: 0.3rem 0.45rem !important;
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+    border-radius: var(--radius-sm, 6px) !important;
+    line-height: 1.25 !important;
   }
 }
 
@@ -4841,7 +4879,7 @@ body.customer-mode #mobileDrawerAdminMenu,
   .mobile-top-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
 
   /* Sidebar transforms into off-canvas drawer */
@@ -6157,6 +6195,72 @@ body {
   line-height: 1.4;
 }
 
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .mobile-top-bar {
+    padding: calc(0.45rem + env(safe-area-inset-top, 0px)) 0.75rem 0.45rem !important;
+    min-height: 54px;
+    gap: 0.5rem;
+  }
+
+  .brand-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .brand-logo {
+    width: 36px !important;
+    height: 36px !important;
+    flex-shrink: 0;
+  }
+
+  .brand-info {
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .brand-title {
+    font-size: 1.05rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .brand-subtitle {
+    font-size: 0.65rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    color: var(--text-muted);
+  }
+
+  .mobile-top-actions {
+    gap: 0.35rem !important;
+    flex-shrink: 0;
+  }
+
+  .header-action-btn {
+    height: 36px !important;
+    min-width: 36px !important;
+    padding: 0 0.5rem !important;
+    font-size: 0.8rem !important;
+    border-radius: var(--radius-sm, 8px) !important;
+  }
+}
+
 @media (max-width: 480px) {
   .hide-on-tiny {
     display: none !important;
@@ -6434,13 +6538,13 @@ body {
       </div>
 
       <div class="mobile-top-actions">
-        <!-- स्वतंत्र लिंक्स बटण (Website & Mobile App Links) -->
-        <button type="button" class="header-action-btn" id="btnShareLinksHeader" onclick="window.openShareLinksModal()" title="वेबसाइट व ॲप लिंक्स पहा व शेअर करा">
+        <!-- स्वतंत्र लिंक्स बटण (Website & Mobile App Links - Drawer मध्ये उपलब्ध) -->
+        <button type="button" class="header-action-btn hide-on-mobile" id="btnShareLinksHeader" onclick="window.openShareLinksModal()" title="वेबसाइट व ॲप लिंक्स पहा व शेअर करा">
           <span>🔗</span> <span class="hide-on-tiny">लिंक्स</span>
         </button>
 
-        <!-- PWA मोबाईल ॲप इन्स्टॉल बटण (PWA App Install) -->
-        <button type="button" class="header-action-btn pwa-btn" id="btnPwaInstallHeader" onclick="window.pwaManager.promptInstall()" title="मोबाईल ॲप इन्स्टॉल करा (Install Mobile App)" style="display: none;">
+        <!-- PWA मोबाईल ॲप इन्स्टॉल बटण (PWA App Install - Drawer मध्ये उपलब्ध) -->
+        <button type="button" class="header-action-btn pwa-btn hide-on-mobile" id="btnPwaInstallHeader" onclick="window.pwaManager.promptInstall()" title="मोबाईल ॲप इन्स्टॉल करा (Install Mobile App)" style="display: none;">
           <span>📲</span> <span class="hide-on-tiny">अ‍ॅप इन्स्टॉल</span>
         </button>
 
@@ -6449,8 +6553,8 @@ body {
           <span>🌐</span> <span id="mobileLangLabel">EN</span>
         </button>
 
-        <!-- ॲनिमेशन पुन्हा पहा बटण (Replay Splash Animation) -->
-        <button type="button" class="header-action-btn" id="mobileSplashReplayBtn" onclick="window.playEntrySplashAnimation && window.playEntrySplashAnimation()" title="प्रवेश ॲनिमेशन पहा (Watch Animation)">
+        <!-- ॲनिमेशन पुन्हा पहा बटण (Replay Splash Animation - Drawer मध्ये उपलब्ध) -->
+        <button type="button" class="header-action-btn hide-on-mobile" id="mobileSplashReplayBtn" onclick="window.playEntrySplashAnimation && window.playEntrySplashAnimation()" title="प्रवेश ॲनिमेशन पहा (Watch Animation)">
           ✨
         </button>
 
