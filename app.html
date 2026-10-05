@@ -9,9 +9,11 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="सुखकर्ता बीशी">
   <meta name="application-name" content="सुखकर्ता बीशी">
-  <title>सुखकर्ता बीशी - ५०-आठवडे फंड व्यवस्थापन व सदस्य पोर्टल</title>
+  <title>सुखकर्ता बीशी - मोबाईल ॲप्लिकेशन (Mobile Application)</title>
   <meta name="description" content="सुखकर्ता बीशी साप्ताहिक बचत व फंड व्यवस्थापन डॅशबोर्ड - प्रशासक पॅनल आणि सदस्य पोर्टल.">
   
+  <!-- Mobile Application Specific Settings -->
+  <meta name="is-mobile-app-entry" content="true">
   <!-- PWA Manifest & App Icons -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32x32.png">
@@ -6230,7 +6232,7 @@ body {
 }
   </style>
 </head>
-<body>
+<body class="has-bottom-nav">
 
   <!-- ==========================================================================
        ॲप प्रवेश ॲनिमेशन (App Entry Splash Screen Animation - ५ सेकंद)
@@ -9665,6 +9667,33 @@ body {
       </div>
     </div>
   </div>
+
+  
+  <!-- ==========================================================================
+       मोबाईल ॲप तळ बार (Mobile App Bottom Navigation Tab Bar)
+       ========================================================================== -->
+  <nav class="mobile-app-bottom-bar no-print" id="mobileAppBottomBar">
+    <button type="button" class="bottom-nav-item active" id="bnavDashboard" onclick="if(window.setActiveBottomNav)window.setActiveBottomNav('bnavDashboard'); window.ui.navigateToDashboard();">
+      <span class="bnav-icon">📊</span>
+      <span class="bnav-label">डॅशबोर्ड</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="bnavMembers" onclick="if(window.setActiveBottomNav)window.setActiveBottomNav('bnavMembers'); window.ui.navigateToMembersPage();">
+      <span class="bnav-icon">👥</span>
+      <span class="bnav-label">सदस्य</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="bnavLoans" onclick="if(window.setActiveBottomNav)window.setActiveBottomNav('bnavLoans'); window.ui.navigateToLoansPage();">
+      <span class="bnav-icon">💳</span>
+      <span class="bnav-label">कर्ज</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="bnavReports" onclick="if(window.setActiveBottomNav)window.setActiveBottomNav('bnavReports'); window.ui.navigateToReportsPage();">
+      <span class="bnav-icon">📜</span>
+      <span class="bnav-label">अहवाल</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="bnavMenu" onclick="window.ui.toggleMobileDrawer()">
+      <span class="bnav-icon">☰</span>
+      <span class="bnav-label">मेनू</span>
+    </button>
+  </nav>
 
   <!-- टोस्ट नोटिफिकेशन्स कंटेनर -->
   <div class="toast-container" id="toastContainer"></div>

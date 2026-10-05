@@ -1,13 +1,14 @@
 /**
  * Sukhakarta Bishi - Progressive Web App Service Worker
- * Provides offline capabilities, instant loading, and asset caching
+ * Provides offline capabilities, instant loading, and asset caching for Website and Mobile App
  */
 
-const CACHE_NAME = 'sukhakarta-bishi-v1.0.0';
+const CACHE_NAME = 'sukhakarta-bishi-v1.1.0';
 
 const PRECACHE_ASSETS = [
   './',
   './index.html',
+  './app.html',
   './manifest.json',
   './assets/icons/icon-192x192.png',
   './assets/icons/icon-512x512.png',
@@ -27,6 +28,7 @@ const PRECACHE_ASSETS = [
   './js/receipt.js',
   './js/export.js',
   './js/ui.js',
+  './js/pwa.js',
   './js/app.js'
 ];
 
@@ -34,7 +36,7 @@ const PRECACHE_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Pre-caching core offline assets...');
+      console.log('[SW] Pre-caching core offline assets for web & app...');
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
         console.warn('[SW] Some precache assets could not be cached immediately:', err);
       });
@@ -71,7 +73,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests (HTML): Network first, falling back to cached index.html
+  // Navigation requests (HTML): Network first, falling back to cached HTML
   if (request.mode === 'navigate' || request.destination === 'document') {
     event.respondWith(
       fetch(request)
@@ -85,8 +87,8 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          return caches.match('./index.html').then((cached) => {
-            return cached || caches.match(request);
+          return caches.match(request).then((cached) => {
+            return cached || caches.match('./app.html') || caches.match('./index.html');
           });
         })
     );

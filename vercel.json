@@ -1,5 +1,10 @@
 {
   "buildCommand": "",
+  "rewrites": [
+    { "source": "/app", "destination": "/app.html" },
+    { "source": "/loans", "destination": "/loans.html" },
+    { "source": "/members", "destination": "/members.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

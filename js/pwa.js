@@ -189,4 +189,64 @@
   } else {
     window.pwaManager.init();
   }
+
+  // Global Helpers for Separate Website & Mobile App Links
+  window.openShareLinksModal = function() {
+    try {
+      const origin = window.location.origin;
+      let basePath = window.location.pathname;
+      if (basePath.endsWith('.html') || basePath.endsWith('/')) {
+        basePath = basePath.replace(/\/[^/]*$/, '');
+      }
+      const cleanOrigin = origin + basePath;
+      
+      const websiteUrl = cleanOrigin + '/index.html';
+      const mobileAppUrl = cleanOrigin + '/app.html';
+
+      const wInput = document.getElementById('shareWebsiteUrlInput');
+      const mInput = document.getElementById('shareMobileAppUrlInput');
+      if (wInput) wInput.value = websiteUrl;
+      if (mInput) mInput.value = mobileAppUrl;
+
+      const modal = document.getElementById('shareLinksModal');
+      if (modal) modal.classList.add('active');
+    } catch (e) {
+      console.error('Error opening share links modal:', e);
+    }
+  };
+
+  window.copyWebsiteLink = function() {
+    const input = document.getElementById('shareWebsiteUrlInput');
+    if (input) {
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      if (window.ui && typeof window.ui.showToast === 'function') {
+        window.ui.showToast('✅ अधिकृत वेबसाइट लिंक कॉपी झाली!', 'success');
+      }
+    }
+  };
+
+  window.copyMobileAppLink = function() {
+    const input = document.getElementById('shareMobileAppUrlInput');
+    if (input) {
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      if (window.ui && typeof window.ui.showToast === 'function') {
+        window.ui.showToast('✅ मोबाईल ॲप्लिकेशन लिंक कॉपी झाली!', 'success');
+      }
+    }
+  };
+
+  window.shareMobileAppOnWhatsApp = function() {
+    const input = document.getElementById('shareMobileAppUrlInput');
+    const url = input ? input.value : window.location.href;
+    const text = `*सुखकर्ता बीशी - अधिकृत मोबाईल ॲप* 📱\n५०-आठवडे बचत व पासबुक ॲप थेट मोबाईलवर उघडण्यासाठी व इन्स्टॉल करण्यासाठी खालील लिंकवर क्लिक करा:\n👉 ${url}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  window.setActiveBottomNav = function(tabId) {
+    document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.remove('active'));
+    const activeEl = document.getElementById(tabId);
+    if (activeEl) activeEl.classList.add('active');
+  };
 })();

@@ -2,8 +2,8 @@
   "name": "सुखकर्ता बीशी - Sukhakarta Bishi",
   "short_name": "सुखकर्ता बीशी",
   "description": "५०-आठवडे बचत, कर्ज व खातावही व्यवस्थापन मोबाईल ॲप्लिकेशन",
-  "id": "./",
-  "start_url": "./index.html",
+  "id": "./app.html",
+  "start_url": "./app.html",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
@@ -51,12 +51,12 @@
   "shortcuts": [
     {
       "name": "सदस्य यादी (Members)",
-      "url": "./index.html#members",
+      "url": "./app.html#members",
       "icons": [{ "src": "assets/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "कर्ज खाती (Loans)",
-      "url": "./index.html#loans",
+      "url": "./app.html#loans",
       "icons": [{ "src": "assets/icons/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
