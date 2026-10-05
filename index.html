@@ -3312,6 +3312,232 @@ button.status-completed:hover {
   text-align: center;
 }
 
+/* ==========================================================================
+   सदस्य खातावही कार्ड रजिस्टर - मोबाईल व टॅबलेट रिस्पॉन्सिव्ह डिझाईन
+   ========================================================================== */
+.ledger-info-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 14px;
+}
+
+.ledger-mobile-scroll-hint {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .member-ledger-card-register {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 12px 10px !important;
+    border-width: 2px !important;
+    border-radius: 6px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .ledger-top-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .ledger-brand-title {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 2px !important;
+  }
+
+  .ledger-doc-title {
+    font-size: 1.15rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: normal !important;
+  }
+
+  .ledger-top-meta {
+    text-align: left !important;
+    white-space: normal !important;
+    font-size: 0.76rem !important;
+    line-height: 1.4 !important;
+    width: 100% !important;
+    margin-top: 2px !important;
+  }
+
+  .ledger-page-num {
+    text-align: left !important;
+    font-size: 0.74rem !important;
+    margin-top: 1px !important;
+  }
+
+  .ledger-header-divider {
+    margin: 6px 0 10px 0 !important;
+  }
+
+  .ledger-info-table-wrap {
+    margin-bottom: 10px !important;
+    overflow-x: visible !important;
+  }
+
+  .ledger-info-table {
+    display: grid !important;
+    grid-template-columns: 105px minmax(0, 1fr) !important;
+    width: 100% !important;
+    margin-bottom: 0 !important;
+    border: 1.5px solid #853d1b !important;
+  }
+
+  .ledger-info-table tbody,
+  .ledger-info-table tr {
+    display: contents !important;
+  }
+
+  .ledger-info-table td {
+    box-sizing: border-box !important;
+    padding: 6px 8px !important;
+    font-size: 0.78rem !important;
+    border: 1px solid #853d1b !important;
+    word-break: break-word !important;
+  }
+
+  .ledger-info-table .info-lbl {
+    width: auto !important;
+    white-space: normal !important;
+    font-size: 0.76rem !important;
+    line-height: 1.25 !important;
+    display: flex !important;
+    align-items: center !important;
+    background-color: #853d1b !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+
+  .ledger-info-table .info-val {
+    width: auto !important;
+    font-size: 0.8rem !important;
+    line-height: 1.35 !important;
+    background-color: #fffdf5 !important;
+    border-color: #cfa890 !important;
+  }
+
+  .ledger-mobile-scroll-hint {
+    display: block !important;
+    font-size: 0.72rem !important;
+    color: #853d1b !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    background: #faede2 !important;
+    padding: 5px 8px !important;
+    border-radius: 4px !important;
+    margin-bottom: 6px !important;
+    border: 1px dashed #cfa890 !important;
+  }
+
+  .ledger-table-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin-bottom: 12px !important;
+    border: 1px solid #853d1b !important;
+    border-radius: 4px !important;
+    background: #ffffff !important;
+  }
+
+  .ledger-data-table {
+    min-width: 780px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .ledger-data-table th {
+    padding: 5px 3px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .ledger-data-table td {
+    padding: 5px 5px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .ledger-bottom-section {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    margin-top: 10px !important;
+  }
+
+  .ledger-notes-card {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 0.78rem !important;
+    line-height: 1.6 !important;
+    padding: 8px 10px !important;
+  }
+
+  .ledger-ack-section {
+    text-align: left !important;
+    width: 100% !important;
+    margin-top: 4px !important;
+  }
+
+  .ledger-ack-text {
+    font-size: 0.8rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .ledger-sign-line {
+    width: 190px !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    font-size: 0.82rem !important;
+    padding-top: 4px !important;
+  }
+
+  .ledger-toolbar {
+    padding: 0.5rem 0.65rem !important;
+    gap: 0.5rem !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .ledger-toolbar > div {
+    width: 100% !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+  }
+
+  .ledger-toolbar .btn-group {
+    width: 100% !important;
+    display: flex !important;
+  }
+
+  .ledger-toolbar .btn-group button {
+    flex: 1 !important;
+    font-size: 0.72rem !important;
+    padding: 0.35rem 0.5rem !important;
+  }
+
+  #memberLedgerModal .modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  #memberLedgerModalBody {
+    padding: 0.5rem 0.25rem !important;
+  }
+
+  .reports-display-container {
+    padding: 0.6rem 0.25rem !important;
+    border-radius: var(--radius-md) !important;
+    margin-bottom: 1.5rem !important;
+  }
+}
+
 /* Print Media Query */
 @media print {
   @page {
@@ -6698,7 +6924,7 @@ body.customer-mode #mobileDrawerAdminMenu,
         </div>
 
         <!-- मुख्य अधिकृत खातावही कार्ड अहवाल डिस्प्ले एरिया -->
-        <div style="background: #f8fafc; padding: 1.5rem 1rem; border-radius: var(--radius-lg); border: 1px solid #e2e8f0; overflow-x: auto; margin-bottom: 2.5rem; display: flex; justify-content: center; box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);">
+        <div class="reports-display-container" style="background: #f8fafc; padding: 1.5rem 1rem; border-radius: var(--radius-lg); border: 1px solid #e2e8f0; overflow-x: auto; margin-bottom: 2.5rem; display: flex; justify-content: center; box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);">
           <div id="reportPageContentArea" style="width: 100%; max-width: 1060px;">
             <!-- डायनॅमिकली generateMemberLedgerReportHTML भरले जाईल -->
           </div>

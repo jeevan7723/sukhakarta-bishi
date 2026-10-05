@@ -1609,47 +1609,51 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         <div class="ledger-header-divider"></div>
 
         <!-- Member Info Card Table (Terracotta Saddle Brown Headers, Cream Values) -->
-        <table class="ledger-info-table">
-          <tr>
-            <td class="info-lbl">खाते क्र.:</td>
-            <td class="info-val info-acc">${accountNo}</td>
-            <td class="info-lbl">सभासदाचे नाव:</td>
-            <td class="info-val info-name">${memberName}</td>
-          </tr>
-          <tr>
-            <td class="info-lbl">${isMonthly ? 'मासिक हप्ता:' : 'साप्ताहिक हप्ता:'}</td>
-            <td class="info-val info-inst">
-              <span class="info-green">${currency}${weeklyAmount.toLocaleString('en-IN')} (${isMonthly ? 'दर महिना' : 'दर आठवडा'})</span>
-            </td>
-            <td class="info-lbl">पत्ता व मोबाईल:</td>
-            <td class="info-val info-addr">${address} (${phone})</td>
-          </tr>
-          <tr>
-            <td class="info-lbl">एकूण बीशी परतावा:</td>
-            <td class="info-val info-bishi">
-              <span class="info-green">${currency}${totalWithInterest.toLocaleString('en-IN')}</span>
-              <span class="info-base-int">${isPayoutTime 
-                ? `(मूळ बचत: ${currency}${baseDeposited.toLocaleString('en-IN')} + ${annualInterestPercent}% वार्षिक व्याज: +${currency}${interestAmount.toLocaleString('en-IN')})` 
-                : `(चालू मूळ बचत: ${currency}${baseDeposited.toLocaleString('en-IN')} • ${annualInterestPercent}% वार्षिक व्याज परताव्याच्या वेळी लागू)`}</span>
-            </td>
-            <td class="info-lbl">लाभांश व व्याज दर:</td>
-            <td class="info-val info-dividend">
-              <span class="info-blue">${annualInterestPercent}% (वार्षिक परतावा)</span>
-            </td>
-          </tr>
-          ${totalLoanDisbursed > 0 ? `
+        <div class="ledger-info-table-wrap">
+          <table class="ledger-info-table">
             <tr>
-              <td class="info-lbl" style="background: #7c2d12; color: #ffffff;">कर्ज तपशील:</td>
-              <td class="info-val" style="background: #fffdf5; font-weight: 700; color: #7c2d12;">
-                एकूण वाटप: <strong>${currency}${totalLoanDisbursed.toLocaleString('en-IN')}</strong> • बाकी मुद्दल: <strong style="color: ${remainingLoanPrincipal > 0 ? '#dc2626' : '#059669'};">${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}</strong>
+              <td class="info-lbl">खाते क्र.:</td>
+              <td class="info-val info-acc">${accountNo}</td>
+              <td class="info-lbl">सभासदाचे नाव:</td>
+              <td class="info-val info-name">${memberName}</td>
+            </tr>
+            <tr>
+              <td class="info-lbl">${isMonthly ? 'मासिक हप्ता:' : 'साप्ताहिक हप्ता:'}</td>
+              <td class="info-val info-inst">
+                <span class="info-green">${currency}${weeklyAmount.toLocaleString('en-IN')} (${isMonthly ? 'दर महिना' : 'दर आठवडा'})</span>
               </td>
-              <td class="info-lbl" style="background: #047857; color: #ffffff;">कर्ज व्याज जमा:</td>
-              <td class="info-val" style="background: #f0fdf4; font-weight: 700; color: #047857;">
-                एकूण जमा व्याज: <span style="background: #d1fae5; color: #047857; padding: 0.15rem 0.55rem; border-radius: 4px; border: 1px solid #10b981; font-weight: 800;">+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')} (३% दर)</span>
+              <td class="info-lbl">पत्ता व मोबाईल:</td>
+              <td class="info-val info-addr">${address} (${phone})</td>
+            </tr>
+            <tr>
+              <td class="info-lbl">एकूण बीशी परतावा:</td>
+              <td class="info-val info-bishi">
+                <span class="info-green">${currency}${totalWithInterest.toLocaleString('en-IN')}</span>
+                <span class="info-base-int">${isPayoutTime 
+                  ? `(मूळ बचत: ${currency}${baseDeposited.toLocaleString('en-IN')} + ${annualInterestPercent}% वार्षिक व्याज: +${currency}${interestAmount.toLocaleString('en-IN')})` 
+                  : `(चालू मूळ बचत: ${currency}${baseDeposited.toLocaleString('en-IN')} • ${annualInterestPercent}% वार्षिक व्याज परताव्याच्या वेळी लागू)`}</span>
+              </td>
+              <td class="info-lbl">लाभांश व व्याज दर:</td>
+              <td class="info-val info-dividend">
+                <span class="info-blue">${annualInterestPercent}% (वार्षिक परतावा)</span>
               </td>
             </tr>
-          ` : ''}
-        </table>
+            ${totalLoanDisbursed > 0 ? `
+              <tr>
+                <td class="info-lbl" style="background: #7c2d12; color: #ffffff;">कर्ज तपशील:</td>
+                <td class="info-val" style="background: #fffdf5; font-weight: 700; color: #7c2d12;">
+                  एकूण वाटप: <strong>${currency}${totalLoanDisbursed.toLocaleString('en-IN')}</strong> • बाकी मुद्दल: <strong style="color: ${remainingLoanPrincipal > 0 ? '#dc2626' : '#059669'};">${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}</strong>
+                </td>
+                <td class="info-lbl" style="background: #047857; color: #ffffff;">कर्ज व्याज जमा:</td>
+                <td class="info-val" style="background: #f0fdf4; font-weight: 700; color: #047857;">
+                  एकूण जमा व्याज: <span style="background: #d1fae5; color: #047857; padding: 0.15rem 0.55rem; border-radius: 4px; border: 1px solid #10b981; font-weight: 800;">+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')} (३% दर)</span>
+                </td>
+              </tr>
+            ` : ''}
+          </table>
+        </div>
+
+        <div class="ledger-mobile-scroll-hint no-print">👉 संपूर्ण खातावही पाहण्यासाठी डावीकडे / उजवीकडे स्क्रोल करा 👈</div>
 
         <!-- Main Ledger Data Table -->
         <div class="ledger-table-wrap">
