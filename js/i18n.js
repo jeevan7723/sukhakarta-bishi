@@ -353,7 +353,12 @@
     ['एडिट करा', 'Edit'],
     ['सदस्य पासबुक', 'Member Passbook'],
     ['अधिकृत डिजिटल पावती पाहण्यासाठी कोणत्याही जमा झालेल्या आठवड्यावर क्लिक करा.', 'Click on any deposited week to view the official digital receipt.'],
-    ['🟢 जमा • 🟡 चालू हप्ता • 🔴 थकबाकी • ⚪ प्रलंबित', '🟢 Paid • 🟡 Current • 🔴 Overdue • ⚪ Pending']
+    ['🟢 जमा • 🟡 चालू हप्ता • 🔴 थकबाकी • ⚪ प्रलंबित', '🟢 Paid • 🟡 Current • 🔴 Overdue • ⚪ Pending'],
+    ['मोबाईल ॲप इन्स्टॉल करा', 'Install Mobile App'],
+    ['अ‍ॅप इन्स्टॉल', 'Install App'],
+    ['सुखकर्ता बीशी मोबाईल ॲप', 'Sukhakarta Bishi Mobile App'],
+    ['अ‍ॅपप्रमाणे जलद व ऑफलाइन वापरण्यासाठी इन्स्टॉल करा', 'Install for fast access & offline support'],
+    ['इन्स्टॉल', 'Install']
   ];
 
   class I18nManager {

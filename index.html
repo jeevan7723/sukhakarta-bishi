@@ -3,34 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f8fafc">
+  <meta name="theme-color" content="#059669">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="सुखकर्ता बीशी">
+  <meta name="application-name" content="सुखकर्ता बीशी">
   <title>सुखकर्ता बीशी - ५०-आठवडे फंड व्यवस्थापन व सदस्य पोर्टल</title>
   <meta name="description" content="सुखकर्ता बीशी साप्ताहिक बचत व फंड व्यवस्थापन डॅशबोर्ड - प्रशासक पॅनल आणि सदस्य पोर्टल.">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   
-  <!-- तात्काळ थीम व कॅश आरंभ (Immediate Theme & Cache Purge) -->
+  <!-- PWA Manifest & App Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32x32.png">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  
+  <!-- तात्काळ थीम आरंभ (Immediate Theme Initialization) -->
   <script>
     (function() {
-      // जुनी कॅश व सर्व्हिस वर्कर तात्काळ नष्ट करणे
       try {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for (var r of registrations) { r.unregister(); }
-          });
-        }
-        if ('caches' in window) {
-          caches.keys().then(function(keys) {
-            for (var k of keys) { caches.delete(k); }
-          });
-        }
-      } catch (e) {}
-
-      try {
-        localStorage.removeItem('sukhakarta_theme');
         var theme = localStorage.getItem('sukhakarta_theme_v2') || 'light';
         document.documentElement.setAttribute('data-theme', theme);
       } catch (e) {
@@ -5885,10 +5876,190 @@ body.customer-mode #mobileDrawerAdminMenu,
   color: #ffffff !important;
   box-shadow: 0 1px 4px rgba(5, 150, 105, 0.35);
 }
+
+/* ==========================================================================
+   PWA & MOBILE APP STYLES (Progressive Web App, Safe Areas & Install Banner)
+   ========================================================================== */
+
+/* Safe area insets for iOS notches and modern edge-to-edge screens */
+body {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Floating Bottom Install Banner */
+.pwa-install-banner {
+  position: fixed;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 1.5rem);
+  max-width: 480px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.2);
+  border-radius: var(--radius-lg, 16px);
+  padding: 0.75rem 1rem;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  animation: pwaSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pwaSlideUp {
+  from {
+    transform: translate(-50%, 120%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.pwa-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.pwa-banner-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.pwa-banner-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pwa-banner-text strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pwa-banner-text span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.25;
+}
+
+.pwa-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.pwa-banner-install-btn {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  transition: transform 0.15s ease, filter 0.15s ease;
+  white-space: nowrap;
+}
+
+.pwa-banner-install-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.pwa-banner-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pwa-banner-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* iOS & Generic PWA Instructions Modal */
+.pwa-guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 1.25rem 0;
+  text-align: left;
+}
+
+.pwa-guide-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  background: var(--bg-tertiary);
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.pwa-step-num {
+  width: 28px;
+  height: 28px;
+  background: var(--emerald-500);
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.pwa-step-info h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pwa-step-info p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .hide-on-tiny {
+    display: none !important;
+  }
+}
   </style>
-  
-  <link rel="icon" type="image/png" href="assets/favicon.png">
-  <link rel="apple-touch-icon" href="assets/logo-emblem.png">
 </head>
 <body>
 
@@ -6094,6 +6265,11 @@ body.customer-mode #mobileDrawerAdminMenu,
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.45rem;">
+        <!-- PWA मोबाईल ॲप इन्स्टॉल बटण (PWA App Install) -->
+        <button type="button" class="btn btn-secondary btn-icon" id="btnPwaInstallHeader" onclick="window.pwaManager.promptInstall()" title="मोबाईल ॲप इन्स्टॉल करा (Install Mobile App)" style="display: none; align-items: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 700; color: #10b981; border: 1px solid rgba(16,185,129,0.4); background: rgba(16,185,129,0.1); padding: 0.35rem 0.6rem; border-radius: var(--radius-sm); cursor: pointer;">
+          <span>📲</span> <span class="hide-on-tiny">अ‍ॅप इन्स्टॉल</span>
+        </button>
+
         <!-- मोबाईल भाषा बदल बटण (Mobile Language Switch) -->
         <button type="button" class="btn btn-secondary btn-icon" id="mobileLangToggleBtn" onclick="window.i18n.toggleLanguage()" title="भाषा बदला / Change Language (मराठी / English)" style="font-size: 0.78rem; font-weight: 800; padding: 0.35rem 0.55rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; gap: 0.2rem;">
           <span>🌐</span> <span id="mobileLangLabel">EN</span>
@@ -6281,6 +6457,12 @@ body.customer-mode #mobileDrawerAdminMenu,
             <button type="button" class="sidebar-nav-item" onclick="window.playEntrySplashAnimation && window.playEntrySplashAnimation(); window.ui.closeMobileDrawer();" title="प्रवेश ॲनिमेशन पुन्हा अनुभवा (Watch Animation)">
               <span class="sidebar-nav-icon">✨</span>
               <span class="sidebar-nav-text">प्रवेश ॲनिमेशन पहा</span>
+            </button>
+
+            <!-- मोबाईल ॲप इन्स्टॉल करा बटण (PWA App Install) -->
+            <button type="button" class="sidebar-nav-item" id="btnPwaInstallSidebar" onclick="window.pwaManager.promptInstall(); window.ui.closeMobileDrawer();" title="मोबाईल ॲप इन्स्टॉल करा (Install Mobile App)" style="border: 1px solid rgba(16,185,129,0.35); color: var(--emerald-400); background: rgba(16,185,129,0.1); margin-top: 0.25rem;">
+              <span class="sidebar-nav-icon">📲</span>
+              <span class="sidebar-nav-text" style="font-weight: 700;">मोबाईल ॲप इन्स्टॉल करा</span>
             </button>
           </div>
         </div>
@@ -9144,6 +9326,106 @@ body.customer-mode #mobileDrawerAdminMenu,
     </div>
   </div>
 
+  <!-- ==========================================================================
+       PWA मोबाईल ॲप इन्स्टॉलेशन बॅनर व मॉडेल्स (Progressive Web App Modals)
+       ========================================================================== -->
+  <!-- PWA मोबाईल ॲप बॉटम बॅनर -->
+  <div id="pwaInstallBanner" class="pwa-install-banner no-print" style="display: none;">
+    <div class="pwa-banner-content">
+      <img src="assets/icons/icon-192x192.png" alt="सुखकर्ता बीशी" class="pwa-banner-icon">
+      <div class="pwa-banner-text">
+        <strong>सुखकर्ता बीशी मोबाईल ॲप</strong>
+        <span>अ‍ॅपप्रमाणे जलद व ऑफलाइन वापरण्यासाठी इन्स्टॉल करा</span>
+      </div>
+    </div>
+    <div class="pwa-banner-actions">
+      <button type="button" class="pwa-banner-install-btn" onclick="window.pwaManager.promptInstall()">📲 इन्स्टॉल</button>
+      <button type="button" class="pwa-banner-close-btn" onclick="window.pwaManager.dismissBanner()" aria-label="बंद करा">✕</button>
+    </div>
+  </div>
+
+  <!-- iOS PWA इन्स्टॉलेशन मार्गदर्शक मोडल -->
+  <div class="modal-overlay" id="pwaIosModal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.05));">
+        <div class="modal-title">
+          <span>📲 iPhone / iPad वर ॲप कसे इन्स्टॉल करावे</span>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="window.pwaManager.closeModal('pwaIosModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 1.25rem;">
+        <div style="text-align: center; margin-bottom: 1rem;">
+          <img src="assets/icons/apple-touch-icon.png" alt="सुखकर्ता बीशी" style="width: 64px; height: 64px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
+          <div style="font-weight: 700; font-size: 1.05rem; margin-top: 0.5rem; color: var(--text-primary);">सुखकर्ता बीशी</div>
+        </div>
+        <div class="pwa-guide-steps">
+          <div class="pwa-guide-step">
+            <div class="pwa-step-num">1</div>
+            <div class="pwa-step-info">
+              <h4>Safari मेनू उघडा</h4>
+              <p>स्क्रीनच्या तळाशी असलेल्या निळ्या <strong>शेअर बटणावर (Share 📤)</strong> टॅप करा.</p>
+            </div>
+          </div>
+          <div class="pwa-guide-step">
+            <div class="pwa-step-num">2</div>
+            <div class="pwa-step-info">
+              <h4>'Add to Home Screen' निवडा</h4>
+              <p>खाली स्क्रोल करा आणि <strong>'Add to Home Screen' (होम स्क्रीनवर जोडा ➕)</strong> पर्यायावर दाबा.</p>
+            </div>
+          </div>
+          <div class="pwa-guide-step">
+            <div class="pwa-step-num">3</div>
+            <div class="pwa-step-info">
+              <h4>'Add' वर क्लिक करा</h4>
+              <p>वरच्या उजव्या कोपऱ्यात <strong>'Add'</strong> दाबा. ॲप आपल्या होम स्क्रीनवर लगेच उपलब्ध होईल!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" style="width: 100%;" onclick="window.pwaManager.closeModal('pwaIosModal')">समजले (Got it)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- सामान्य PWA इन्स्टॉलेशन मार्गदर्शक मोडल -->
+  <div class="modal-overlay" id="pwaInstallGuideModal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📲 मोबाईल ॲप इन्स्टॉल करा</span>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="window.pwaManager.closeModal('pwaInstallGuideModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 1.25rem;">
+        <div style="text-align: center; margin-bottom: 1rem;">
+          <img src="assets/icons/icon-192x192.png" alt="सुखकर्ता बीशी" style="width: 64px; height: 64px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
+          <div style="font-weight: 700; font-size: 1.05rem; margin-top: 0.5rem; color: var(--text-primary);">सुखकर्ता बीशी ॲप</div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">मोबाईलवर एका टॅपमध्ये उघडा व ऑफलाइन काम करा.</p>
+        </div>
+        <div class="pwa-guide-steps">
+          <div class="pwa-guide-step">
+            <div class="pwa-step-num">1</div>
+            <div class="pwa-step-info">
+              <h4>ब्राउझर मेनू उघडा</h4>
+              <p>वरच्या किंवा खालच्या कोपऱ्यातील तीन ठिपके <strong>(⋮ किंवा ⋯)</strong> वर टॅप करा.</p>
+            </div>
+          </div>
+          <div class="pwa-guide-step">
+            <div class="pwa-step-num">2</div>
+            <div class="pwa-step-info">
+              <h4>'Install App' किंवा 'Add to Home Screen'</h4>
+              <p><strong>'Install App' / 'ॲप इन्स्टॉल करा'</strong> किंवा <strong>'Add to Home Screen'</strong> वर दाबा.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" style="width: 100%;" onclick="window.pwaManager.closeModal('pwaInstallGuideModal')">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
   <!-- टोस्ट नोटिफिकेशन्स कंटेनर -->
   <div class="toast-container" id="toastContainer"></div>
 
@@ -9162,6 +9444,7 @@ body.customer-mode #mobileDrawerAdminMenu,
   <script src="js/receipt.js?v=2.8.6"></script>
   <script src="js/export.js?v=2.8.6"></script>
   <script src="js/ui.js?v=2.8.6"></script>
+  <script src="js/pwa.js?v=2.8.6"></script>
   <script src="js/app.js?v=2.8.6"></script>
 </body>
 </html>
