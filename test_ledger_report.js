@@ -151,4 +151,68 @@ if (!waText.includes('सदस्य खातावही कार्ड र�
   process.exit(1);
 }
 
+// 3. Test missed deposit paid in next week: शिल्लक बाकी should show '-' for cleared week
+console.log('\n--- Testing Cleared Missed Deposit in Ledger Card ---');
+window.bishiStore.state.meta.currentWeek = 5;
+const testMember = window.bishiStore.addMember({
+  name: 'राजेश शिंदे (Rajesh Shinde)',
+  phone: '9822001122',
+  weeklyAmount: 500,
+  startWeek: 1
+});
+window.bishiStore.recordPayment(testMember.id, 1, 500, 'Cash');
+window.bishiStore.recordPayment(testMember.id, 2, 500, 'Cash');
+// Week 3 missed (0 paid)
+// Week 4 paid 1000 (covers week 3 and 4)
+window.bishiStore.recordPayment(testMember.id, 4, 1000, 'Cash');
+
+const updatedTestMember = window.bishiStore.getMember(testMember.id);
+const testStats = window.bishiStore.calculateMemberStats(updatedTestMember);
+console.log('Test member effectivePaidWeeks:', testStats.effectivePaidWeeks, '(Expected: 4)');
+if (testStats.effectivePaidWeeks < 4) {
+  console.error('FAILED: Member effectivePaidWeeks should be 4');
+  process.exit(1);
+}
+
+const ledgerHtml = window.receiptManager.generateMemberLedgerReportHTML(updatedTestMember, null, true);
+
+// Extract rows from tbody
+const tbodyMatch = ledgerHtml.match(/<tbody>([\s\S]*?)<\/tbody>/);
+if (!tbodyMatch) {
+  console.error('FAILED: No tbody found in ledgerHtml');
+  process.exit(1);
+}
+const rowMatches = tbodyMatch[1].match(/<tr>([\s\S]*?)<\/tr>/g);
+console.log('Total rows rendered:', rowMatches ? rowMatches.length : 0);
+
+// Row index 2 is Week 3 (1-indexed 3rd row)
+const week3Row = rowMatches[2];
+console.log('Week 3 row HTML:\n', week3Row.trim());
+
+// The last cell is "शिल्लक बाकी"
+const week3Cells = week3Row.match(/<td[^>]*>([\s\S]*?)<\/td>/g);
+const week3BalanceCell = week3Cells[week3Cells.length - 1];
+console.log('Week 3 balance cell:', week3BalanceCell.trim());
+
+if (week3BalanceCell.includes('₹500')) {
+  console.error('FAILED: Week 3 should NOT show ₹500 when cleared by next week payment!');
+  process.exit(1);
+}
+if (!week3BalanceCell.includes('>-<') && !week3BalanceCell.includes('-\n') && !week3BalanceCell.trim().endsWith('-</td>')) {
+  console.error('FAILED: Week 3 balance cell should show "-" (dash/blank)');
+  process.exit(1);
+}
+console.log('SUCCESS: Week 3 correctly displays "-" (blank) after being cleared by next week payment!');
+
+// Row index 3 is Week 4 (1-indexed 4th row)
+const week4Row = rowMatches[3];
+const week4Cells = week4Row.match(/<td[^>]*>([\s\S]*?)<\/td>/g);
+const week4BalanceCell = week4Cells[week4Cells.length - 1];
+console.log('Week 4 balance cell:', week4BalanceCell.trim());
+if (!week4BalanceCell.includes('₹0')) {
+  console.error('FAILED: Week 4 balance cell should show ₹0');
+  process.exit(1);
+}
+console.log('SUCCESS: Week 4 correctly displays "₹0"!');
+
 console.log('\nALL PURE MARATHI LEDGER REPORT TESTS PASSED PERFECTLY!');

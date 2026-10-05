@@ -1531,6 +1531,13 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       const rowBalanceDue = Math.max(0, rowExpected - totalPaidForRow);
       const hasPayment = depositAmt > 0 || repaidInterest > 0 || repaidPrincipal > 0;
 
+      const targetWeekNumber = Number(w.weekNumber || (idx + 1));
+      const currentWeek = Number(window.bishiStore?.state?.meta?.currentWeek || 1);
+      const isDirectPaid = (depositAmt >= weeklyAmount);
+      const isCleared = !isDirectPaid && (targetWeekNumber <= (stats.effectivePaidWeeks || 0)) && (interestAmtForWeek <= repaidInterest);
+      const isOverdue = !isDirectPaid && !isCleared && w.status !== 'skipped' && (w.status === 'overdue' || (targetWeekNumber < currentWeek));
+      const effectiveRowBalanceDue = isCleared ? 0 : rowBalanceDue;
+
       rowsHTML += `
         <tr>
           <td style="text-align: center; font-weight: 700; color: #111;">${idx + 1}</td>
@@ -1554,8 +1561,8 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
             ${repaidInterest > 0 ? currency + repaidInterest.toLocaleString('en-IN') : '-'}
           </td>
           <td style="text-align: center; font-weight: 700; color: #991b1b;">-</td>
-          <td style="text-align: right; font-weight: 700; color: ${rowBalanceDue > 0 ? '#b91c1c' : '#047857'};">
-            ${hasPayment ? (currency + rowBalanceDue.toLocaleString('en-IN')) : ((w.status === 'overdue' || (w.weekNumber && w.weekNumber < (window.bishiStore?.state?.meta?.currentWeek || 1))) ? (currency + rowBalanceDue.toLocaleString('en-IN')) : '-')}
+          <td style="text-align: right; font-weight: 700; color: ${hasPayment ? (effectiveRowBalanceDue > 0 ? '#b91c1c' : '#047857') : (isOverdue ? '#b91c1c' : '#991b1b')};">
+            ${hasPayment ? (currency + effectiveRowBalanceDue.toLocaleString('en-IN')) : (isOverdue ? (currency + effectiveRowBalanceDue.toLocaleString('en-IN')) : '-')}
           </td>
         </tr>
       `;
