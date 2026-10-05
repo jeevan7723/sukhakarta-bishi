@@ -5818,6 +5818,43 @@ body.customer-mode #mobileDrawerAdminMenu,
 .sidebar-nav-item:active, .btn:active, .stat-card:active {
   transform: scale(0.96) !important;
 }
+
+/* भाषा टॉगल बटणे (Language Toggle Switcher) */
+.lang-toggle-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.lang-toggle-pills {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  padding: 2px;
+  user-select: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.lang-pill-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.22rem 0.65rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+.lang-pill-btn:hover {
+  color: var(--text-primary);
+}
+.lang-pill-btn.active {
+  background: var(--emerald-500) !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(5, 150, 105, 0.35);
+}
   </style>
   
   <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -5943,6 +5980,17 @@ body.customer-mode #mobileDrawerAdminMenu,
        ========================================================================== -->
   <div class="login-screen-overlay" id="adminLoginScreen">
     <div class="login-card">
+      <!-- लॉगिन भाषा बदल पर्याय (Language Switcher) -->
+      <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 0.75rem;">
+        <div class="lang-toggle-container">
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">🌐 भाषा:</span>
+          <div class="lang-toggle-pills">
+            <button type="button" class="lang-pill-btn active" data-lang="mr" onclick="window.i18n.setLanguage('mr')">मराठी</button>
+            <button type="button" class="lang-pill-btn" data-lang="en" onclick="window.i18n.setLanguage('en')">English</button>
+          </div>
+        </div>
+      </div>
+
       <div class="login-logo-banner-wrap">
         <img src="assets/logo.png" alt="सुखकर्ता बीशी - SUKHAKARTA BISHI" class="login-logo-banner">
       </div>
@@ -6016,6 +6064,11 @@ body.customer-mode #mobileDrawerAdminMenu,
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.45rem;">
+        <!-- मोबाईल भाषा बदल बटण (Mobile Language Switch) -->
+        <button type="button" class="btn btn-secondary btn-icon" id="mobileLangToggleBtn" onclick="window.i18n.toggleLanguage()" title="भाषा बदला / Change Language (मराठी / English)" style="font-size: 0.78rem; font-weight: 800; padding: 0.35rem 0.55rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; gap: 0.2rem;">
+          <span>🌐</span> <span id="mobileLangLabel">EN</span>
+        </button>
+
         <!-- ॲनिमेशन पुन्हा पहा बटण (Replay Splash Animation) -->
         <button type="button" class="btn btn-secondary btn-icon" id="mobileSplashReplayBtn" onclick="window.playEntrySplashAnimation && window.playEntrySplashAnimation()" title="प्रवेश ॲनिमेशन पहा (Watch Animation)" style="font-size: 1rem; padding: 0.35rem 0.55rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer;">
           ✨
@@ -6054,6 +6107,17 @@ body.customer-mode #mobileDrawerAdminMenu,
           </div>
         </div>
         <button type="button" class="sidebar-close-btn" id="btnMobileDrawerClose" onclick="window.ui.closeMobileDrawer()" aria-label="मेनू बंद करा" title="मेनू बंद करा">✕</button>
+      </div>
+
+      <!-- साइडबार भाषा टॉगल पर्याय (Language Switcher) -->
+      <div class="sidebar-lang-switch no-print" id="sidebarLangSwitch" style="padding: 0.6rem 1.15rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: var(--bg-glass);">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 0.35rem;">
+          <span>🌐</span> <span data-i18n="lang_label">भाषा / Lang:</span>
+        </span>
+        <div class="lang-toggle-pills">
+          <button type="button" class="lang-pill-btn active" data-lang="mr" onclick="window.i18n.setLanguage('mr')">मराठी</button>
+          <button type="button" class="lang-pill-btn" data-lang="en" onclick="window.i18n.setLanguage('en')">English</button>
+        </div>
       </div>
 
       <!-- साइडबार नेव्हिगेशन बॉडी -->
@@ -6165,6 +6229,12 @@ body.customer-mode #mobileDrawerAdminMenu,
             <button type="button" class="sidebar-nav-item admin-only" id="btnPushToFirebase" onclick="window.firebaseSyncManager.pushWebsiteDataToFirebase()" title="वेबसाइटवरील सर्व सदस्य व डेटा Firebase वर पाठवा" style="border: 1px solid rgba(16,185,129,0.35); color: var(--emerald-400); background: rgba(16,185,129,0.1); margin-top: 0.25rem;">
               <span class="sidebar-nav-icon">☁️⬆️</span>
               <span class="sidebar-nav-text" style="font-weight: 700;">वेबसाइट ➔ Firebase सिंक</span>
+            </button>
+
+            <!-- भाषा बदला बटण (Language Toggle) -->
+            <button type="button" class="sidebar-nav-item" id="sidebarLangToggleNavBtn" onclick="window.i18n.toggleLanguage()" title="भाषा बदला (English / मराठी)">
+              <span class="sidebar-nav-icon">🌐</span>
+              <span class="sidebar-nav-text" id="sidebarLangNavText">भाषा: मराठी (Switch to EN)</span>
             </button>
 
             <!-- थीम टॉगल बटण -->
@@ -9047,13 +9117,14 @@ body.customer-mode #mobileDrawerAdminMenu,
 
   <!-- Javascript Scripts (Cache-Busted) -->
   <script src="js/xlsx.full.min.js"></script>
-  <script src="js/firebase.js?v=2.8.5"></script>
-  <script src="js/marathi_translit.js?v=2.8.5"></script>
-  <script src="js/store.js?v=2.8.5"></script>
-  <script src="js/auth.js?v=2.8.5"></script>
-  <script src="js/receipt.js?v=2.8.5"></script>
-  <script src="js/export.js?v=2.8.5"></script>
-  <script src="js/ui.js?v=2.8.5"></script>
-  <script src="js/app.js?v=2.8.5"></script>
+  <script src="js/firebase.js?v=2.8.6"></script>
+  <script src="js/marathi_translit.js?v=2.8.6"></script>
+  <script src="js/i18n.js?v=2.8.6"></script>
+  <script src="js/store.js?v=2.8.6"></script>
+  <script src="js/auth.js?v=2.8.6"></script>
+  <script src="js/receipt.js?v=2.8.6"></script>
+  <script src="js/export.js?v=2.8.6"></script>
+  <script src="js/ui.js?v=2.8.6"></script>
+  <script src="js/app.js?v=2.8.6"></script>
 </body>
 </html>

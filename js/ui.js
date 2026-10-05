@@ -1024,25 +1024,30 @@ class UIManager {
   renderStats() {
     const stats = window.bishiStore.getDashboardStats();
     const currency = window.bishiStore.state.meta.currency;
+    const isEn = window.i18n && window.i18n.isEnglish();
 
     const totalMem = document.getElementById('statTotalMembers');
     if (totalMem) totalMem.textContent = stats.totalMembers;
     const totalMemSub = document.getElementById('statTotalMembersSub');
-    if (totalMemSub) totalMemSub.textContent = `${stats.totalSettledMembers} सेटल / जुने`;
+    if (totalMemSub) totalMemSub.textContent = isEn ? `${stats.totalSettledMembers} Settled / Inactive` : `${stats.totalSettledMembers} सेटल / जुने`;
 
     const totalFundPool = document.getElementById('statTotalFundPool');
     if (totalFundPool) totalFundPool.textContent = `${currency}${stats.totalFundTarget.toLocaleString('en-IN')}`;
     const totalFundPoolSub = document.getElementById('statTotalFundPoolSub');
-    if (totalFundPoolSub) totalFundPoolSub.textContent = `५० आठवड्यांचे एकूण लक्ष्य`;
+    if (totalFundPoolSub) totalFundPoolSub.textContent = isEn ? `50-Week Total Target` : `५० आठवड्यांचे एकूण लक्ष्य`;
 
     const totalCollected = document.getElementById('statTotalCollected');
     if (totalCollected) totalCollected.textContent = `${currency}${stats.totalAllTimeCollected.toLocaleString('en-IN')}`;
     const totalCollectedSub = document.getElementById('statTotalCollectedSub');
     if (totalCollectedSub) {
       if (stats.totalFinesCollected > 0) {
-        totalCollectedSub.textContent = `${stats.overallProgressPercent}% लक्ष्य • +${currency}${stats.totalFinesCollected.toLocaleString('en-IN')} लेट फी`;
+        totalCollectedSub.textContent = isEn
+          ? `${stats.overallProgressPercent}% of target • +${currency}${stats.totalFinesCollected.toLocaleString('en-IN')} Late Fee`
+          : `${stats.overallProgressPercent}% लक्ष्य • +${currency}${stats.totalFinesCollected.toLocaleString('en-IN')} लेट फी`;
       } else {
-        totalCollectedSub.textContent = `एकूण लक्ष्याच्या ${stats.overallProgressPercent}% जमा`;
+        totalCollectedSub.textContent = isEn
+          ? `${stats.overallProgressPercent}% of total target deposited`
+          : `एकूण लक्ष्याच्या ${stats.overallProgressPercent}% जमा`;
       }
     }
     const progressTotal = document.getElementById('progressTotalCollected');
@@ -1052,9 +1057,13 @@ class UIManager {
     if (weekCollected) weekCollected.textContent = `${currency}${stats.weekCollectedAmount.toLocaleString('en-IN')}`;
     const weekCollectedSub = document.getElementById('statWeekCollectedSub');
     if (weekCollectedSub) {
-      let subText = `आठवडा ${stats.currentWeek} साठी ${stats.totalMembers} पैकी ${stats.weekPaidCount} जणांचे जमा`;
+      let subText = isEn
+        ? `Week ${stats.currentWeek}: ${stats.weekPaidCount} of ${stats.totalMembers} collected`
+        : `आठवडा ${stats.currentWeek} साठी ${stats.totalMembers} पैकी ${stats.weekPaidCount} जणांचे जमा`;
       if (stats.weekExtraAmount > 0) {
-        subText += ` • +${currency}${stats.weekExtraAmount.toLocaleString('en-IN')} अतिरिक्त भरणा`;
+        subText += isEn
+          ? ` • +${currency}${stats.weekExtraAmount.toLocaleString('en-IN')} extra deposit`
+          : ` • +${currency}${stats.weekExtraAmount.toLocaleString('en-IN')} अतिरिक्त भरणा`;
       }
       weekCollectedSub.textContent = subText;
     }
@@ -1062,32 +1071,39 @@ class UIManager {
     if (progressWeek) progressWeek.style.width = `${stats.weekProgressPercent}%`;
 
     const weekPending = document.getElementById('statWeekPending');
-    if (weekPending) weekPending.textContent = `${currency}${stats.weekPendingAmount.toLocaleString('en-IN')} बाकी`;
+    if (weekPending) weekPending.textContent = isEn
+      ? `${currency}${stats.weekPendingAmount.toLocaleString('en-IN')} pending`
+      : `${currency}${stats.weekPendingAmount.toLocaleString('en-IN')} बाकी`;
 
     // नवीन कर्ज आकडेवारी (Top Dashboard Loan Metric Cards)
     const statActiveLoans = document.getElementById('statDashboardActiveLoans');
     if (statActiveLoans) statActiveLoans.textContent = `${currency}${(stats.totalActiveLoansPrincipal || 0).toLocaleString('en-IN')}`;
     const statActiveLoansSub = document.getElementById('statDashboardActiveLoansSub');
-    if (statActiveLoansSub) statActiveLoansSub.textContent = `${stats.activeLoansCount || 0} सक्रिय कर्जे`;
+    if (statActiveLoansSub) statActiveLoansSub.textContent = isEn
+      ? `${stats.activeLoansCount || 0} active loans`
+      : `${stats.activeLoansCount || 0} सक्रिय कर्जे`;
 
     const statLoanInterest = document.getElementById('statDashboardLoanInterest');
     if (statLoanInterest) statLoanInterest.textContent = `${currency}${(stats.totalLoanInterestCollected || 0).toLocaleString('en-IN')}`;
     const statRepaidLoans = document.getElementById('statDashboardRepaidLoans');
-    if (statRepaidLoans) statRepaidLoans.textContent = `${stats.repaidLoansCount || 0} कर्जे परतफेड`;
+    if (statRepaidLoans) statRepaidLoans.textContent = isEn
+      ? `${stats.repaidLoansCount || 0} loans repaid`
+      : `${stats.repaidLoansCount || 0} कर्जे परतफेड`;
   }
 
   renderSummaryBanner() {
     const stats = window.bishiStore.getDashboardStats();
     const currency = window.bishiStore.state.meta.currency;
+    const isEn = window.i18n && window.i18n.isEnglish();
 
     const bannerWk = document.getElementById('bannerCurrentWeekNumber');
-    if (bannerWk) bannerWk.textContent = `आठवडा ${stats.currentWeek} / ५०`;
+    if (bannerWk) bannerWk.textContent = isEn ? `Week ${stats.currentWeek} / 50` : `आठवडा ${stats.currentWeek} / ५०`;
     const bannerTarget = document.getElementById('bannerWeekTarget');
     if (bannerTarget) bannerTarget.textContent = `${currency}${stats.weekExpectedAmount.toLocaleString('en-IN')}`;
     const bannerCollected = document.getElementById('bannerWeekCollected');
     if (bannerCollected) {
       if (stats.weekExtraAmount > 0) {
-        bannerCollected.innerHTML = `${currency}${stats.weekCollectedAmount.toLocaleString('en-IN')} <span style="font-size: 0.75rem; color: var(--gold-400); font-weight: 700;">(+${currency}${stats.weekExtraAmount.toLocaleString('en-IN')} अतिरिक्त)</span>`;
+        bannerCollected.innerHTML = `${currency}${stats.weekCollectedAmount.toLocaleString('en-IN')} <span style="font-size: 0.75rem; color: var(--gold-400); font-weight: 700;">(+${currency}${stats.weekExtraAmount.toLocaleString('en-IN')} ${isEn ? 'extra' : 'अतिरिक्त'})</span>`;
       } else {
         bannerCollected.textContent = `${currency}${stats.weekCollectedAmount.toLocaleString('en-IN')}`;
       }
@@ -1267,6 +1283,7 @@ class UIManager {
     const currentWeek = window.bishiStore.state.meta.currentWeek;
     const currency = window.bishiStore.state.meta.currency;
     const defaultFine = Number(window.bishiStore.state.meta.defaultFineAmount) || 0;
+    const isEn = window.i18n && window.i18n.isEnglish();
     
     const allActiveMembers = window.bishiStore.getMembers().filter(m => m.status === 'active' || m.status === 'completed');
     const fullyCompletedMembers = allActiveMembers.filter(m => window.bishiStore.calculateMemberStats(m).isFullyPaid);
@@ -1445,15 +1462,15 @@ class UIManager {
               <div class="member-name">
                 <span onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer; font-weight: 700; color: var(--text-primary);" title="पासबुक पहा">${marathiName}</span>
                 ${showEng ? `<span class="member-eng-name" style="font-size:0.8rem; font-weight:500; color:var(--text-muted); margin-left:0.25rem;">(${member.name})</span>` : ''}
-                ${isMonthly ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.45rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight:700;">🗓️ मासिक</span>` : `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.45rem; background: rgba(59, 130, 246, 0.12); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.3); font-weight:700;">📅 साप्ताहिक</span>`}
-                ${(member.currentCycle && member.currentCycle > 1) ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.4rem; background: rgba(59, 130, 246, 0.2); color: var(--blue-400); border: 1px solid var(--blue-400);">सायकल ${member.currentCycle}</span>` : ''}
+                ${isMonthly ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.45rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight:700;">${isEn ? '🗓️ Monthly' : '🗓️ मासिक'}</span>` : `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.45rem; background: rgba(59, 130, 246, 0.12); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.3); font-weight:700;">${isEn ? '📅 Weekly' : '📅 साप्ताहिक'}</span>`}
+                ${(member.currentCycle && member.currentCycle > 1) ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.4rem; background: rgba(59, 130, 246, 0.2); color: var(--blue-400); border: 1px solid var(--blue-400);">${isEn ? 'Cycle' : 'सायकल'} ${member.currentCycle}</span>` : ''}
                 ${hasActiveLoan ? `
-                  <button type="button" class="status-pill" onclick="event.stopPropagation(); window.ui.openAdminLoansModal()" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(59, 130, 246, 0.18); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.4); font-weight:700; cursor:pointer;" title="सक्रिय मुद्दल: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}${loanSummary.activeInterest > 0 ? ` (+३% व्याज: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')})` : ''} • कर्ज व्यवस्थापन पहा">💳 कर्ज: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}</button>
+                  <button type="button" class="status-pill" onclick="event.stopPropagation(); window.ui.openAdminLoansModal()" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(59, 130, 246, 0.18); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.4); font-weight:700; cursor:pointer;" title="सक्रिय मुद्दल: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}${loanSummary.activeInterest > 0 ? ` (+३% व्याज: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')})` : ''} • कर्ज व्यवस्थापन पहा">💳 ${isEn ? 'Loan' : 'कर्ज'}: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}</button>
                   ${isInterestDueThisWeek ? `
-                    <button type="button" class="status-pill status-overdue interactive" onclick="event.stopPropagation(); window.ui.openPayLoanInterestModal('${firstActiveLoan.loan.id}')" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(245, 158, 11, 0.22); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.6); font-weight:800; cursor:pointer;" title="४ आठवड्यांचे ३% व्याज देय आहे (+${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}) • व्याज जमा करा">💰 ३% व्याज देय: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}</button>
+                    <button type="button" class="status-pill status-overdue interactive" onclick="event.stopPropagation(); window.ui.openPayLoanInterestModal('${firstActiveLoan.loan.id}')" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(245, 158, 11, 0.22); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.6); font-weight:800; cursor:pointer;" title="४ आठवड्यांचे ३% व्याज देय आहे (+${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}) • व्याज जमा करा">💰 ${isEn ? '3% Interest Due' : '३% व्याज देय'}: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}</button>
                   ` : ''}
                 ` : ''}
-                ${stats.isFullyPaid ? `<button type="button" class="status-pill status-completed interactive" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-size:0.68rem; padding:0.15rem 0.5rem; margin-left:0.35rem; font-weight:800;" title="${stats.totalPeriods}-${stats.periodUnitPlural} मॅच्युरिटी व्हाउचर पहा">पूर्ण 🏆</button>` : ''}
+                ${stats.isFullyPaid ? `<button type="button" class="status-pill status-completed interactive" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-size:0.68rem; padding:0.15rem 0.5rem; margin-left:0.35rem; font-weight:800;" title="${stats.totalPeriods}-${stats.periodUnitPlural} मॅच्युरिटी व्हाउचर पहा">${isEn ? 'Completed 🏆' : 'पूर्ण 🏆'}</button>` : ''}
               </div>
               <div class="member-phone">📞 ${member.phone} • <span class="member-id">${member.id}</span></div>
             </div>
@@ -1464,44 +1481,44 @@ class UIManager {
           <div class="amount-badge amount-weekly">
             ${currency}${installmentAmt.toLocaleString('en-IN')}
           </div>
-          <div style="font-size: 0.72rem; color: var(--text-muted);">${isMonthly ? 'दर महिना' : 'प्रति आठवडा'}</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">${isMonthly ? (isEn ? 'per month' : 'दर महिना') : (isEn ? 'per week' : 'प्रति आठवडा')}</div>
         </td>
 
         <td>
           ${isFullPaidThisWeek ? `
             <span class="status-pill status-paid" onclick="event.stopPropagation(); window.receiptManager.showReceiptModal('${member.id}', ${targetPeriod})" style="cursor: pointer;" title="या हप्त्याची पावती पहा">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              ${isAdvanceExtraThisWeek ? `जमा: ${currency}${paidAmt.toLocaleString('en-IN')}` : (paidAmt > installmentAmt ? `जमा: ${currency}${paidAmt.toLocaleString('en-IN')}` : `जमा (${weekData.paymentMode || 'रोख'})`)}
+              ${isAdvanceExtraThisWeek ? (isEn ? `Paid: ${currency}${paidAmt.toLocaleString('en-IN')}` : `जमा: ${currency}${paidAmt.toLocaleString('en-IN')}`) : (paidAmt > installmentAmt ? (isEn ? `Paid: ${currency}${paidAmt.toLocaleString('en-IN')}` : `जमा: ${currency}${paidAmt.toLocaleString('en-IN')}`) : (isEn ? `Paid (${weekData.paymentMode || 'Cash'})` : `जमा (${weekData.paymentMode || 'रोख'})`))}
             </span>
-            ${isAdvanceExtraThisWeek ? `<span class="extra-amount-pill">⭐ +${currency}${advanceExtraThisWeek.toLocaleString('en-IN')} जादा</span>` : ''}
+            ${isAdvanceExtraThisWeek ? `<span class="extra-amount-pill">⭐ +${currency}${advanceExtraThisWeek.toLocaleString('en-IN')} ${isEn ? 'extra' : 'जादा'}</span>` : ''}
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
-              ${stats.periodUnit} ${targetPeriod} • ${weekData.paidDate ? new Date(weekData.paidDate).toLocaleDateString('hi-IN', {day: '2-digit', month: 'short'}) : 'आज'}
-              ${weekData.finePaid > 0 ? `• <span style="color: #fb7185; font-weight: 600;">+${currency}${weekData.finePaid} दंड</span>` : ''}
+              ${isEn ? (stats.periodUnit === 'महिना' ? 'Month' : 'Week') : stats.periodUnit} ${targetPeriod} • ${weekData.paidDate ? new Date(weekData.paidDate).toLocaleDateString('hi-IN', {day: '2-digit', month: 'short'}) : (isEn ? 'Today' : 'आज')}
+              ${weekData.finePaid > 0 ? `• <span style="color: #fb7185; font-weight: 600;">+${currency}${weekData.finePaid} ${isEn ? 'fine' : 'दंड'}</span>` : ''}
               ${(isAdvanceExtraThisWeek || paidAmt > installmentAmt) ? `• <span style="color: var(--gold-400); font-weight: 600;">(${weekData.paymentMode || 'UPI'})</span>` : ''}
             </div>
           ` : isPartialThisWeek ? `
             <span class="status-pill" onclick="event.stopPropagation(); window.ui.openCollectModal('${member.id}', ${targetPeriod})" style="background: rgba(245, 158, 11, 0.18); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.45); cursor: pointer;" title="बाकी हप्ता जमा करा">
-              ⚠️ अपूर्ण जमा (${stats.periodUnit} ${targetPeriod}): ${currency}${paidAmt.toLocaleString('en-IN')}
+              ${isEn ? '⚠️ Partial' : '⚠️ अपूर्ण जमा'} (${isEn ? (stats.periodUnit === 'महिना' ? 'Month' : 'Week') : stats.periodUnit} ${targetPeriod}): ${currency}${paidAmt.toLocaleString('en-IN')}
             </span>
             <div style="font-size: 0.72rem; color: #fb7185; font-weight: 700; margin-top: 0.2rem;">
-              बाकी हप्ता: ${currency}${(installmentAmt - paidAmt).toLocaleString('en-IN')}
+              ${isEn ? 'Pending Installment' : 'बाकी हप्ता'}: ${currency}${(installmentAmt - paidAmt).toLocaleString('en-IN')}
             </div>
           ` : isClearedThisWeek ? `
             <span class="status-pill status-paid" onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="background: rgba(16, 185, 129, 0.15); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.4); cursor: pointer;" title="पासबुक व क्लिअर तपशील पहा">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              ✓ क्लिअर (${stats.periodUnit} ${targetPeriod})
+              ${isEn ? '✓ Cleared' : '✓ क्लिअर'} (${isEn ? (stats.periodUnit === 'महिना' ? 'Month' : 'Week') : stats.periodUnit} ${targetPeriod})
             </span>
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
-              जादा ठेवीतून थकबाकी क्लिअर
+              ${isEn ? 'Cleared from extra deposit' : 'जादा ठेवीतून थकबाकी क्लिअर'}
             </div>
           ` : `
             <span class="status-pill ${isOverdue ? 'status-overdue' : 'status-pending'}" onclick="event.stopPropagation(); window.ui.openCollectModal('${member.id}', ${targetPeriod})" style="cursor: pointer;" title="हप्ता जमा करण्यासाठी क्लिक करा">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              ${stats.periodUnit} ${targetPeriod}: ${isOverdue ? 'थकबाकी' : 'प्रलंबित'}
+              ${isEn ? (stats.periodUnit === 'महिना' ? 'Month' : 'Week') : stats.periodUnit} ${targetPeriod}: ${isOverdue ? (isEn ? 'Overdue' : 'थकबाकी') : (isEn ? 'Pending' : 'प्रलंबित')}
             </span>
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
-              देय: ${currency}${installmentAmt.toLocaleString('en-IN')}
-              ${isOverdue && defaultFine > 0 ? `• <span style="color: #fb7185; font-weight: 700;">+${currency}${defaultFine} दंड</span>` : ''}
+              ${isEn ? 'Due' : 'देय'}: ${currency}${installmentAmt.toLocaleString('en-IN')}
+              ${isOverdue && defaultFine > 0 ? `• <span style="color: #fb7185; font-weight: 700;">+${currency}${defaultFine} ${isEn ? 'fine' : 'दंड'}</span>` : ''}
             </div>
           `}
 
@@ -1545,25 +1562,25 @@ class UIManager {
         <td>
           <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary); white-space: nowrap;">
             ${stats.isFullyPaid ? `
-              <button type="button" class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-size:0.75rem; padding:0.2rem 0.6rem; background: var(--emerald-600); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:800;" title="${stats.totalPeriods}-${stats.periodUnitPlural} मॅच्युरिटी व्हाउचर पहा">🎉 पूर्ण झाले (व्हाउचर)</button>
+              <button type="button" class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-size:0.75rem; padding:0.2rem 0.6rem; background: var(--emerald-600); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:800;" title="${stats.totalPeriods}-${stats.periodUnitPlural} मॅच्युरिटी व्हाउचर पहा">${isEn ? '🎉 Completed (Voucher)' : '🎉 पूर्ण झाले (व्हाउचर)'}</button>
             ` : (isMonthly && stats.isPaidAhead) ? `
               <div style="color: var(--emerald-400); font-weight: 800; font-size: 0.88rem; line-height: 1.2;">
-                ✓ चालू हप्ता पूर्ण <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted);">(अ‍ॅडव्हान्स जमा)</span>
+                ${isEn ? '✓ Current Installment Paid' : '✓ चालू हप्ता पूर्ण'} <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted);">${isEn ? '(Advance Deposit)' : '(अ‍ॅडव्हान्स जमा)'}</span>
               </div>
               <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; font-weight: 600;">
-                पुढील महिना ${stats.nextDueWeek}: आठवडा ${stats.nextDueDueWeekNumber || ((stats.nextDueWeek - 1) * 5 + 1)} नंतर देय (${currency}${stats.nextDueAmount.toLocaleString('en-IN')})
+                ${isEn ? `Next Month ${stats.nextDueWeek}: Due after Week ${stats.nextDueDueWeekNumber || ((stats.nextDueWeek - 1) * 5 + 1)} (${currency}${stats.nextDueAmount.toLocaleString('en-IN')})` : `पुढील महिना ${stats.nextDueWeek}: आठवडा ${stats.nextDueDueWeekNumber || ((stats.nextDueWeek - 1) * 5 + 1)} नंतर देय (${currency}${stats.nextDueAmount.toLocaleString('en-IN')})`}
               </div>
             ` : `
-              पुढील ${stats.periodUnit} ${stats.nextDueWeek}: <span style="color: var(--gold-400); font-weight: 800;">${currency}${stats.nextDueAmount.toLocaleString('en-IN')}</span>
+              ${isEn ? `Next ${isMonthly ? 'Month' : 'Week'} ${stats.nextDueWeek}:` : `पुढील ${stats.periodUnit} ${stats.nextDueWeek}:`} <span style="color: var(--gold-400); font-weight: 800;">${currency}${stats.nextDueAmount.toLocaleString('en-IN')}</span>
             `}
           </div>
           ${isInterestDueThisWeek ? `
             <div style="font-size: 0.74rem; color: var(--gold-400); font-weight: 700; margin-top: 0.2rem; white-space: nowrap;">
-              + 💰 कर्ज व्याज: ${currency}${loanSummary.activeInterest.toLocaleString('en-IN')} (एकूण: ${currency}${(stats.nextDueAmount + loanSummary.activeInterest).toLocaleString('en-IN')})
+              + 💰 ${isEn ? 'Loan Interest' : 'कर्ज व्याज'}: ${currency}${loanSummary.activeInterest.toLocaleString('en-IN')} (${isEn ? 'Total' : 'एकूण'}: ${currency}${(stats.nextDueAmount + loanSummary.activeInterest).toLocaleString('en-IN')})
             </div>
           ` : ''}
           <div class="amount-remaining" style="white-space: nowrap; margin-top: 0.25rem;">
-            लक्ष्य: ${currency}${stats.totalTarget.toLocaleString('en-IN')} <span style="font-size: 0.68rem; color: var(--text-muted);">(+${stats.maturityInterestPercent}% = ${currency}${stats.projectedMaturityTotal.toLocaleString('en-IN')})</span>
+            ${isEn ? 'Target' : 'लक्ष्य'}: ${currency}${stats.totalTarget.toLocaleString('en-IN')} <span style="font-size: 0.68rem; color: var(--text-muted);">(+${stats.maturityInterestPercent}% = ${currency}${stats.projectedMaturityTotal.toLocaleString('en-IN')})</span>
           </div>
         </td>
 
@@ -1576,75 +1593,75 @@ class UIManager {
             ${isMonthly ? `
               ${stats.isFullyPaid ? `
                 <button type="button" class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-weight: 800;" title="मॅच्युरिटी व्हाउचर पहा">
-                  🎉 व्हाउचर
+                  ${isEn ? '🎉 Voucher' : '🎉 व्हाउचर'}
                 </button>
               ` : `
                 <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); window.ui.openCollectModal('${member.id}', ${stats.nextDueWeek})" title="पुढील महिना ${stats.nextDueWeek} चा हप्ता जमा करा">
-                  💰 जमा करा
+                  ${isEn ? '💰 Collect' : '💰 जमा करा'}
                 </button>
               `}
               ${stats.totalDeposited > 0 ? `
                 <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); window.receiptManager.showReceiptModal('${member.id}', ${stats.effectivePaidWeeks > 0 ? stats.effectivePaidWeeks : 1})" title="शेवटची पावती पहा / प्रिंट करा">
-                  🧾 पावती
+                  ${isEn ? '🧾 Receipt' : '🧾 पावती'}
                 </button>
               ` : ''}
             ` : `
               ${(isFullPaidThisWeek || isClearedThisWeek) ? `
                 <button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${member.id}', ${targetPeriod})" title="पावती पहा / प्रिंट करा">
-                  🧾 पावती
+                  ${isEn ? '🧾 Receipt' : '🧾 पावती'}
                 </button>
               ` : isPartialThisWeek ? `
                 <button class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${targetPeriod})" title="उर्वरित हप्ता जमा करा">
-                  💰 बाकी जमा
+                  ${isEn ? '💰 Collect Due' : '💰 बाकी जमा'}
                 </button>
                 <button class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${member.id}', ${targetPeriod})" title="पावती पहा / प्रिंट करा">
-                  🧾 पावती
+                  ${isEn ? '🧾 Receipt' : '🧾 पावती'}
                 </button>
               ` : `
                 <button class="btn btn-primary btn-sm" onclick="window.ui.openCollectModal('${member.id}', ${targetPeriod})" title="चालू हप्ता जमा करा">
-                  💰 जमा करा
+                  ${isEn ? '💰 Collect' : '💰 जमा करा'}
                 </button>
               `}
             `}
             <select class="member-action-select" onchange="window.ui.handleMemberActionSelect(this, '${member.id}', ${isMonthly ? stats.nextDueWeek : targetPeriod})" title="अधिक पर्याय व कृती निवडा">
-              <option value="" selected disabled>⚙️ पर्याय ▾</option>
+              <option value="" selected disabled>${isEn ? '⚙️ Options ▾' : '⚙️ पर्याय ▾'}</option>
               ${isMonthly ? `
                 ${!stats.isFullyPaid ? `
-                  <option value="collect">💰 पुढील महिना ${stats.nextDueWeek} हप्ता जमा करा</option>
+                  <option value="collect">${isEn ? `💰 Collect Month ${stats.nextDueWeek} Installment` : `💰 पुढील महिना ${stats.nextDueWeek} हप्ता जमा करा`}</option>
                 ` : ''}
                 ${stats.totalDeposited > 0 ? `
-                  <option value="receipt">🧾 पावती पहा (Receipt)</option>
-                  <option value="undo">✕ चालू महिना भरणा रद्द करा (Undo)</option>
+                  <option value="receipt">${isEn ? '🧾 View Receipt' : '🧾 पावती पहा (Receipt)'}</option>
+                  <option value="undo">${isEn ? '✕ Undo Current Month Payment' : '✕ चालू महिना भरणा रद्द करा (Undo)'}</option>
                 ` : ''}
               ` : `
                 ${(isFullPaidThisWeek || isClearedThisWeek || isPartialThisWeek) ? `
-                  <option value="receipt">🧾 पावती पहा (Receipt)</option>
-                  <option value="undo">✕ चालू ${stats.periodUnit} भरणा रद्द करा (Undo)</option>
+                  <option value="receipt">${isEn ? '🧾 View Receipt' : '🧾 पावती पहा (Receipt)'}</option>
+                  <option value="undo">${isEn ? `✕ Undo Current ${stats.periodUnit} Payment` : `✕ चालू ${stats.periodUnit} भरणा रद्द करा (Undo)`}</option>
                 ` : `
-                  <option value="collect">💰 चालू ${stats.periodUnit} हप्ता जमा करा</option>
+                  <option value="collect">${isEn ? `💰 Collect Current ${stats.periodUnit} Installment` : `💰 चालू ${stats.periodUnit} हप्ता जमा करा`}</option>
                 `}
               `}
               ${isInterestDueThisWeek ? `
-                <option value="pay_interest:${firstActiveLoan?.loan?.id || ''}">💰 ३% कर्ज व्याज जमा करा (+${currency}${loanSummary.activeInterest})</option>
-                <option value="loan_msg:${firstActiveLoan?.loan?.id || ''}">💬 व्याज WhatsApp स्मरणपत्र</option>
+                <option value="pay_interest:${firstActiveLoan?.loan?.id || ''}">${isEn ? `💰 Collect 3% Interest (+${currency}${loanSummary.activeInterest})` : `💰 ३% कर्ज व्याज जमा करा (+${currency}${loanSummary.activeInterest})`}</option>
+                <option value="loan_msg:${firstActiveLoan?.loan?.id || ''}">${isEn ? '💬 WhatsApp Reminder' : '💬 व्याज WhatsApp स्मरणपत्र'}</option>
               ` : ''}
               ${stats.isFullyPaid ? (stats.isPayoutCompleted ? `
-                <option value="voucher">📜 मॅच्युरिटी व्हाउचर पहा</option>
+                <option value="voucher">${isEn ? '📜 View Maturity Voucher' : '📜 मॅच्युरिटी व्हाउचर पहा'}</option>
               ` : `
-                <option value="payout">💰 मॅच्युरिटी परतावा वाटप करा</option>
+                <option value="payout">${isEn ? '💰 Payout Maturity Settlement' : '💰 मॅच्युरिटी परतावा वाटप करा'}</option>
               `) : ''}
               ${stats.canRestartPlan ? `
-                <option value="restart">🔄 नवीन ५०-आठवडे प्लॅन सुरू करा</option>
+                <option value="restart">${isEn ? '🔄 Start New 50-Week Cycle' : '🔄 नवीन ५०-आठवडे प्लॅन सुरू करा'}</option>
               ` : ''}
               ${loanSummary && loanSummary.hasLoan ? `
-                <option value="view_loan_voucher">📄 कर्ज वाटप व्हाउचर पहा (Loan Assign Voucher)</option>
+                <option value="view_loan_voucher">${isEn ? '📄 View Loan Disbursement Voucher' : '📄 कर्ज वाटप व्हाउचर पहा (Loan Assign Voucher)'}</option>
               ` : ''}
-              <option value="loan">💳 सदस्यास कर्ज द्या</option>
-              <option value="ledger_card">📋 लेजर कार्ड रजिस्टर (Print Ledger Card)</option>
-              <option value="passbook">📖 ${stats.totalPeriods}-${stats.periodUnitPlural} पासबुक पहा</option>
-              <option value="edit">✏️ सदस्य तपशील एडिट करा</option>
-              <option value="wipe">🧹 भरणा डेटा पुसा (Wipe)</option>
-              <option value="settle">🗑️ सदस्य डिलीट / सेटल करा</option>
+              <option value="loan">${isEn ? '💳 Disburse Loan to Member' : '💳 सदस्यास कर्ज द्या'}</option>
+              <option value="ledger_card">${isEn ? '📋 Member Ledger Card Register' : '📋 लेजर कार्ड रजिस्टर (Print Ledger Card)'}</option>
+              <option value="passbook">${isEn ? '📖 View Passbook' : `📖 ${stats.totalPeriods}-${stats.periodUnitPlural} पासबुक पहा`}</option>
+              <option value="edit">${isEn ? '✏️ Edit Member Details' : '✏️ सदस्य तपशील एडिट करा'}</option>
+              <option value="wipe">${isEn ? '🧹 Wipe Payment Data' : '🧹 भरणा डेटा पुसा (Wipe)'}</option>
+              <option value="settle">${isEn ? '🗑️ Settle / Delete Member' : '🗑️ सदस्य डिलीट / सेटल करा'}</option>
             </select>
           </div>
         </td>
