@@ -2,9 +2,15 @@
   "name": "सुखकर्ता बीशी - Sukhakarta Bishi",
   "short_name": "सुखकर्ता बीशी",
   "description": "५०-आठवडे बचत, कर्ज व खातावही व्यवस्थापन मोबाईल ॲप्लिकेशन",
+  "id": "./",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
+  "launch_handler": {
+    "client_mode": "auto"
+  },
+  "handle_links": "preferred",
   "background_color": "#0f172a",
   "theme_color": "#059669",
   "orientation": "portrait-primary",
