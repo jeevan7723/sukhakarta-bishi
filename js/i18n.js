@@ -203,7 +203,19 @@
     reports_filter_active: { mr: '✓ भरलेले / चालू आठवडे', en: '✓ Active Weeks' },
     reports_filter_all: { mr: 'सर्व ५० आठवडे', en: 'All 50 Weeks' },
     reports_filter_all_months: { mr: 'सर्व १२ महिने', en: 'All 12 Months' },
-    btn_done: { mr: 'पूर्ण', en: 'Done' }
+    btn_done: { mr: 'पूर्ण', en: 'Done' },
+
+    // Customer Portal & History
+    cust_portal_badge: { mr: 'अधिकृत सदस्य बचत व खातावही पोर्टल', en: 'Official Member Savings & Ledger Portal' },
+    cust_portal_subtitle: { mr: 'सदस्य बचत पासबुक व खातावही पोर्टल', en: 'Member Savings Passbook & Ledger Portal' },
+    cust_hero_passbook: { mr: 'सदस्य खातावही (पासबुक पहा)', en: 'Member Passbook (View Ledger)' },
+    cust_hero_ledger: { mr: 'लेजर कार्ड रिपोर्ट', en: 'Ledger Card Report' },
+    cust_hero_download: { mr: 'स्टेटमेंट डाउनलोड करा', en: 'Download Statement' },
+    cust_hero_voucher: { mr: 'मॅच्युरिटी व्हाउचर पहा', en: 'View Maturity Voucher' },
+    cust_history_title: { mr: 'माझे सर्व व्यवहार व पेमेंट इतिहास', en: 'My Transactions & Payment History' },
+    cust_history_sub: { mr: 'आपल्या ५०-आठवडे बीशीचे जमा हप्ते आणि डिजिटल पावत्यांचा संपूर्ण तपशील.', en: 'Complete record of your 50-week Bishi installments and digital receipts.' },
+    cust_btn_print_ledger: { mr: 'माझे लेजर कार्ड पहा / प्रिंट करा', en: 'View / Print My Ledger Card' },
+    cust_btn_download_ledger: { mr: 'माझे स्टेटमेंट डाउनलोड करा', en: 'Download My Statement' }
   };
 
   // Phrases for automatic bidirectional DOM scanning
@@ -269,7 +281,79 @@
     ['✓ भरलेले / चालू आठवडे', '✓ Active Weeks'],
     ['सर्व ५० आठवडे', 'All 50 Weeks'],
     ['सर्व १२ महिने', 'All 12 Months'],
-    ['पूर्ण', 'Done']
+    ['पूर्ण', 'Done'],
+
+    // Customer Portal Specific Phrases
+    ['माझे लेजर कार्ड पहा / प्रिंट करा', 'View / Print My Ledger Card'],
+    ['📋 माझे लेजर कार्ड पहा / प्रिंट करा', '📋 View / Print My Ledger Card'],
+    ['माझे लेजर कार्ड पहा', 'View My Ledger Card'],
+    ['लेजर कार्ड रिपोर्ट', 'Ledger Card Report'],
+    ['📋 लेजर कार्ड रिपोर्ट', '📋 Ledger Card Report'],
+    ['सदस्य खातावही (पासबुक पहा)', 'Member Passbook (View Ledger)'],
+    ['📖 सदस्य खातावही (पासबुक पहा)', '📖 Member Passbook (View Ledger)'],
+    ['माझे स्टेटमेंट डाउनलोड करा', 'Download My Statement'],
+    ['📥 माझे स्टेटमेंट डाउनलोड करा', '📥 Download My Statement'],
+    ['माझे सर्व व्यवहार व पेमेंट इतिहास', 'My Transactions & Payment History'],
+    ['📜 माझे सर्व व्यवहार व पेमेंट इतिहास', '📜 My Transactions & Payment History'],
+    ['आपल्या ५०-आठवडे बीशीचे जमा हप्ते आणि डिजिटल पावत्यांचा संपूर्ण तपशील.', 'Complete details of your 50-week Bishi installments and digital receipts.'],
+    ['अधिकृत सदस्य बचत व खातावही पोर्टल', 'Official Member Savings & Ledger Portal'],
+    ['सदस्य बचत पासबुक व खातावही पोर्टल', 'Member Savings Passbook & Ledger Portal'],
+    ['माझे ५०-आठवडे बचत पासबुक', 'My 50-Week Savings Passbook'],
+    ['📖 माझे ५०-आठवडे बचत पासबुक', '📖 My 50-Week Savings Passbook'],
+    ['माझे ५०-आठवडे पासबुक', 'My 50-Week Passbook'],
+    ['माझे कर्ज व चालू हप्ता तपशील', 'My Loans & Current Due Details'],
+    ['💳 माझे कर्ज व चालू हप्ता तपशील', '💳 My Loans & Current Due Details'],
+    ['आपल्या नावावरील कर्ज, ३% व्याज स्थिती आणि या आठवड्यात भरावी लागणारी एकूण देय रक्कम.', 'Your active loan, 3% interest status, and total amount due this week.'],
+    ['🔒 केवळ प्रशासक कर्ज वाटप व परतफेड नोंदवू शकतात', '🔒 Only admin can disburse & record loan repayments'],
+    ['या आठवड्यात एकूण देय रक्कम (Total You Have to Pay):', 'Total Amount Due This Week:'],
+    ['साप्ताहिक बीशी हप्ता:', 'Weekly Bishi Installment:'],
+    ['सक्रिय कर्ज मुद्दल:', 'Active Loan Principal:'],
+    ['३% व्याज (४ आठवडे पूर्ण):', '3% Interest (4 Weeks Complete):'],
+    ['कर्ज व्यवहार इतिहास व पावत्या', 'Loan Transaction History & Receipts'],
+    ['📜 कर्ज व्यवहार इतिहास व पावत्या', '📜 Loan Transaction History & Receipts'],
+    ['५०-आठवड्यांचे बचत चक्र यशस्वीरीत्या पूर्ण झाले!', '50-Week Savings Cycle Completed Successfully!'],
+    ['५०-आठवडे एकूण बचत:', '50-Week Total Savings:'],
+    ['८% व्याज बोनस:', '8% Interest Bonus:'],
+    ['१०% व्याज बोनस:', '10% Interest Bonus:'],
+    ['एकूण मॅच्युरिटी परतावा:', 'Total Maturity Payout:'],
+    ['५०-आठवडे बचत', '50-Week Savings'],
+    ['८% व्याज बोनस', '8% Interest Bonus'],
+    ['१०% व्याज बोनस', '10% Interest Bonus'],
+    ['एकूण मॅच्युरिटी परतावा', 'Total Maturity Payout'],
+    ['५०-आठवड्यांचे बचत लक्ष्य', '50-Week Savings Target'],
+    ['५० आठवड्यांचे एकूण उद्दिष्ट', '50-Week Total Goal'],
+    ['आतापर्यंत एकूण जमा बचत', 'Total Savings Deposited'],
+    ['पुढील देय हप्ता', 'Next Due Installment'],
+    ['लक्ष्यासाठी उर्वरित रक्कम', 'Remaining Due for Target'],
+    ['पावती क्र.', 'Receipt No.'],
+    ['व्यवहार / आठवडा', 'Transaction / Week'],
+    ['जमा हप्ता', 'Installment Deposit'],
+    ['लेट फी दंड', 'Late Fee Fine'],
+    ['एकूण भरलेली रक्कम', 'Total Paid Amount'],
+    ['पेमेंट पद्धत', 'Payment Mode'],
+    ['तारीख', 'Date'],
+    ['पावती', 'Receipt'],
+    ['कर्ज क्र.', 'Loan No.'],
+    ['मूळ रक्कम', 'Principal Amount'],
+    ['वाटप तारीख', 'Disbursed Date'],
+    ['कालावधी', 'Duration'],
+    ['३% व्याज स्थिती', '3% Interest Status'],
+    ['एकूण परतफेड', 'Total Repaid'],
+    ['स्थिती', 'Status'],
+    ['हप्ता रक्कम', 'Installment Amount'],
+    ['मासिक हप्ता', 'Monthly Installment'],
+    ['साप्ताहिक हप्ता', 'Weekly Installment'],
+    ['कालावधी प्रगती', 'Duration Progress'],
+    ['शिल्लक बाकी', 'Remaining Due'],
+    ['एकूण जमा', 'Total Deposit'],
+    ['मॅच्युरिटी परतावा (+८%)', 'Maturity Payout (+8%)'],
+    ['मॅच्युरिटी परतावा', 'Maturity Payout'],
+    ['लेजर कार्ड', 'Ledger Card'],
+    ['भरणा पुसा', 'Wipe Data'],
+    ['एडिट करा', 'Edit'],
+    ['सदस्य पासबुक', 'Member Passbook'],
+    ['अधिकृत डिजिटल पावती पाहण्यासाठी कोणत्याही जमा झालेल्या आठवड्यावर क्लिक करा.', 'Click on any deposited week to view the official digital receipt.'],
+    ['🟢 जमा • 🟡 चालू हप्ता • 🔴 थकबाकी • ⚪ प्रलंबित', '🟢 Paid • 🟡 Current • 🔴 Overdue • ⚪ Pending']
   ];
 
   class I18nManager {
@@ -430,8 +514,8 @@
         const fromPhrase = isEn ? mrPhrase : enPhrase;
         const toPhrase = isEn ? enPhrase : mrPhrase;
 
-        // Fast text content check for leaf text nodes or headings/spans/buttons
-        const selectors = 'h1, h2, h3, h4, span, label, button, a, div.stat-label, div.sidebar-group-title, span.sidebar-nav-text';
+        // Fast text content check for leaf text nodes or headings/spans/buttons/table headers
+        const selectors = 'th, td, p, h1, h2, h3, h4, span, label, button, a, div.stat-label, div.sidebar-group-title, span.sidebar-nav-text';
         document.querySelectorAll(selectors).forEach(el => {
           // If element has only one text child or exact text match
           if (el.children.length === 0 && el.textContent.trim() === fromPhrase) {

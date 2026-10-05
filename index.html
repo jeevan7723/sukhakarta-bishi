@@ -6917,10 +6917,10 @@ body.customer-mode #mobileDrawerAdminMenu,
         <!-- अहवाल पेज हिरो व हेडर -->
         <div class="reports-page-hero">
           <div class="hero-top-nav-bar">
-            <button type="button" class="btn btn-secondary btn-sm hero-back-btn" onclick="window.ui.navigateToDashboard()" title="मुख्य बचत डॅशबोर्डवर परत जा">
-              <span>⬅️</span> मुख्य डॅशबोर्ड
+            <button type="button" class="btn btn-secondary btn-sm hero-back-btn" id="reportsHeroBackBtn" onclick="window.ui.navigateToDashboard()" title="मुख्य बचत डॅशबोर्डवर परत जा">
+              <span id="reportsHeroBackBtnText">⬅️ मुख्य डॅशबोर्ड</span>
             </button>
-            <span class="status-pill" style="font-size: 0.75rem; padding: 0.22rem 0.75rem; background: rgba(133, 61, 27, 0.15); color: #853d1b; border: 1px solid rgba(133, 61, 27, 0.35); font-weight: 700;">
+            <span class="status-pill" id="reportsHeroBadge" style="font-size: 0.75rem; padding: 0.22rem 0.75rem; background: rgba(133, 61, 27, 0.15); color: #853d1b; border: 1px solid rgba(133, 61, 27, 0.35); font-weight: 700;">
               📋 अधिकृत खातावही कार्ड रजिस्टर
             </span>
           </div>
@@ -6930,22 +6930,22 @@ body.customer-mode #mobileDrawerAdminMenu,
               📜
             </div>
             <div class="hero-heading-block">
-              <h1 class="hero-page-title">बीशी अहवाल व अधिकृत सदस्य खातावही कार्ड रजिस्टर</h1>
-              <p class="hero-page-desc">
+              <h1 class="hero-page-title" id="reportsHeroPageTitle">बीशी अहवाल व अधिकृत सदस्य खातावही कार्ड रजिस्टर</h1>
+              <p class="hero-page-desc" id="reportsHeroPageDesc">
                 शासकीय व अधिकृत लेजर कार्ड रजिस्टर अहवाल — हप्ते, मुद्दल, व्याज व अंतिम परतावा गणना
               </p>
             </div>
           </div>
 
           <div class="hero-action-buttons-group">
-            <button type="button" class="btn btn-emerald hero-main-action-btn" onclick="window.receiptManager.printMemberLedgerCard()" title="हा अहवाल त्वरित प्रिंट करा">
-              <span>🖨️</span> अहवाल प्रिंट करा
+            <button type="button" class="btn btn-emerald hero-main-action-btn" id="reportsPrintBtn" onclick="window.receiptManager.printMemberLedgerCard()" title="हा अहवाल त्वरित प्रिंट करा">
+              <span>🖨️</span> <span id="reportsPrintBtnText">अहवाल प्रिंट करा</span>
             </button>
-            <button type="button" class="btn btn-secondary hero-sub-action-btn" onclick="window.receiptManager.printMemberLedgerCard()" title="हा अहवाल PDF स्वरूपात सेव्ह करा">
-              <span>📥</span> PDF सेव्ह करा
+            <button type="button" class="btn btn-secondary hero-sub-action-btn" id="reportsPdfBtn" onclick="window.receiptManager.printMemberLedgerCard()" title="हा अहवाल PDF स्वरूपात सेव्ह करा">
+              <span>📥</span> <span id="reportsPdfBtnText">PDF सेव्ह करा</span>
             </button>
             <a id="btnReportsShareWhatsApp" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-emerald hero-sub-action-btn" style="background: #25d366; color: #000; border-color: #25d366; font-weight: 700;" title="हा अहवाल सदस्यास WhatsApp वर पाठवा">
-              <span>💬</span> WhatsApp वर पाठवा
+              <span>💬</span> <span id="reportsShareWaText">WhatsApp वर पाठवा</span>
             </a>
           </div>
         </div>
@@ -6956,7 +6956,7 @@ body.customer-mode #mobileDrawerAdminMenu,
             <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; flex: 1;">
               <!-- सदस्य निवड ड्रॉपडाउन -->
               <div style="display: flex; flex-direction: column; gap: 0.3rem;">
-                <label for="reportsMemberSelect" style="font-size: 0.78rem; font-weight: 700; color: #853d1b; text-transform: uppercase;">
+                <label for="reportsMemberSelect" id="reportsMemberSelectLabel" style="font-size: 0.78rem; font-weight: 700; color: #853d1b; text-transform: uppercase;">
                   👤 सदस्य निवडा:
                 </label>
                 <select id="reportsMemberSelect" class="form-control" style="font-weight: 700; font-size: 0.88rem; min-width: 260px; border-color: #853d1b; background: #fffdf5;" onchange="window.ui.onReportsMemberChange(this.value)">
@@ -6966,7 +6966,7 @@ body.customer-mode #mobileDrawerAdminMenu,
 
               <!-- सायकल स्विचर (असल्यास) -->
               <div id="reportsCycleWrap" style="display: none; flex-direction: column; gap: 0.3rem;">
-                <label for="reportsCycleSelect" style="font-size: 0.78rem; font-weight: 700; color: #4b5563; text-transform: uppercase;">
+                <label for="reportsCycleSelect" id="reportsCycleSelectLabel" style="font-size: 0.78rem; font-weight: 700; color: #4b5563; text-transform: uppercase;">
                   🔄 सायकल:
                 </label>
                 <select id="reportsCycleSelect" class="form-control" style="font-size: 0.88rem; font-weight: 600; width: auto;" onchange="window.ui.onReportsCycleChange(this.value)">
@@ -6976,7 +6976,7 @@ body.customer-mode #mobileDrawerAdminMenu,
 
               <!-- आठवडे फिल्टर टॉगल -->
               <div style="display: flex; flex-direction: column; gap: 0.3rem;">
-                <label style="font-size: 0.78rem; font-weight: 700; color: #4b5563; text-transform: uppercase;">
+                <label id="reportsWeeksViewLabel" style="font-size: 0.78rem; font-weight: 700; color: #4b5563; text-transform: uppercase;">
                   👁️ आठवडे दृश्य:
                 </label>
                 <div class="btn-group" style="display: flex; gap: 0.35rem;">
@@ -7240,7 +7240,7 @@ body.customer-mode #mobileDrawerAdminMenu,
             </div>
             <div class="table-responsive" style="border: 1px solid var(--border-color); border-radius: var(--radius-md);">
               <table class="custom-table" style="margin-bottom: 0;">
-                <thead>
+                <thead id="custLoansTableHead">
                   <tr>
                     <th>कर्ज क्र.</th>
                     <th>मूळ रक्कम</th>
@@ -7264,10 +7264,10 @@ body.customer-mode #mobileDrawerAdminMenu,
         <section class="glass-card" style="margin-bottom: 2rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
             <div>
-              <h3 style="font-size: 1.2rem; color: var(--text-primary);">📖 माझे ५०-आठवडे बचत पासबुक</h3>
-              <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">अधिकृत डिजिटल पावती पाहण्यासाठी कोणत्याही जमा झालेल्या आठवड्यावर क्लिक करा.</p>
+              <h3 id="custPassbookSectionTitle" style="font-size: 1.2rem; color: var(--text-primary);">📖 माझे ५०-आठवडे बचत पासबुक</h3>
+              <p id="custPassbookSectionDesc" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">अधिकृत डिजिटल पावती पाहण्यासाठी कोणत्याही जमा झालेल्या आठवड्यावर क्लिक करा.</p>
             </div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary);">
+            <div id="custPassbookSectionLegend" style="font-size: 0.8rem; color: var(--text-secondary);">
               🟢 जमा • 🟡 चालू हप्ता • 🔴 थकबाकी • ⚪ प्रलंबित
             </div>
           </div>
@@ -7280,8 +7280,8 @@ body.customer-mode #mobileDrawerAdminMenu,
         <section class="glass-card" style="padding: 0; overflow: hidden; margin-top: 1.5rem;">
           <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
             <div>
-              <h3 style="font-size: 1.15rem; color: var(--text-primary);">📜 माझे सर्व व्यवहार व पेमेंट इतिहास</h3>
-              <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">आपल्या ५०-आठवडे बीशीचे जमा हप्ते आणि डिजिटल पावत्यांचा संपूर्ण तपशील.</p>
+              <h3 id="custHistorySectionTitle" style="font-size: 1.15rem; color: var(--text-primary);" data-i18n="cust_history_title">📜 माझे सर्व व्यवहार व पेमेंट इतिहास</h3>
+              <p id="custHistorySectionDesc" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="cust_history_sub">आपल्या ५०-आठवडे बीशीचे जमा हप्ते आणि डिजिटल पावत्यांचा संपूर्ण तपशील.</p>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
               <button class="btn btn-secondary btn-sm" id="btnCustPrintLedgerCard" style="font-weight: 700; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08);">
@@ -7294,7 +7294,7 @@ body.customer-mode #mobileDrawerAdminMenu,
           </div>
           <div class="table-responsive" style="border: none; box-shadow: none;">
             <table class="custom-table">
-              <thead>
+              <thead id="custHistoryTableHead">
                 <tr>
                   <th>पावती क्र.</th>
                   <th>व्यवहार / आठवडा</th>
@@ -7710,7 +7710,7 @@ body.customer-mode #mobileDrawerAdminMenu,
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--emerald-400);" id="passbookWeeklyAmt">₹0</div>
             </div>
             <div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">एकूण जमा</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;" id="passbookTotalPaidLabel">एकूण जमा</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--gold-400);" id="passbookTotalPaid">₹0</div>
             </div>
             <div>
@@ -7718,11 +7718,11 @@ body.customer-mode #mobileDrawerAdminMenu,
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary);" id="passbookWeeksCompleted">0 / 50</div>
             </div>
             <div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">मॅच्युरिटी परतावा (+८%)</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;" id="passbookMaturityLabel">मॅच्युरिटी परतावा (+८%)</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--emerald-400);" id="passbookMaturityPayout">₹0</div>
             </div>
             <div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">शिल्लक बाकी</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;" id="passbookRemainingLabel">शिल्लक बाकी</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--rose-400);" id="passbookRemainingAmt">₹0</div>
             </div>
           </div>
@@ -7730,7 +7730,7 @@ body.customer-mode #mobileDrawerAdminMenu,
 
         <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
           <span id="passbookMatrixTitle">५०-आठवडे बचत मॅट्रिक्स (पावती पाहण्यासाठी किंवा हप्ता नोंदवण्यासाठी क्लिक करा)</span>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">🟢 जमा • 🟡 चालू हप्ता • 🔴 थकबाकी • ⚪ प्रलंबित</span>
+          <span id="passbookLegendText" style="font-size: 0.75rem; color: var(--text-muted);">🟢 जमा • 🟡 चालू हप्ता • 🔴 थकबाकी • ⚪ प्रलंबित</span>
         </div>
 
         <div class="passbook-grid" id="passbookGridContainer">
@@ -7752,7 +7752,7 @@ body.customer-mode #mobileDrawerAdminMenu,
             🧹 भरणा डेटा पुसा
           </button>
         </div>
-        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+        <button type="button" class="btn btn-secondary" id="passbookCloseBtn" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
       </div>
     </div>
   </div>

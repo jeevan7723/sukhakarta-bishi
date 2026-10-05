@@ -1853,9 +1853,10 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     }
 
     // Member dropdown selector to switch members directly in report view
+    const isCustomerRole = window.authManager && typeof window.authManager.isCustomer === 'function' && window.authManager.isCustomer();
     const allMembers = window.bishiStore?.getAllMembers ? window.bishiStore.getAllMembers() : [];
     let memberSelectorHTML = '';
-    if (allMembers && allMembers.length > 1) {
+    if (allMembers && allMembers.length > 1 && !isCustomerRole) {
       memberSelectorHTML = `
         <div style="display: flex; align-items: center; gap: 0.4rem;">
           <span style="font-size: 0.78rem; font-weight: 700; color: #853d1b;">${isEn ? '👤 Member:' : '👤 सदस्य:'}</span>
@@ -1908,6 +1909,12 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <!-- थेट लेजर कार्ड भाषा टॉगल (Direct Language Toggle in Modal) -->
+          <div class="lang-toggle-pills" style="display: inline-flex; border: 1px solid #d1d5db; border-radius: 20px; padding: 2px; background: #f3f4f6;">
+            <button type="button" class="lang-pill-btn ${!isEn ? 'active' : ''}" style="padding: 0.2rem 0.55rem; font-size: 0.74rem; font-weight: 700; border-radius: 16px; border: none; cursor: pointer; ${!isEn ? 'background: #853d1b; color: #fff;' : 'background: transparent; color: #4b5563;'}" onclick="window.i18n.setLanguage('mr')">मराठी</button>
+            <button type="button" class="lang-pill-btn ${isEn ? 'active' : ''}" style="padding: 0.2rem 0.55rem; font-size: 0.74rem; font-weight: 700; border-radius: 16px; border: none; cursor: pointer; ${isEn ? 'background: #853d1b; color: #fff;' : 'background: transparent; color: #4b5563;'}" onclick="window.i18n.setLanguage('en')">EN</button>
+          </div>
+
           <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="background: #25d366; color: #000; font-weight: 700; font-size: 0.75rem; text-decoration: none;">
             ${isEn ? '💬 Share WhatsApp' : '💬 WhatsApp वर पाठवा'}
           </a>
