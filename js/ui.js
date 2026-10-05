@@ -468,10 +468,14 @@ class UIManager {
     
     document.getElementById('custProgressDeposited').style.width = `${stats.progressPercent}%`;
 
-    document.getElementById('custStatNextDue').textContent = stats.isFullyPaid ? 'पूर्ण झाले 🎉' : `आठवडा ${stats.nextDueWeek}`;
+    document.getElementById('custStatNextDue').textContent = stats.isFullyPaid 
+      ? 'पूर्ण झाले 🎉' 
+      : (stats.isPaidAhead ? '✓ चालू हप्ता पूर्ण' : `${stats.periodUnit} ${stats.nextDueWeek}`);
     document.getElementById('custStatNextDueSub').textContent = stats.isFullyPaid 
       ? `एकूण परतावा: ${currency}${stats.maturityTotalPayout.toLocaleString('en-IN')}`
-      : `देय रक्कम: ${currency}${stats.nextDueAmount.toLocaleString('en-IN')}`;
+      : (stats.isPaidAhead 
+          ? `पुढील महिना ${stats.nextDueWeek} (आठवडा ${stats.nextDueDueWeekNumber || ((stats.nextDueWeek - 1) * 5 + 1)} नंतर देय)` 
+          : `देय रक्कम: ${currency}${stats.nextDueAmount.toLocaleString('en-IN')}`);
 
     document.getElementById('custStatRemaining').textContent = stats.isFullyPaid ? '₹0' : `${currency}${stats.remainingAmount.toLocaleString('en-IN')}`;
     document.getElementById('custStatRemainingSub').textContent = stats.isFullyPaid 
@@ -1540,7 +1544,18 @@ class UIManager {
 
         <td>
           <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary); white-space: nowrap;">
-            ${stats.isFullyPaid ? `<button type="button" class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-size:0.75rem; padding:0.2rem 0.6rem; background: var(--emerald-600); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:800;" title="${stats.totalPeriods}-${stats.periodUnitPlural} मॅच्युरिटी व्हाउचर पहा">🎉 पूर्ण झाले (व्हाउचर)</button>` : `पुढील ${stats.periodUnit} ${stats.nextDueWeek}: <span style="color: var(--gold-400); font-weight: 800;">${currency}${stats.nextDueAmount.toLocaleString('en-IN')}</span>`}
+            ${stats.isFullyPaid ? `
+              <button type="button" class="btn btn-emerald btn-sm" onclick="event.stopPropagation(); window.receiptManager.showPayoutVoucherModal('${member.id}')" style="font-size:0.75rem; padding:0.2rem 0.6rem; background: var(--emerald-600); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:800;" title="${stats.totalPeriods}-${stats.periodUnitPlural} मॅच्युरिटी व्हाउचर पहा">🎉 पूर्ण झाले (व्हाउचर)</button>
+            ` : (isMonthly && stats.isPaidAhead) ? `
+              <div style="color: var(--emerald-400); font-weight: 800; font-size: 0.88rem; line-height: 1.2;">
+                ✓ चालू हप्ता पूर्ण <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted);">(अ‍ॅडव्हान्स जमा)</span>
+              </div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; font-weight: 600;">
+                पुढील महिना ${stats.nextDueWeek}: आठवडा ${stats.nextDueDueWeekNumber || ((stats.nextDueWeek - 1) * 5 + 1)} नंतर देय (${currency}${stats.nextDueAmount.toLocaleString('en-IN')})
+              </div>
+            ` : `
+              पुढील ${stats.periodUnit} ${stats.nextDueWeek}: <span style="color: var(--gold-400); font-weight: 800;">${currency}${stats.nextDueAmount.toLocaleString('en-IN')}</span>
+            `}
           </div>
           ${isInterestDueThisWeek ? `
             <div style="font-size: 0.74rem; color: var(--gold-400); font-weight: 700; margin-top: 0.2rem; white-space: nowrap;">
@@ -4826,7 +4841,7 @@ class UIManager {
                 <div style="font-weight: 800; color: var(--gold-400); font-size: 1rem; margin-top: 0.15rem;">
                   ${currency}${installmentAmt.toLocaleString('en-IN')}
                 </div>
-                <div style="font-size: 0.68rem; color: var(--text-muted);">लक्ष्य: ${currency}${stats.totalTarget.toLocaleString('en-IN')}</div>
+                <div style="font-size: 0.68rem; color: var(--text-muted);">${(isMonthly && stats.isPaidAhead) ? '<span style="color: var(--emerald-400); font-weight: 700;">✓ हप्ता पूर्ण (अ‍ॅडव्हान्स)</span>' : `लक्ष्य: ${currency}${stats.totalTarget.toLocaleString('en-IN')}`}</div>
               </div>
               <div style="background: var(--bg-primary); padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">एकूण ठेव बचत</div>

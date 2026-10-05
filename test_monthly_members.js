@@ -207,9 +207,18 @@ assert(resolveMonthlyCollectWeek(testMemberMonthly, undefined) === 2, 'Caller wi
 store.recordPayment(testMemberMonthly.id, 2, 3000, 'UPI', 'महिना २');
 sunitaStats = store.calculateMemberStats(testMemberMonthly);
 assert(sunitaStats.effectivePaidWeeks === 2, 'Month 2 is paid');
-assert(sunitaStats.nextDueWeek === 3, 'Next due month is immediately Month 3');
-assert(resolveMonthlyCollectWeek(testMemberMonthly, 1) === 3, 'Caller passing week 1 now resolves to Month 3');
-assert(resolveMonthlyCollectWeek(testMemberMonthly, 2) === 3, 'Caller passing week 2 now resolves to Month 3');
+// Test 9: 5-week monthly schedule and isPaidAhead advance status
+store.state.meta.currentWeek = 3;
+let sStatsWk3 = store.calculateMemberStats(testMemberMonthly);
+assert(sStatsWk3.activeMonth === 1, 'At Week 3, activeMonth is 1');
+assert(sStatsWk3.isPaidAhead === true, 'Member who paid Month 1 & 2 is isPaidAhead=true at Week 3');
+assert(sStatsWk3.nextDueDueWeekNumber === 11, 'Month 3 is due after Week 10 (Week 11)');
+
+// Simulate passing 5 weeks for Month 1 and 5 weeks for Month 2 (Week 11)
+store.state.meta.currentWeek = 11;
+let sStatsWk11 = store.calculateMemberStats(testMemberMonthly);
+assert(sStatsWk11.activeMonth === 3, 'At Week 11, activeMonth is 3');
+assert(sStatsWk11.isPaidAhead === false, 'At Week 11, Month 3 is now due, so isPaidAhead is false');
 
 console.log('====================================================');
 console.log(`📊 RESULTS: ${passed} passed, ${failed} failed`);

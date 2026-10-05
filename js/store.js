@@ -1654,10 +1654,10 @@ class BishiStore {
     const nextDueAmount = installmentAmount;
     const remainingWeeksCount = Math.max(0, totalPeriods - effectivePaidWeeks);
 
-    // थकबाकी गणना (Overdue Periods Calculation)
+    // थकबाकी गणना (Overdue Periods Calculation) - ५ आठवडे = १ महिना
     let overdueWeeksCount = 0;
+    const activeMonth = isMonthly ? Math.min(12, Math.max(1, Math.ceil((currentWeek || 1) / 5))) : currentWeek;
     if (isMonthly) {
-      const activeMonth = Math.min(12, Math.max(1, Math.ceil((currentWeek || 1) / 4.16)));
       const pastMonths = Math.max(0, Math.min(12, activeMonth - 1));
       const expectedPast = pastMonths * installmentAmount;
       const deficit = Math.max(0, expectedPast - Math.max(totalDeposited, effectivePaidWeeks * installmentAmount));
@@ -1674,6 +1674,9 @@ class BishiStore {
     } else {
       nextDueWeek = Math.min(totalPeriods, effectivePaidWeeks + 1);
     }
+
+    const isPaidAhead = isMonthly && (effectivePaidWeeks >= activeMonth) && !isFullyPaid;
+    const nextDueDueWeekNumber = isMonthly ? ((nextDueWeek - 1) * 5 + 1) : nextDueWeek;
 
     // ८% मॅच्युरिटी व्याज बोनस गणना
     const interestAmount = isFullyPaid ? Math.round(totalDeposited * (maturityInterestPercent / 100)) : 0;
@@ -1713,6 +1716,9 @@ class BishiStore {
       projectedMaturityTotal,
       maturityInterestPercent,
       overdueWeeksCount,
+      activeMonth,
+      isPaidAhead,
+      nextDueDueWeekNumber,
       isNextWeekOverdue,
       suggestedFine,
       accruedPendingFine,
@@ -1837,8 +1843,8 @@ class BishiStore {
     this.state.members.forEach(m => {
       const isMonthly = m.frequency === 'monthly' || m.totalPeriods === 12;
       if (isMonthly) {
-        // मासिक सदस्यांसाठी: चालू आठवड्यानुसार सक्रिय महिना ठरवा (उदा. आठवडे १-४ = महिना १)
-        const activeMonth = Math.min(12, Math.max(1, Math.ceil(weekNum / 4.16)));
+        // मासिक सदस्यांसाठी: चालू आठवड्यानुसार सक्रिय महिना ठरवा (५ आठवडे = १ महिना, उदा. आठवडे १-५ = महिना १)
+        const activeMonth = Math.min(12, Math.max(1, Math.ceil(weekNum / 5)));
         m.weeks.forEach(wk => {
           if (wk.status !== 'paid' && wk.status !== 'skipped') {
             wk.status = wk.weekNumber < activeMonth ? 'overdue' : 'pending';
