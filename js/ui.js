@@ -4721,6 +4721,7 @@ class UIManager {
     const activeMembers = allMembers.filter(m => m.status === 'active' || m.status === 'completed');
     const currency = window.bishiStore.state.meta.currency || '₹';
     const currentWeek = window.bishiStore.state.meta.currentWeek || 1;
+    const isEn = window.i18n && window.i18n.isEnglish();
 
     // १. KPI आकडेवारी अद्ययावत करणे (Top 4 KPIs)
     const totalMemEl = document.getElementById('mpStatTotalMembers');
@@ -5026,32 +5027,32 @@ class UIManager {
                 <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openEditMemberModal('${member.id}')" title="तपशील बदला">
                   ✏️ एडिट
                 </button>
-                <select class="member-action-select" onchange="window.ui.handleMemberActionSelect(this, '${member.id}', ${isMonthly ? stats.nextDueWeek : currentWeek})" title="अधिक पर्याय">
-                  <option value="" selected disabled>⚙️ अधिक ▾</option>
-                  <option value="profile">👤 संपूर्ण प्रोफाईल तपशील</option>
-                  <option value="ledger_card">📋 लेजर कार्ड रजिस्टर (Print Ledger Card)</option>
-                  <option value="passbook">📖 ${stats.totalPeriods}-${stats.periodUnitPlural} पासबुक</option>
+                <select class="member-action-select" onchange="window.ui.handleMemberActionSelect(this, '${member.id}', ${isMonthly ? stats.nextDueWeek : currentWeek})" title="${isEn ? 'More options' : 'अधिक पर्याय'}">
+                  <option value="" selected disabled>${isEn ? '⚙️ Options ▾' : '⚙️ अधिक ▾'}</option>
+                  <option value="profile">${isEn ? '👤 Full Profile Details' : '👤 संपूर्ण प्रोफाईल तपशील'}</option>
+                  <option value="ledger_card">${isEn ? '📋 Print Ledger Card' : '📋 लेजर कार्ड रजिस्टर (Print Ledger Card)'}</option>
+                  <option value="passbook">📖 ${stats.totalPeriods}-${isEn ? (isMonthly ? 'Month' : 'Week') : stats.periodUnitPlural} ${isEn ? 'Passbook' : 'पासबुक'}</option>
                   ${isMonthly ? `
                     ${!stats.isFullyPaid ? `
-                      <option value="collect">💰 पुढील महिना ${stats.nextDueWeek} हप्ता जमा करा</option>
+                      <option value="collect">${isEn ? `💰 Collect Month ${stats.nextDueWeek} Installment` : `💰 पुढील महिना ${stats.nextDueWeek} हप्ता जमा करा`}</option>
                     ` : ''}
                     ${stats.totalDeposited > 0 ? `
-                      <option value="receipt">🧾 पावती पहा (Receipt)</option>
+                      <option value="receipt">${isEn ? '🧾 View Receipt' : '🧾 पावती पहा (Receipt)'}</option>
                     ` : ''}
                   ` : `
                     ${(isFullPaidThisWeek || isClearedThisWeek || stats.isFullyPaid) ? `
-                      <option value="receipt">🧾 पावती पहा (Receipt)</option>
+                      <option value="receipt">${isEn ? '🧾 View Receipt' : '🧾 पावती पहा (Receipt)'}</option>
                     ` : isPartialThisWeek ? `
-                      <option value="collect">💰 बाकी हप्ता जमा करा</option>
+                      <option value="collect">${isEn ? '💰 Collect Balance Due' : '💰 बाकी हप्ता जमा करा'}</option>
                     ` : `
-                      <option value="collect">💰 हप्ता जमा करा</option>
+                      <option value="collect">${isEn ? '💰 Collect Installment' : '💰 हप्ता जमा करा'}</option>
                     `}
                   `}
-                  <option value="loan">💳 कर्ज द्या</option>
-                  <option value="edit">✏️ तपशील बदला</option>
-                  ${stats.isFullyPaid ? `<option value="voucher">📜 मॅच्युरिटी व्हाउचर</option>` : ''}
-                  <option value="wipe">🧹 हप्ते पुसा (Wipe)</option>
-                  <option value="settle">🗑️ डिलीट / सेटल</option>
+                  <option value="loan">${isEn ? '💳 Give Loan' : '💳 कर्ज द्या'}</option>
+                  <option value="edit">${isEn ? '✏️ Edit Details' : '✏️ तपशील बदला'}</option>
+                  ${stats.isFullyPaid ? `<option value="voucher">${isEn ? '📜 Maturity Voucher' : '📜 मॅच्युरिटी व्हाउचर'}</option>` : ''}
+                  <option value="wipe">${isEn ? '🧹 Wipe Installments' : '🧹 हप्ते पुसा (Wipe)'}</option>
+                  <option value="settle">${isEn ? '🗑️ Delete / Settle' : '🗑️ डिलीट / सेटल'}</option>
                 </select>
               </div>
             </td>

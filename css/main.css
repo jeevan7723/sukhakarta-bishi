@@ -898,7 +898,7 @@ body.customer-mode #mobileDrawerAdminMenu,
 }
 
 select.form-control,
-select {
+select:not(.member-action-select):not(.loan-action-select) {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -922,13 +922,13 @@ select {
 }
 
 select.form-control:hover,
-select:hover {
+select:not(.member-action-select):not(.loan-action-select):hover {
   border-color: rgba(255, 255, 255, 0.2);
   background-color: var(--bg-card-hover);
 }
 
 select.form-control:focus,
-select:focus {
+select:not(.member-action-select):not(.loan-action-select):focus {
   border-color: var(--emerald-500);
   background-color: var(--bg-tertiary);
   box-shadow: 0 0 0 3px var(--emerald-subtle), 0 4px 16px rgba(16, 185, 129, 0.15);
@@ -962,7 +962,7 @@ select option:checked {
 }
 
 [data-theme="light"] select.form-control,
-[data-theme="light"] select {
+[data-theme="light"] select:not(.member-action-select):not(.loan-action-select) {
   background-color: #ffffff;
   border-color: rgba(0, 0, 0, 0.12);
   color: #0f172a;
@@ -970,16 +970,105 @@ select option:checked {
 }
 
 [data-theme="light"] select.form-control:hover,
-[data-theme="light"] select:hover {
+[data-theme="light"] select:not(.member-action-select):not(.loan-action-select):hover {
   border-color: rgba(0, 0, 0, 0.25);
   background-color: #f8fafc;
 }
 
 [data-theme="light"] select.form-control:focus,
-[data-theme="light"] select:focus {
+[data-theme="light"] select:not(.member-action-select):not(.loan-action-select):focus {
   border-color: var(--emerald-600);
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(16, 185, 129, 0.1);
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='18 15 12 9 6 15'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+.member-action-select,
+select.member-action-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--bg-tertiary, #1e293b) !important;
+  background-image: none !important;
+  background-repeat: no-repeat !important;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15)) !important;
+  color: #f1f5f9 !important;
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.35rem 0.75rem !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  outline: none !important;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  width: auto !important;
+  min-width: 95px;
+  text-align: center;
+  box-shadow: none !important;
+}
+
+.member-action-select:hover,
+select.member-action-select:hover {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  background-color: var(--bg-card-hover, #334155) !important;
+  background-image: none !important;
+}
+
+.member-action-select:focus,
+.member-action-select:active,
+select.member-action-select:focus,
+select.member-action-select:active {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  background-color: var(--bg-card-hover, #334155) !important;
+  background-image: none !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12) !important;
+  outline: none !important;
+}
+
+.member-action-select option {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 0.6rem 0.8rem;
+  font-weight: 500;
+  font-size: 0.82rem;
+}
+
+.member-action-select option:disabled {
+  color: #94a3b8;
+  font-weight: 700;
+  background: #1e293b;
+}
+
+[data-theme="light"] .member-action-select,
+[data-theme="light"] select.member-action-select {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: none !important;
+}
+
+[data-theme="light"] .member-action-select:hover,
+[data-theme="light"] select.member-action-select:hover {
+  background-color: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  background-image: none !important;
+}
+
+[data-theme="light"] .member-action-select:focus,
+[data-theme="light"] .member-action-select:active,
+[data-theme="light"] select.member-action-select:focus,
+[data-theme="light"] select.member-action-select:active {
+  background-color: #ffffff !important;
+  border-color: #94a3b8 !important;
+  background-image: none !important;
+  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25) !important;
+  outline: none !important;
+}
+
+[data-theme="light"] .member-action-select option {
+  background: #ffffff;
+  color: #0f172a;
 }
 
 /* Modal Backdrop & Dialog */
