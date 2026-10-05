@@ -19,35 +19,6 @@ class UIManager {
     this.membersPageViewMode = 'table';
   }
 
-  setupEventListeners() {
-    document.addEventListener('click', (e) => {
-      const menuEl = document.getElementById('appActionDropdownMenu');
-      if (menuEl && menuEl.style.display === 'block') {
-        if (!menuEl.contains(e.target) && (!menuEl._currentTrigger || !menuEl._currentTrigger.contains(e.target))) {
-          this.closeActionDropdown();
-        }
-      }
-    });
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        this.closeActionDropdown();
-      }
-    });
-
-    window.addEventListener('resize', () => {
-      this.closeActionDropdown();
-    });
-
-    window.addEventListener('scroll', () => {
-      // Keep menu pinned to trigger if scrolling
-      const menuEl = document.getElementById('appActionDropdownMenu');
-      if (menuEl && menuEl.style.display === 'block' && menuEl._currentTrigger) {
-        this.positionDownwardDropdown(menuEl._currentTrigger, menuEl);
-      }
-    }, true);
-  }
-
   init() {
     try {
       this.setupEventListeners();
@@ -1825,9 +1796,46 @@ class UIManager {
                 </button>
               `}
             `}
-            <button type="button" class="btn btn-secondary btn-sm member-action-btn" onclick="window.ui.toggleMemberActionDropdown(this, '${member.id}', ${isMonthly ? stats.nextDueWeek : targetPeriod}, true, event)" title="${isEn ? 'Options' : 'अधिक पर्याय'}">
-              ⚙️ ${isEn ? 'Options' : 'अधिक'} ▾
-            </button>
+            <select class="member-action-select" onchange="window.ui.handleMemberActionSelect(this, '${member.id}', ${isMonthly ? stats.nextDueWeek : targetPeriod})" title="अधिक पर्याय व कृती निवडा">
+              <option value="" selected disabled>${isEn ? '⚙️ Options ▾' : '⚙️ पर्याय ▾'}</option>
+              ${isMonthly ? `
+                ${!stats.isFullyPaid ? `
+                  <option value="collect">${isEn ? `💰 Collect Month ${stats.nextDueWeek} Installment` : `💰 पुढील महिना ${stats.nextDueWeek} हप्ता जमा करा`}</option>
+                ` : ''}
+                ${stats.totalDeposited > 0 ? `
+                  <option value="receipt">${isEn ? '🧾 View Receipt' : '🧾 पावती पहा (Receipt)'}</option>
+                  <option value="undo">${isEn ? '✕ Undo Current Month Payment' : '✕ चालू महिना भरणा रद्द करा (Undo)'}</option>
+                ` : ''}
+              ` : `
+                ${(isFullPaidThisWeek || isClearedThisWeek || isPartialThisWeek) ? `
+                  <option value="receipt">${isEn ? '🧾 View Receipt' : '🧾 पावती पहा (Receipt)'}</option>
+                  <option value="undo">${isEn ? `✕ Undo Current ${stats.periodUnit} Payment` : `✕ चालू ${stats.periodUnit} भरणा रद्द करा (Undo)`}</option>
+                ` : `
+                  <option value="collect">${isEn ? `💰 Collect Current ${stats.periodUnit} Installment` : `💰 चालू ${stats.periodUnit} हप्ता जमा करा`}</option>
+                `}
+              `}
+              ${isInterestDueThisWeek ? `
+                <option value="pay_interest:${firstActiveLoan?.loan?.id || ''}">${isEn ? `💰 Collect 3% Interest (+${currency}${loanSummary.activeInterest})` : `💰 ३% कर्ज व्याज जमा करा (+${currency}${loanSummary.activeInterest})`}</option>
+                <option value="loan_msg:${firstActiveLoan?.loan?.id || ''}">${isEn ? '💬 WhatsApp Reminder' : '💬 व्याज WhatsApp स्मरणपत्र'}</option>
+              ` : ''}
+              ${stats.isFullyPaid ? (stats.isPayoutCompleted ? `
+                <option value="voucher">${isEn ? '📜 View Maturity Voucher' : '📜 मॅच्युरिटी व्हाउचर पहा'}</option>
+              ` : `
+                <option value="payout">${isEn ? '💰 Payout Maturity Settlement' : '💰 मॅच्युरिटी परतावा वाटप करा'}</option>
+              `) : ''}
+              ${stats.canRestartPlan ? `
+                <option value="restart">${isEn ? '🔄 Start New 50-Week Cycle' : '🔄 नवीन ५०-आठवडे प्लॅन सुरू करा'}</option>
+              ` : ''}
+              ${loanSummary && loanSummary.hasLoan ? `
+                <option value="view_loan_voucher">${isEn ? '📄 View Loan Disbursement Voucher' : '📄 कर्ज वाटप व्हाउचर पहा (Loan Assign Voucher)'}</option>
+              ` : ''}
+              <option value="loan">${isEn ? '💳 Disburse Loan to Member' : '💳 सदस्यास कर्ज द्या'}</option>
+              <option value="ledger_card">${isEn ? '📋 Member Ledger Card Register' : '📋 लेजर कार्ड रजिस्टर (Print Ledger Card)'}</option>
+              <option value="passbook">${isEn ? '📖 View Passbook' : `📖 ${stats.totalPeriods}-${stats.periodUnitPlural} पासबुक पहा`}</option>
+              <option value="edit">${isEn ? '✏️ Edit Member Details' : '✏️ सदस्य तपशील एडिट करा'}</option>
+              <option value="wipe">${isEn ? '🧹 Wipe Payment Data' : '🧹 भरणा डेटा पुसा (Wipe)'}</option>
+              <option value="settle">${isEn ? '🗑️ Settle / Delete Member' : '🗑️ सदस्य डिलीट / सेटल करा'}</option>
+            </select>
           </div>
         </td>
       `;
@@ -1836,321 +1844,15 @@ class UIManager {
     });
   }
 
-  // --- कस्टम फ्लोटिंग डाउनवर्ड ड्रॉपडाउन मेनू (Custom Downward Floating Dropdown Menu) ---
-  toggleMemberActionDropdown(buttonEl, memberId, period, isDashboard, event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    
-    let menuEl = document.getElementById('appActionDropdownMenu');
-    if (!menuEl) {
-      menuEl = document.createElement('div');
-      menuEl.id = 'appActionDropdownMenu';
-      menuEl.className = 'action-floating-dropdown';
-      document.body.appendChild(menuEl);
-    }
-    
-    if (menuEl.style.display === 'block' && menuEl._currentTrigger === buttonEl) {
-      this.closeActionDropdown();
-      return;
-    }
-
-    const member = window.bishiStore.getMember(memberId);
-    if (!member) return;
-    const stats = window.bishiStore.calculateMemberStats(member);
-    const isEn = window.i18n && window.i18n.isEnglish();
-    const isMonthly = stats.isMonthly;
-    const currency = window.bishiStore.state.meta.currency || '₹';
-    const targetPeriod = isMonthly ? (stats.effectivePaidWeeks > 0 ? stats.effectivePaidWeeks : 1) : period;
-    const loanSummary = window.bishiStore.getMemberLoanSummary(memberId);
-    const firstActiveLoan = (loanSummary && loanSummary.activeLoans && loanSummary.activeLoans.length > 0)
-      ? loanSummary.activeLoans[0]
-      : null;
-    const isInterestDueThisWeek = loanSummary && loanSummary.hasInterestDueThisWeek;
-    
-    const installmentAmt = stats.installmentAmount;
-    const curWkData = member.weeks?.find(w => w.weekNumber === targetPeriod);
-    const curPaidAmt = Number(curWkData?.amountPaid || 0);
-    const isFullPaidThisWeek = curWkData && ((curWkData.status === 'paid') || (curPaidAmt >= installmentAmt));
-    const isClearedThisWeek = !isFullPaidThisWeek && (targetPeriod <= stats.effectivePaidWeeks);
-    const isPartialThisWeek = !isFullPaidThisWeek && !isClearedThisWeek && ((targetPeriod === stats.effectivePaidWeeks + 1 && (stats.totalDeposited % installmentAmt > 0)) || (curPaidAmt > 0 && curPaidAmt < installmentAmt));
-
-    let itemsHTML = '';
-    const addItem = (action, icon, label, isDanger = false) => {
-      itemsHTML += `
-        <button type="button" class="dropdown-item ${isDanger ? 'danger' : ''}" onclick="window.ui.executeMemberAction('${action}', '${memberId}', ${period}, event)">
-          <span>${icon}</span>
-          <span>${label}</span>
-        </button>
-      `;
-    };
-
-    if (isDashboard) {
-      if (isMonthly) {
-        if (!stats.isFullyPaid) {
-          addItem('collect', '💰', isEn ? `Collect Month ${stats.nextDueWeek} Installment` : `पुढील महिना ${stats.nextDueWeek} हप्ता जमा करा`);
-        }
-        if (stats.totalDeposited > 0) {
-          addItem('receipt', '🧾', isEn ? 'View Receipt' : 'पावती पहा (Receipt)');
-          addItem('undo', '✕', isEn ? 'Undo Current Month Payment' : 'चालू महिना भरणा रद्द करा (Undo)');
-        }
-      } else {
-        if (isFullPaidThisWeek || isClearedThisWeek || isPartialThisWeek) {
-          addItem('receipt', '🧾', isEn ? 'View Receipt' : 'पावती पहा (Receipt)');
-          addItem('undo', '✕', isEn ? `Undo Current ${stats.periodUnit} Payment` : `चालू ${stats.periodUnit} भरणा रद्द करा (Undo)`);
-        } else {
-          addItem('collect', '💰', isEn ? `Collect Current ${stats.periodUnit} Installment` : `चालू ${stats.periodUnit} हप्ता जमा करा`);
-        }
-      }
-
-      if (isInterestDueThisWeek) {
-        addItem(`pay_interest:${firstActiveLoan?.loan?.id || ''}`, '💰', isEn ? `Collect 3% Interest (+${currency}${loanSummary.activeInterest})` : `३% कर्ज व्याज जमा करा (+${currency}${loanSummary.activeInterest})`);
-        addItem(`loan_msg:${firstActiveLoan?.loan?.id || ''}`, '💬', isEn ? 'WhatsApp Reminder' : 'व्याज WhatsApp स्मरणपत्र');
-      }
-
-      if (stats.isFullyPaid) {
-        if (stats.isPayoutCompleted) {
-          addItem('voucher', '📜', isEn ? 'View Maturity Voucher' : 'मॅच्युरिटी व्हाउचर पहा');
-        } else {
-          addItem('payout', '💰', isEn ? 'Payout Maturity Settlement' : 'मॅच्युरिटी परतावा वाटप करा');
-        }
-      }
-
-      if (stats.canRestartPlan) {
-        addItem('restart', '🔄', isEn ? 'Start New 50-Week Cycle' : 'नवीन ५०-आठवडे प्लॅन सुरू करा');
-      }
-
-      if (loanSummary && loanSummary.hasLoan) {
-        addItem('view_loan_voucher', '📄', isEn ? 'View Loan Disbursement Voucher' : 'कर्ज वाटप व्हाउचर पहा (Loan Assign Voucher)');
-      }
-
-      addItem('loan', '💳', isEn ? 'Disburse Loan to Member' : 'सदस्यास कर्ज द्या');
-      addItem('ledger_card', '📋', isEn ? 'Member Ledger Card Register' : 'लेजर कार्ड रजिस्टर (Print Ledger Card)');
-      addItem('passbook', '📖', isEn ? 'View Passbook' : `${stats.totalPeriods}-${stats.periodUnitPlural} पासबुक पहा`);
-      addItem('edit', '✏️', isEn ? 'Edit Member Details' : 'सदस्य तपशील एडिट करा');
-      addItem('wipe', '🧹', isEn ? 'Wipe Payment Data' : 'भरणा डेटा पुसा (Wipe)', true);
-      addItem('settle', '🗑️', isEn ? 'Settle / Delete Member' : 'सदस्य डिलीट / सेटल करा', true);
-    } else {
-      // Members Page
-      addItem('profile', '👤', isEn ? 'Full Profile Details' : 'संपूर्ण प्रोफाईल तपशील');
-      addItem('ledger_card', '📋', isEn ? 'Print Ledger Card' : 'लेजर कार्ड रजिस्टर (Print Ledger Card)');
-      addItem('passbook', '📖', `${stats.totalPeriods}-${isEn ? (isMonthly ? 'Month' : 'Week') : stats.periodUnitPlural} ${isEn ? 'Passbook' : 'पासबुक'}`);
-      
-      if (isMonthly) {
-        if (!stats.isFullyPaid) {
-          addItem('collect', '💰', isEn ? `Collect Month ${stats.nextDueWeek} Installment` : `पुढील महिना ${stats.nextDueWeek} हप्ता जमा करा`);
-        }
-        if (stats.totalDeposited > 0) {
-          addItem('receipt', '🧾', isEn ? 'View Receipt' : 'पावती पहा (Receipt)');
-        }
-      } else {
-        if (isFullPaidThisWeek || isClearedThisWeek || stats.isFullyPaid) {
-          addItem('receipt', '🧾', isEn ? 'View Receipt' : 'पावती पहा (Receipt)');
-        } else if (isPartialThisWeek) {
-          addItem('collect', '💰', isEn ? 'Collect Balance Due' : 'बाकी हप्ता जमा करा');
-        } else {
-          addItem('collect', '💰', isEn ? 'Collect Installment' : 'हप्ता जमा करा');
-        }
-      }
-
-      addItem('loan', '💳', isEn ? 'Give Loan' : 'कर्ज द्या');
-      addItem('edit', '✏️', isEn ? 'Edit Details' : 'तपशील बदला');
-      if (stats.isFullyPaid) {
-        addItem('voucher', '📜', isEn ? 'Maturity Voucher' : 'मॅच्युरिटी व्हाउचर');
-      }
-      addItem('wipe', '🧹', isEn ? 'Wipe Installments' : 'हप्ते पुसा (Wipe)', true);
-      addItem('settle', '🗑️', isEn ? 'Delete / Settle' : 'डिलीट / सेटल', true);
-    }
-
-    const memberName = window.bishiStore.getMemberDisplayName(member);
-    menuEl.innerHTML = `
-      <div class="dropdown-header">
-        <span>${memberName}</span>
-        <span style="font-family: monospace; font-size: 0.72rem; color: var(--emerald-400);">${member.id}</span>
-      </div>
-      <div class="dropdown-items-list">
-        ${itemsHTML}
-      </div>
-    `;
-
-    menuEl._currentTrigger = buttonEl;
-    this.positionDownwardDropdown(buttonEl, menuEl);
-  }
-
-  toggleLoanActionDropdown(buttonEl, loanId, event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    let menuEl = document.getElementById('appActionDropdownMenu');
-    if (!menuEl) {
-      menuEl = document.createElement('div');
-      menuEl.id = 'appActionDropdownMenu';
-      menuEl.className = 'action-floating-dropdown';
-      document.body.appendChild(menuEl);
-    }
-
-    if (menuEl.style.display === 'block' && menuEl._currentTrigger === buttonEl) {
-      this.closeActionDropdown();
-      return;
-    }
-
-    const loan = window.bishiStore.getLoan(loanId);
-    if (!loan) return;
-    const details = window.bishiStore.calculateLoanDetails(loan);
-    const currency = window.bishiStore.state.meta.currency || '₹';
-    const isPaid = loan.status === 'paid';
-    const hasInterestDue = !isPaid && details.isOverdueForInterest;
-    const interestPaymentsList = loan.interestPayments || [];
-    const isPartiallyPaid = (loan.amountRepaid || 0) > 0 && !isPaid;
-
-    let itemsHTML = '';
-    const addItem = (action, icon, label, isDanger = false) => {
-      itemsHTML += `
-        <button type="button" class="dropdown-item ${isDanger ? 'danger' : ''}" onclick="window.ui.executeLoanAction('${action}', '${loanId}', event)">
-          <span>${icon}</span>
-          <span>${label}</span>
-        </button>
-      `;
-    };
-
-    addItem('loanAssignVoucher', '📄', 'कर्ज वाटप व्हाउचर (Loan Assign Voucher)');
-    if (!isPaid) {
-      addItem('payLoan', '✅', 'कर्ज फेड नोंदवा (Pay Loan)');
-    } else {
-      addItem('loanRepaymentReceipt', '🧾', 'कर्ज परतफेड पावती (Repayment Receipt)');
-    }
-    if (hasInterestDue) {
-      addItem('payInterest', '💰', `व्याज जमा करा (+${currency}${details.interestAmount})`);
-      addItem('sendReminder', '💬', 'WhatsApp व्याज मेसेज');
-    }
-    if (interestPaymentsList && interestPaymentsList.length > 0) {
-      addItem('interestReceipt', '🧾', 'व्याज पावती पहा (Interest Receipt)');
-    }
-    if (isPartiallyPaid && !isPaid) {
-      addItem('loanRepaymentReceipt', '🧾', 'हप्ता पावती पहा (Partial Repayment Receipt)');
-    }
-    addItem('cancelLoan', '❌', 'कर्ज नोंद रद्द करा', true);
-
-    menuEl.innerHTML = `
-      <div class="dropdown-header">
-        <span>${loan.memberName || 'कर्ज खातावही'}</span>
-        <span style="font-family: monospace; font-size: 0.72rem; color: var(--emerald-400);">${loan.id}</span>
-      </div>
-      <div class="dropdown-items-list">
-        ${itemsHTML}
-      </div>
-    `;
-
-    menuEl._currentTrigger = buttonEl;
-    this.positionDownwardDropdown(buttonEl, menuEl);
-  }
-
-  positionDownwardDropdown(buttonEl, menuEl) {
-    menuEl.classList.remove('open-upward', 'open-downward');
-    menuEl.style.display = 'block';
-    menuEl.style.visibility = 'hidden';
-    menuEl.style.maxHeight = 'none';
-    menuEl.style.top = '0px';
-    menuEl.style.left = '0px';
-    menuEl.style.right = 'auto';
-    menuEl.style.bottom = 'auto';
-
-    const rect = buttonEl.getBoundingClientRect();
-    const menuWidth = Math.max(240, Math.min(320, menuEl.offsetWidth || 260));
-    const naturalHeight = Math.min(420, menuEl.scrollHeight || 340);
-
-    // 1. Horizontal Alignment (Never cut off on right, never collide with scrollbar)
-    const rightOffset = Math.max(14, window.innerWidth - rect.right);
-    const leftPos = window.innerWidth - rightOffset - menuWidth;
-
-    if (leftPos < 12) {
-      menuEl.style.left = '12px';
-      menuEl.style.right = '12px';
-      menuEl.style.width = 'auto';
-    } else {
-      menuEl.style.left = 'auto';
-      menuEl.style.right = rightOffset + 'px';
-      menuEl.style.width = menuWidth + 'px';
-    }
-
-    // 2. Vertical Alignment (Smart placement: downward preferred, upward if cramped at bottom)
-    const spaceBelow = window.innerHeight - rect.bottom - 16;
-    const spaceAbove = rect.top - 16;
-
-    if (spaceBelow >= 220 || spaceBelow >= naturalHeight) {
-      // Fits comfortably below button
-      menuEl.classList.add('open-downward');
-      menuEl.style.top = (rect.bottom + 6) + 'px';
-      menuEl.style.bottom = 'auto';
-      menuEl.style.maxHeight = Math.min(420, spaceBelow) + 'px';
-    } else if (spaceAbove > spaceBelow && spaceAbove >= 180) {
-      // Near bottom of screen: open upwards smoothly without clipping
-      menuEl.classList.add('open-upward');
-      menuEl.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
-      menuEl.style.top = 'auto';
-      menuEl.style.maxHeight = Math.min(420, spaceAbove) + 'px';
-    } else {
-      // Very tight vertically on both sides: scroll if possible, else fit within spaceBelow
-      const maxScrollY = (document.documentElement.scrollHeight || document.body.scrollHeight) - window.innerHeight;
-      const canScroll = maxScrollY - window.scrollY;
-      if (canScroll > 60) {
-        window.scrollBy({ top: Math.min(canScroll, 160), behavior: 'smooth' });
-        setTimeout(() => {
-          const newRect = buttonEl.getBoundingClientRect();
-          const newSpaceBelow = window.innerHeight - newRect.bottom - 16;
-          menuEl.style.top = (newRect.bottom + 6) + 'px';
-          menuEl.style.bottom = 'auto';
-          menuEl.style.maxHeight = Math.max(140, Math.min(420, newSpaceBelow)) + 'px';
-        }, 120);
-      }
-      menuEl.classList.add('open-downward');
-      menuEl.style.top = (rect.bottom + 6) + 'px';
-      menuEl.style.bottom = 'auto';
-      menuEl.style.maxHeight = Math.max(140, spaceBelow) + 'px';
-    }
-
-    menuEl.style.visibility = 'visible';
-  }
-
-  executeMemberAction(action, memberId, period, event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    this.closeActionDropdown();
-    this.handleMemberActionSelect(action, memberId, period);
-  }
-
-  executeLoanAction(action, loanId, event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    this.closeActionDropdown();
-    this.handleLoanActionSelect(action, loanId);
-  }
-
-  closeActionDropdown() {
-    const menuEl = document.getElementById('appActionDropdownMenu');
-    if (menuEl) {
-      menuEl.style.display = 'none';
-      menuEl._currentTrigger = null;
-    }
-  }
-
   // --- सदस्य कृती ड्रॉपडाउन लिस्ट हँडलर ---
   handleMemberActionSelect(selectEl, memberId, currentWeek) {
-    const rawVal = typeof selectEl === 'string' ? selectEl : selectEl?.value;
+    const rawVal = selectEl?.value;
     if (!rawVal) return;
 
     // सिलेक्ट रीसेट करा जेणेकरून पुढील कृतीसाठी तयार राहील
-    if (selectEl && typeof selectEl !== 'string' && selectEl.tagName === 'SELECT') {
-      setTimeout(() => {
-        try { selectEl.value = ''; } catch(e) {}
-      }, 50);
-    }
+    setTimeout(() => {
+      try { if (selectEl) selectEl.value = ''; } catch(e) {}
+    }, 50);
 
     const parts = String(rawVal).split(':');
     const action = parts[0];
@@ -4424,9 +4126,26 @@ class UIManager {
             💰 व्याज देय
           </span>
         ` : ''}
-        <button type="button" class="btn btn-secondary btn-sm loan-action-btn" onclick="window.ui.toggleLoanActionDropdown(this, '${loan.id}', event)" title="कर्ज कृती निवडा">
-          ⚡ कृती ▾
-        </button>
+        <select class="loan-action-select" onchange="window.ui.handleLoanActionSelect(this, '${loan.id}')" aria-label="कर्ज कृती निवडा" title="कर्ज कृती निवडा">
+          <option value="" selected disabled>⚡ कृती निवडा ▾</option>
+          <option value="loanAssignVoucher">📄 कर्ज वाटप व्हाउचर (Loan Assign Voucher)</option>
+          ${!isPaid ? `
+            <option value="payLoan">✅ कर्ज फेड नोंदवा (Pay Loan)</option>
+          ` : `
+            <option value="loanRepaymentReceipt">🧾 कर्ज परतफेड पावती (Repayment Receipt)</option>
+          `}
+          ${hasInterestDue ? `
+            <option value="payInterest">💰 व्याज जमा करा (+${currency}${details.interestAmount})</option>
+            <option value="sendReminder">💬 WhatsApp व्याज मेसेज</option>
+          ` : ''}
+          ${interestPaymentsList && interestPaymentsList.length > 0 ? `
+            <option value="interestReceipt">🧾 व्याज पावती पहा (Interest Receipt)</option>
+          ` : ''}
+          ${isPartiallyPaid && !isPaid ? `
+            <option value="loanRepaymentReceipt">🧾 हप्ता पावती पहा (Partial Repayment Receipt)</option>
+          ` : ''}
+          <option value="cancelLoan">❌ कर्ज नोंद रद्द करा</option>
+        </select>
       </div>
     `;
   }
@@ -4434,10 +4153,8 @@ class UIManager {
   // कर्ज ड्रॉपडाउन कृती निवड हँडलर (Handle Loan Action Dropdown Selection)
   handleLoanActionSelect(selectEl, loanId) {
     if (!selectEl) return;
-    const action = typeof selectEl === 'string' ? selectEl : selectEl.value;
-    if (selectEl && typeof selectEl !== 'string' && selectEl.selectedIndex !== undefined) {
-      selectEl.selectedIndex = 0; // Reset placeholder
-    }
+    const action = selectEl.value;
+    selectEl.selectedIndex = 0; // Reset placeholder
     if (!action) return;
 
     if (action === 'loanAssignVoucher') {
@@ -5310,9 +5027,33 @@ class UIManager {
                 <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openEditMemberModal('${member.id}')" title="तपशील बदला">
                   ✏️ एडिट
                 </button>
-                <button type="button" class="btn btn-secondary btn-sm member-action-btn" onclick="window.ui.toggleMemberActionDropdown(this, '${member.id}', ${isMonthly ? stats.nextDueWeek : currentWeek}, false, event)" title="${isEn ? 'More options' : 'अधिक पर्याय'}">
-                  ⚙️ ${isEn ? 'Options' : 'अधिक'} ▾
-                </button>
+                <select class="member-action-select" onchange="window.ui.handleMemberActionSelect(this, '${member.id}', ${isMonthly ? stats.nextDueWeek : currentWeek})" title="${isEn ? 'More options' : 'अधिक पर्याय'}">
+                  <option value="" selected disabled>${isEn ? '⚙️ Options ▾' : '⚙️ अधिक ▾'}</option>
+                  <option value="profile">${isEn ? '👤 Full Profile Details' : '👤 संपूर्ण प्रोफाईल तपशील'}</option>
+                  <option value="ledger_card">${isEn ? '📋 Print Ledger Card' : '📋 लेजर कार्ड रजिस्टर (Print Ledger Card)'}</option>
+                  <option value="passbook">📖 ${stats.totalPeriods}-${isEn ? (isMonthly ? 'Month' : 'Week') : stats.periodUnitPlural} ${isEn ? 'Passbook' : 'पासबुक'}</option>
+                  ${isMonthly ? `
+                    ${!stats.isFullyPaid ? `
+                      <option value="collect">${isEn ? `💰 Collect Month ${stats.nextDueWeek} Installment` : `💰 पुढील महिना ${stats.nextDueWeek} हप्ता जमा करा`}</option>
+                    ` : ''}
+                    ${stats.totalDeposited > 0 ? `
+                      <option value="receipt">${isEn ? '🧾 View Receipt' : '🧾 पावती पहा (Receipt)'}</option>
+                    ` : ''}
+                  ` : `
+                    ${(isFullPaidThisWeek || isClearedThisWeek || stats.isFullyPaid) ? `
+                      <option value="receipt">${isEn ? '🧾 View Receipt' : '🧾 पावती पहा (Receipt)'}</option>
+                    ` : isPartialThisWeek ? `
+                      <option value="collect">${isEn ? '💰 Collect Balance Due' : '💰 बाकी हप्ता जमा करा'}</option>
+                    ` : `
+                      <option value="collect">${isEn ? '💰 Collect Installment' : '💰 हप्ता जमा करा'}</option>
+                    `}
+                  `}
+                  <option value="loan">${isEn ? '💳 Give Loan' : '💳 कर्ज द्या'}</option>
+                  <option value="edit">${isEn ? '✏️ Edit Details' : '✏️ तपशील बदला'}</option>
+                  ${stats.isFullyPaid ? `<option value="voucher">${isEn ? '📜 Maturity Voucher' : '📜 मॅच्युरिटी व्हाउचर'}</option>` : ''}
+                  <option value="wipe">${isEn ? '🧹 Wipe Installments' : '🧹 हप्ते पुसा (Wipe)'}</option>
+                  <option value="settle">${isEn ? '🗑️ Delete / Settle' : '🗑️ डिलीट / सेटल'}</option>
+                </select>
               </div>
             </td>
           `;
