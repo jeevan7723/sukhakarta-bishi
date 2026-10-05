@@ -12,11 +12,12 @@ html = html.replace(
   '<title>सुखकर्ता बीशी - मोबाईल ॲप्लिकेशन (Mobile Application)</title>'
 );
 
-// Add mobile app flag in head
+// Add mobile app flag in head and point to manifest-app.json
 html = html.replace(
   '<!-- PWA Manifest & App Icons -->',
   '<!-- Mobile Application Specific Settings -->\n  <meta name="is-mobile-app-entry" content="true">\n  <!-- PWA Manifest & App Icons -->'
 );
+html = html.replace('<link rel="manifest" href="manifest.json">', '<link rel="manifest" href="manifest-app.json">');
 
 // Add body class for bottom nav support
 html = html.replace('<body>', '<body class="has-bottom-nav">');

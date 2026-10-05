@@ -3,13 +3,14 @@
  * Provides offline capabilities, instant loading, and asset caching for Website and Mobile App
  */
 
-const CACHE_NAME = 'sukhakarta-bishi-v1.1.0';
+const CACHE_NAME = 'sukhakarta-bishi-v1.2.0';
 
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './app.html',
   './manifest.json',
+  './manifest-app.json',
   './assets/icons/icon-192x192.png',
   './assets/icons/icon-512x512.png',
   './assets/icons/icon-maskable-192x192.png',
@@ -75,6 +76,7 @@ self.addEventListener('fetch', (event) => {
 
   // Navigation requests (HTML): Network first, falling back to cached HTML
   if (request.mode === 'navigate' || request.destination === 'document') {
+    const isAppRequest = url.pathname.endsWith('/app') || url.pathname.endsWith('/app.html');
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -88,7 +90,11 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           return caches.match(request).then((cached) => {
-            return cached || caches.match('./app.html') || caches.match('./index.html');
+            if (cached) return cached;
+            if (isAppRequest) {
+              return caches.match('./app.html');
+            }
+            return caches.match('./index.html') || caches.match('./');
           });
         })
     );
