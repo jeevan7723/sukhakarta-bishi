@@ -2048,35 +2048,69 @@ class UIManager {
   }
 
   positionDownwardDropdown(buttonEl, menuEl) {
+    menuEl.classList.remove('open-upward', 'open-downward');
     menuEl.style.display = 'block';
     menuEl.style.visibility = 'hidden';
+    menuEl.style.maxHeight = 'none';
+    menuEl.style.top = '0px';
+    menuEl.style.left = '0px';
+    menuEl.style.right = 'auto';
+    menuEl.style.bottom = 'auto';
 
     const rect = buttonEl.getBoundingClientRect();
-    const menuWidth = Math.max(230, menuEl.offsetWidth || 240);
+    const menuWidth = Math.max(240, Math.min(320, menuEl.offsetWidth || 260));
+    const naturalHeight = Math.min(420, menuEl.scrollHeight || 340);
 
-    // ALWAYS OPEN DOWNWARD:
-    let top = rect.bottom + 6;
-    let left = rect.right - menuWidth;
+    // 1. Horizontal Alignment (Never cut off on right, never collide with scrollbar)
+    const rightOffset = Math.max(14, window.innerWidth - rect.right);
+    const leftPos = window.innerWidth - rightOffset - menuWidth;
 
-    if (left < 10) left = 10;
-    if (left + menuWidth > window.innerWidth - 10) {
-      left = window.innerWidth - menuWidth - 10;
+    if (leftPos < 12) {
+      menuEl.style.left = '12px';
+      menuEl.style.right = '12px';
+      menuEl.style.width = 'auto';
+    } else {
+      menuEl.style.left = 'auto';
+      menuEl.style.right = rightOffset + 'px';
+      menuEl.style.width = menuWidth + 'px';
     }
 
-    const spaceBelow = window.innerHeight - top - 16;
-    if (spaceBelow < 180) {
-      // Smoothly scroll down so downward menu has plenty of room
-      window.scrollBy({ top: 190 - spaceBelow, behavior: 'smooth' });
-      setTimeout(() => {
-        const newRect = buttonEl.getBoundingClientRect();
-        menuEl.style.top = (newRect.bottom + 6) + 'px';
-        menuEl.style.maxHeight = Math.max(200, Math.min(420, window.innerHeight - (newRect.bottom + 6) - 16)) + 'px';
-      }, 100);
+    // 2. Vertical Alignment (Smart placement: downward preferred, upward if cramped at bottom)
+    const spaceBelow = window.innerHeight - rect.bottom - 16;
+    const spaceAbove = rect.top - 16;
+
+    if (spaceBelow >= 220 || spaceBelow >= naturalHeight) {
+      // Fits comfortably below button
+      menuEl.classList.add('open-downward');
+      menuEl.style.top = (rect.bottom + 6) + 'px';
+      menuEl.style.bottom = 'auto';
+      menuEl.style.maxHeight = Math.min(420, spaceBelow) + 'px';
+    } else if (spaceAbove > spaceBelow && spaceAbove >= 180) {
+      // Near bottom of screen: open upwards smoothly without clipping
+      menuEl.classList.add('open-upward');
+      menuEl.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+      menuEl.style.top = 'auto';
+      menuEl.style.maxHeight = Math.min(420, spaceAbove) + 'px';
+    } else {
+      // Very tight vertically on both sides: scroll if possible, else fit within spaceBelow
+      const maxScrollY = (document.documentElement.scrollHeight || document.body.scrollHeight) - window.innerHeight;
+      const canScroll = maxScrollY - window.scrollY;
+      if (canScroll > 60) {
+        window.scrollBy({ top: Math.min(canScroll, 160), behavior: 'smooth' });
+        setTimeout(() => {
+          const newRect = buttonEl.getBoundingClientRect();
+          const newSpaceBelow = window.innerHeight - newRect.bottom - 16;
+          menuEl.style.top = (newRect.bottom + 6) + 'px';
+          menuEl.style.bottom = 'auto';
+          menuEl.style.maxHeight = Math.max(140, Math.min(420, newSpaceBelow)) + 'px';
+        }, 120);
+      }
+      menuEl.classList.add('open-downward');
+      menuEl.style.top = (rect.bottom + 6) + 'px';
+      menuEl.style.bottom = 'auto';
+      menuEl.style.maxHeight = Math.max(140, spaceBelow) + 'px';
     }
 
-    menuEl.style.maxHeight = Math.max(200, Math.min(420, spaceBelow)) + 'px';
-    menuEl.style.top = top + 'px';
-    menuEl.style.left = left + 'px';
     menuEl.style.visibility = 'visible';
   }
 
