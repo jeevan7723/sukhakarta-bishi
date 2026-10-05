@@ -332,6 +332,10 @@ class BishiStore {
            this.state.settledMembers.find(s => s.id.toUpperCase() === cleanId) || null;
   }
 
+  getMemberById(id) {
+    return this.getMember(id);
+  }
+
   // नवीन सदस्य जोडणे (Add Member)
   // नवीन सदस्य जोडणे (Add Member - Supports Weekly and Monthly Bishi)
   addMember(data) {

@@ -4490,63 +4490,69 @@ class UIManager {
       } else {
         filteredMembers.forEach(member => {
           const stats = window.bishiStore.calculateMemberStats(member);
+          const isMonthly = stats.isMonthly;
+          const installmentAmt = stats.installmentAmount;
+          const targetPeriod = isMonthly 
+            ? (stats.effectivePaidWeeks > 0 ? stats.effectivePaidWeeks : 1) 
+            : currentWeek;
           const loanSummary = window.bishiStore.getMemberLoanSummary(member.id);
           const hasActiveLoan = loanSummary && loanSummary.activeLoansCount > 0;
           const cleanPhone = (member.phone || '').replace(/\D/g, '');
 
-          // ५०-आठवडे मिनी प्रोग्रेस मॅट्रिक्स
-          let miniMatrixHTML = `<div class="week-matrix-preview" onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer;" title="५०-आठवडे प्रगती (पासबुक पाहण्यासाठी क्लिक करा)">`;
+          // प्रोग्रेस मॅट्रिक्स
+          let miniMatrixHTML = `<div class="week-matrix-preview ${isMonthly ? 'monthly' : ''}" onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer;" title="${stats.totalPeriods}-${stats.periodUnitPlural} प्रगती (पासबुक पाहण्यासाठी क्लिक करा)">`;
           (member.weeks || []).forEach(w => {
             let cls = '';
             const wPaidAmt = Number(w.amountPaid || 0);
-            const isWkDirectPaid = (w.status === 'paid') || (wPaidAmt >= stats.weeklyAmount);
+            const isWkDirectPaid = (w.status === 'paid') || (wPaidAmt >= installmentAmt);
             const isWkCleared = !isWkDirectPaid && (w.weekNumber <= stats.effectivePaidWeeks);
             const isWkFullPaid = isWkDirectPaid;
             
             const depUpToW = member.weeks.filter(wk => wk.weekNumber <= w.weekNumber).reduce((sum, wk) => sum + (Number(wk.amountPaid) || 0), 0);
-            const expUpToW = w.weekNumber * stats.weeklyAmount;
+            const expUpToW = w.weekNumber * installmentAmt;
             const advAmt = Math.max(0, depUpToW - expUpToW);
             const isWkAdvanceExtra = isWkFullPaid && (advAmt > 0);
 
-            const remainderDeposit = stats.totalDeposited - (stats.effectivePaidWeeks * stats.weeklyAmount);
-            const isWkPartial = !isWkDirectPaid && !isWkCleared && ((w.weekNumber === stats.effectivePaidWeeks + 1 && remainderDeposit > 0) || (wPaidAmt > 0 && wPaidAmt < stats.weeklyAmount));
+            const remainderDeposit = stats.totalDeposited - (stats.effectivePaidWeeks * installmentAmt);
+            const isWkPartial = !isWkDirectPaid && !isWkCleared && ((w.weekNumber === stats.effectivePaidWeeks + 1 && remainderDeposit > 0) || (wPaidAmt > 0 && wPaidAmt < installmentAmt));
 
             let dotTitle = '';
             if (isWkFullPaid) {
               cls = isWkAdvanceExtra ? 'paid has-extra' : 'paid';
-              dotTitle = `आठवडा ${w.weekNumber}: जमा ₹${wPaidAmt}`;
+              dotTitle = `${stats.periodUnit} ${w.weekNumber}: जमा ₹${wPaidAmt}`;
             } else if (isWkCleared) {
               cls = 'cleared';
-              dotTitle = `आठवडा ${w.weekNumber}: हप्ता क्लिअर`;
+              dotTitle = `${stats.periodUnit} ${w.weekNumber}: हप्ता क्लिअर`;
             } else if (isWkPartial) {
               cls = 'partial';
-              dotTitle = `आठवडा ${w.weekNumber}: अपूर्ण जमा`;
-            } else if (w.weekNumber === currentWeek) {
+              dotTitle = `${stats.periodUnit} ${w.weekNumber}: अपूर्ण जमा`;
+            } else if (!isMonthly && w.weekNumber === currentWeek) {
               cls = 'current';
-              dotTitle = `आठवडा ${w.weekNumber}: चालू आठवडा`;
-            } else if (w.weekNumber < currentWeek) {
+              dotTitle = `चालू आठवडा ${w.weekNumber}`;
+            } else if (!isMonthly && w.weekNumber < currentWeek) {
               cls = 'overdue';
               dotTitle = `आठवडा ${w.weekNumber}: थकबाकी`;
             } else {
               cls = 'pending';
-              dotTitle = `आठवडा ${w.weekNumber}: प्रलंबित`;
+              dotTitle = `${stats.periodUnit} ${w.weekNumber}: प्रलंबित`;
             }
             miniMatrixHTML += `<span class="matrix-dot ${cls}" title="${dotTitle}"></span>`;
           });
           miniMatrixHTML += '</div>';
 
-          const curWkData = member.weeks.find(w => w.weekNumber === currentWeek);
+          const curWkData = member.weeks.find(w => w.weekNumber === targetPeriod);
           const curPaidAmt = Number(curWkData?.amountPaid || 0);
-          const isFullPaidThisWeek = curWkData && (curWkData.status === 'paid' || curPaidAmt >= stats.weeklyAmount);
-          const isClearedThisWeek = !isFullPaidThisWeek && (currentWeek <= stats.effectivePaidWeeks);
-          const isPartialThisWeek = !isFullPaidThisWeek && !isClearedThisWeek && (curPaidAmt > 0 && curPaidAmt < stats.weeklyAmount);
+          const isDirectPaid = curWkData && ((curWkData.status === 'paid') || (curPaidAmt >= installmentAmt));
+          const isFullPaidThisWeek = isDirectPaid;
+          const isClearedThisWeek = !isDirectPaid && (targetPeriod <= stats.effectivePaidWeeks);
+          const isPartialThisWeek = !isDirectPaid && !isClearedThisWeek && ((targetPeriod === stats.effectivePaidWeeks + 1 && (stats.totalDeposited % installmentAmt > 0)) || (curPaidAmt > 0 && curPaidAmt < installmentAmt));
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <!-- १. सदस्य प्रोफाईल व संपर्क -->
             <td>
               <div class="member-cell">
-                <div class="member-avatar ${stats.weeklyAmount >= 2000 ? 'gold' : ''}" onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer;" title="पासबुक पहा">
+                <div class="member-avatar ${installmentAmt >= 2000 ? 'gold' : ''}" onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer;" title="पासबुक पहा">
                   ${(() => {
                     const marathiName = window.bishiStore.getMemberMarathiName(member) || member.name;
                     return (marathiName || member.name || 'स').charAt(0);
@@ -4556,6 +4562,7 @@ class UIManager {
                   <div class="member-name">
                     <span onclick="event.stopPropagation(); window.ui.openPassbookModal('${member.id}')" style="cursor: pointer; font-weight: 700; color: var(--text-primary);" title="पासबुक पहा">${window.bishiStore.getMemberMarathiName(member) || member.name}</span>
                     ${(member.name && member.name !== (window.bishiStore.getMemberMarathiName(member) || member.name) && !(/[\u0900-\u097F]/.test(member.name))) ? `<span class="member-eng-name" style="font-size:0.8rem; font-weight:500; color:var(--text-muted); margin-left:0.25rem;">(${member.name})</span>` : ''}
+                    ${isMonthly ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.45rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight:700;">🗓️ मासिक</span>` : `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.45rem; background: rgba(59, 130, 246, 0.12); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.3); font-weight:700;">📅 साप्ताहिक</span>`}
                     ${stats.isFullyPaid ? `<span class="status-pill status-completed" style="font-size:0.65rem; padding:0.1rem 0.4rem;">पूर्ण 🏆</span>` : ''}
                     ${member.currentCycle > 1 ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.4rem; background: rgba(59, 130, 246, 0.2); color: var(--blue-400); border: 1px solid var(--blue-400);">सायकल ${member.currentCycle}</span>` : ''}
                   </div>
@@ -4585,14 +4592,14 @@ class UIManager {
               </div>
             </td>
 
-            <!-- २. साप्ताहिक हप्ता व लक्ष्य -->
+            <!-- २. साप्ताहिक / मासिक हप्ता व लक्ष्य -->
             <td>
               <div class="amount-badge amount-weekly">
-                ${currency}${stats.weeklyAmount.toLocaleString('en-IN')}
+                ${currency}${installmentAmt.toLocaleString('en-IN')}
               </div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;">प्रति आठवडा हप्ता</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;">${isMonthly ? 'दर महिना हप्ता' : 'प्रति आठवडा हप्ता'}</div>
               <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); margin-top: 0.25rem;">
-                ५० आठवडे लक्ष्य: ${currency}${stats.totalTarget.toLocaleString('en-IN')}
+                ${stats.totalPeriods} ${stats.periodUnitPlural} लक्ष्य: ${currency}${stats.totalTarget.toLocaleString('en-IN')}
               </div>
             </td>
 
@@ -4605,13 +4612,13 @@ class UIManager {
                 <div class="progress-bar-fill ${stats.isFullyPaid ? 'emerald' : 'gold'}" style="width: ${stats.progressPercent}%;"></div>
               </div>
               <div style="font-size: 0.73rem; color: var(--text-muted); margin-top: 0.25rem;">
-                ${stats.paidWeeksCount}/५० आठवडे (${stats.progressPercent}%)
+                ${stats.paidWeeksCount}/${stats.totalPeriods} ${stats.periodUnitPlural} (${stats.progressPercent}%)
               </div>
               <div style="font-size: 0.73rem; color: var(--text-muted); margin-top: 0.15rem;">
                 बाकी: <strong style="color: ${stats.totalTarget - stats.totalDeposited > 0 ? 'var(--rose-400)' : 'var(--emerald-400)'};">${currency}${Math.max(0, stats.totalTarget - stats.totalDeposited).toLocaleString('en-IN')}</strong>
               </div>
               <div style="font-size: 0.75rem; color: var(--emerald-400); font-weight: 700; margin-top: 0.2rem;">
-                +८% परतावा: ${currency}${stats.maturityTotalPayout.toLocaleString('en-IN')}
+                +${stats.maturityInterestPercent}% परतावा: ${currency}${stats.maturityTotalPayout.toLocaleString('en-IN')}
               </div>
             </td>
 
@@ -4743,6 +4750,11 @@ class UIManager {
       } else {
         filteredMembers.forEach(member => {
           const stats = window.bishiStore.calculateMemberStats(member);
+          const isMonthly = stats.isMonthly;
+          const installmentAmt = stats.installmentAmount;
+          const targetPeriod = isMonthly 
+            ? (stats.effectivePaidWeeks > 0 ? stats.effectivePaidWeeks : 1) 
+            : currentWeek;
           const loanSummary = window.bishiStore.getMemberLoanSummary(member.id);
           const hasActiveLoan = loanSummary && loanSummary.activeLoansCount > 0;
           const cleanPhone = (member.phone || '').replace(/\D/g, '');
@@ -4758,7 +4770,7 @@ class UIManager {
           card.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
               <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <div class="member-avatar ${stats.weeklyAmount >= 2000 ? 'gold' : ''}" onclick="window.ui.openMemberProfileModal('${member.id}')" style="cursor: pointer;" title="संपूर्ण प्रोफाईल पहा">
+                <div class="member-avatar ${installmentAmt >= 2000 ? 'gold' : ''}" onclick="window.ui.openMemberProfileModal('${member.id}')" style="cursor: pointer;" title="संपूर्ण प्रोफाईल पहा">
                   ${(() => {
                     const marathiName = window.bishiStore.getMemberMarathiName(member) || member.name;
                     return (marathiName || member.name || 'स').charAt(0);
@@ -4769,8 +4781,9 @@ class UIManager {
                     ${window.bishiStore.getMemberMarathiName(member) || member.name}
                     ${(member.name && member.name !== (window.bishiStore.getMemberMarathiName(member) || member.name) && !(/[\u0900-\u097F]/.test(member.name))) ? `<span style="font-size:0.82rem; font-weight:500; color:var(--text-muted); margin-left:0.25rem;">(${member.name})</span>` : ''}
                   </div>
-                  <div style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">
-                    ${member.id}
+                  <div style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono); display: flex; align-items: center; gap: 0.35rem; margin-top: 0.15rem;">
+                    <span>${member.id}</span>
+                    ${isMonthly ? `<span class="status-pill" style="font-size:0.62rem; padding:0.05rem 0.35rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);">मासिक</span>` : ''}
                   </div>
                 </div>
               </div>
@@ -4809,9 +4822,9 @@ class UIManager {
             <!-- आर्थिक आकडेवारी ग्रीड -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
               <div style="background: var(--bg-primary); padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">साप्ताहिक हप्ता</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">${isMonthly ? 'दर महिना हप्ता' : 'साप्ताहिक हप्ता'}</div>
                 <div style="font-weight: 800; color: var(--gold-400); font-size: 1rem; margin-top: 0.15rem;">
-                  ${currency}${stats.weeklyAmount.toLocaleString('en-IN')}
+                  ${currency}${installmentAmt.toLocaleString('en-IN')}
                 </div>
                 <div style="font-size: 0.68rem; color: var(--text-muted);">लक्ष्य: ${currency}${stats.totalTarget.toLocaleString('en-IN')}</div>
               </div>
@@ -4820,10 +4833,10 @@ class UIManager {
                 <div style="font-weight: 800; color: var(--emerald-400); font-size: 1rem; margin-top: 0.15rem;">
                   ${currency}${stats.totalDeposited.toLocaleString('en-IN')}
                 </div>
-                <div style="font-size: 0.68rem; color: var(--text-muted);">${stats.paidWeeksCount}/५० आठवडे (${stats.progressPercent}%)</div>
+                <div style="font-size: 0.68rem; color: var(--text-muted);">${stats.paidWeeksCount}/${stats.totalPeriods} ${stats.periodUnitPlural} (${stats.progressPercent}%)</div>
               </div>
               <div style="background: var(--bg-primary); padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">८% मॅच्युरिटी परतावा</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">+${stats.maturityInterestPercent}% परतावा</div>
                 <div style="font-weight: 800; color: var(--purple-400, #a855f7); font-size: 1rem; margin-top: 0.15rem;">
                   ${currency}${stats.maturityTotalPayout.toLocaleString('en-IN')}
                 </div>
@@ -4841,7 +4854,7 @@ class UIManager {
             <!-- प्रोग्रेस बार -->
             <div>
               <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
-                <span style="color: var(--text-muted);">५० आठवडे ठेव प्रगती</span>
+                <span style="color: var(--text-muted);">${stats.totalPeriods} ${stats.periodUnitPlural} ठेव प्रगती</span>
                 <span style="font-weight: 700; color: var(--text-primary);">${stats.progressPercent}%</span>
               </div>
               <div class="progress-bar-container" style="height: 6px;">
@@ -4849,17 +4862,18 @@ class UIManager {
               </div>
               <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; justify-content: space-between;">
                 <span>शिल्लक बाकी: <strong style="color: ${stats.totalTarget - stats.totalDeposited > 0 ? 'var(--rose-400)' : 'var(--emerald-400)'};">${currency}${Math.max(0, stats.totalTarget - stats.totalDeposited).toLocaleString('en-IN')}</strong></span>
-                <span>${50 - stats.paidWeeksCount} आठवडे बाकी</span>
+                <span>${stats.remainingWeeksCount} ${stats.periodUnitPlural} बाकी</span>
               </div>
             </div>
 
             <!-- कृती बटणे -->
             ${(() => {
-              const curWkData = member.weeks.find(w => w.weekNumber === currentWeek);
+              const curWkData = member.weeks.find(w => w.weekNumber === targetPeriod);
               const curPaidAmt = Number(curWkData?.amountPaid || 0);
-              const isFullPaidThisWeek = curWkData && (curWkData.status === 'paid' || curPaidAmt >= stats.weeklyAmount);
-              const isClearedThisWeek = !isFullPaidThisWeek && (currentWeek <= stats.effectivePaidWeeks);
-              const isPartialThisWeek = !isFullPaidThisWeek && !isClearedThisWeek && (curPaidAmt > 0 && curPaidAmt < stats.weeklyAmount);
+              const isDirectPaid = curWkData && ((curWkData.status === 'paid') || (curPaidAmt >= installmentAmt));
+              const isFullPaidThisWeek = isDirectPaid;
+              const isClearedThisWeek = !isDirectPaid && (targetPeriod <= stats.effectivePaidWeeks);
+              const isPartialThisWeek = !isDirectPaid && !isClearedThisWeek && ((targetPeriod === stats.effectivePaidWeeks + 1 && (stats.totalDeposited % installmentAmt > 0)) || (curPaidAmt > 0 && curPaidAmt < installmentAmt));
 
               return `
                 <div style="display: flex; gap: 0.4rem; margin-top: auto; padding-top: 0.5rem; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
@@ -4913,13 +4927,15 @@ class UIManager {
 
   // --- संपूर्ण सदस्य प्रोफाईल व सर्व तपशील मोडल (Comprehensive Full Member Profile Modal) ---
   openMemberProfileModal(memberId) {
-    const member = window.bishiStore.getMemberById(memberId);
+    const member = window.bishiStore.getMember(memberId) || window.bishiStore.getMemberById(memberId);
     if (!member) {
       this.showToast('सदस्य सापडला नाही', 'error');
       return;
     }
 
     const stats = window.bishiStore.calculateMemberStats(member);
+    const isMonthly = stats.isMonthly;
+    const installmentAmt = stats.installmentAmount;
     const loanSummary = window.bishiStore.getMemberLoanSummary(member.id);
     const hasActiveLoan = loanSummary && loanSummary.activeLoansCount > 0;
     const cleanPhone = (member.phone || '').replace(/\D/g, '');
@@ -4927,48 +4943,52 @@ class UIManager {
     const currentWeek = window.bishiStore.state.meta.currentWeek || 1;
     const remainingToPay = Math.max(0, stats.totalTarget - stats.totalDeposited);
 
-    const curWkData = member.weeks.find(w => w.weekNumber === currentWeek);
+    const targetPeriod = isMonthly 
+      ? (stats.effectivePaidWeeks > 0 ? stats.effectivePaidWeeks : 1) 
+      : currentWeek;
+    const curWkData = member.weeks.find(w => w.weekNumber === targetPeriod);
     const curPaidAmt = Number(curWkData?.amountPaid || 0);
-    const isFullPaidThisWeek = curWkData && (curWkData.status === 'paid' || curPaidAmt >= stats.weeklyAmount);
-    const isClearedThisWeek = !isFullPaidThisWeek && (currentWeek <= stats.effectivePaidWeeks);
-    const isPartialThisWeek = !isFullPaidThisWeek && !isClearedThisWeek && (curPaidAmt > 0 && curPaidAmt < stats.weeklyAmount);
+    const isDirectPaid = curWkData && ((curWkData.status === 'paid') || (curPaidAmt >= installmentAmt));
+    const isFullPaidThisWeek = isDirectPaid;
+    const isClearedThisWeek = !isDirectPaid && (targetPeriod <= stats.effectivePaidWeeks);
+    const isPartialThisWeek = !isDirectPaid && !isClearedThisWeek && ((targetPeriod === stats.effectivePaidWeeks + 1 && (stats.totalDeposited % installmentAmt > 0)) || (curPaidAmt > 0 && curPaidAmt < installmentAmt));
 
-    // ५०-आठवडे प्रोग्रेस मॅट्रिक्स
-    let miniMatrixHTML = `<div class="week-matrix-preview" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius-md); border: 1px solid var(--border-color);">`;
+    // प्रोग्रेस मॅट्रिक्स
+    let miniMatrixHTML = `<div class="week-matrix-preview ${isMonthly ? 'monthly' : ''}" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius-md); border: 1px solid var(--border-color);">`;
     (member.weeks || []).forEach(w => {
       let cls = '';
       const wPaidAmt = Number(w.amountPaid || 0);
-      const isWkDirectPaid = (w.status === 'paid') || (wPaidAmt >= stats.weeklyAmount);
+      const isWkDirectPaid = (w.status === 'paid') || (wPaidAmt >= installmentAmt);
       const isWkCleared = !isWkDirectPaid && (w.weekNumber <= stats.effectivePaidWeeks);
       const isWkFullPaid = isWkDirectPaid;
       
       const depUpToW = member.weeks.filter(wk => wk.weekNumber <= w.weekNumber).reduce((sum, wk) => sum + (Number(wk.amountPaid) || 0), 0);
-      const expUpToW = w.weekNumber * stats.weeklyAmount;
+      const expUpToW = w.weekNumber * installmentAmt;
       const advAmt = Math.max(0, depUpToW - expUpToW);
       const isWkAdvanceExtra = isWkFullPaid && (advAmt > 0);
 
-      const remainderDeposit = stats.totalDeposited - (stats.effectivePaidWeeks * stats.weeklyAmount);
-      const isWkPartial = !isWkDirectPaid && !isWkCleared && ((w.weekNumber === stats.effectivePaidWeeks + 1 && remainderDeposit > 0) || (wPaidAmt > 0 && wPaidAmt < stats.weeklyAmount));
+      const remainderDeposit = stats.totalDeposited - (stats.effectivePaidWeeks * installmentAmt);
+      const isWkPartial = !isWkDirectPaid && !isWkCleared && ((w.weekNumber === stats.effectivePaidWeeks + 1 && remainderDeposit > 0) || (wPaidAmt > 0 && wPaidAmt < installmentAmt));
 
       let dotTitle = '';
       if (isWkFullPaid) {
         cls = isWkAdvanceExtra ? 'paid has-extra' : 'paid';
-        dotTitle = `आठवडा ${w.weekNumber}: जमा ${currency}${wPaidAmt.toLocaleString('en-IN')}`;
+        dotTitle = `${stats.periodUnit} ${w.weekNumber}: जमा ${currency}${wPaidAmt.toLocaleString('en-IN')}`;
       } else if (isWkCleared) {
         cls = 'cleared';
-        dotTitle = `आठवडा ${w.weekNumber}: हप्ता क्लिअर`;
+        dotTitle = `${stats.periodUnit} ${w.weekNumber}: हप्ता क्लिअर`;
       } else if (isWkPartial) {
         cls = 'partial';
-        dotTitle = `आठवडा ${w.weekNumber}: अपूर्ण जमा`;
-      } else if (w.weekNumber === currentWeek) {
+        dotTitle = `${stats.periodUnit} ${w.weekNumber}: अपूर्ण जमा`;
+      } else if (!isMonthly && w.weekNumber === currentWeek) {
         cls = 'current';
-        dotTitle = `आठवडा ${w.weekNumber}: चालू आठवडा`;
-      } else if (w.weekNumber < currentWeek) {
+        dotTitle = `चालू आठवडा ${w.weekNumber}`;
+      } else if (!isMonthly && w.weekNumber < currentWeek) {
         cls = 'overdue';
         dotTitle = `आठवडा ${w.weekNumber}: थकबाकी`;
       } else {
         cls = 'pending';
-        dotTitle = `आठवडा ${w.weekNumber}: प्रलंबित`;
+        dotTitle = `${stats.periodUnit} ${w.weekNumber}: प्रलंबित`;
       }
       miniMatrixHTML += `<span class="matrix-dot ${cls}" style="width: 13px; height: 13px; border-radius: 3px;" title="${dotTitle}"></span>`;
     });
@@ -4981,7 +5001,7 @@ class UIManager {
         <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.25rem;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
             <div style="display: flex; align-items: center; gap: 1rem;">
-              <div class="member-avatar ${stats.weeklyAmount >= 2000 ? 'gold' : ''}" style="width: 58px; height: 58px; font-size: 1.7rem; border-radius: var(--radius-md);">
+              <div class="member-avatar ${installmentAmt >= 2000 ? 'gold' : ''}" style="width: 58px; height: 58px; font-size: 1.7rem; border-radius: var(--radius-md);">
                 ${(() => {
                   const mName = window.bishiStore.getMemberMarathiName(member) || member.name;
                   return (mName || member.name || 'स').charAt(0);
@@ -5076,7 +5096,7 @@ class UIManager {
             </div>
             <div>
               <span style="color: var(--text-muted); font-size: 0.73rem; text-transform: uppercase; font-weight: 700; display: block;">नोंदणी सायकल</span>
-              <span style="font-weight: 600; color: var(--emerald-400);">सायकल ${member.currentCycle || 1} (५० आठवडे)</span>
+              <span style="font-weight: 600; color: var(--emerald-400);">सायकल ${member.currentCycle || 1} (${stats.totalPeriods} ${stats.periodUnitPlural})</span>
             </div>
           </div>
         </div>
@@ -5084,12 +5104,12 @@ class UIManager {
         <!-- २. मुख्य ४ आर्थिक आकडेवारी कार्ड्स -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
           <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.9rem;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">साप्ताहिक हप्ता</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">${isMonthly ? 'मासिक हप्ता' : 'साप्ताहिक हप्ता'}</div>
             <div style="font-size: 1.25rem; font-weight: 800; color: var(--gold-400); margin-top: 0.2rem;">
-              ${currency}${stats.weeklyAmount.toLocaleString('en-IN')}
+              ${currency}${installmentAmt.toLocaleString('en-IN')}
             </div>
             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;">
-              ५० आठवडे लक्ष्य: ${currency}${stats.totalTarget.toLocaleString('en-IN')}
+              ${stats.totalPeriods} ${stats.periodUnitPlural} लक्ष्य: ${currency}${stats.totalTarget.toLocaleString('en-IN')}
             </div>
           </div>
 
@@ -5099,7 +5119,7 @@ class UIManager {
               ${currency}${stats.totalDeposited.toLocaleString('en-IN')}
             </div>
             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;">
-              ${stats.paidWeeksCount} / ५० आठवडे पूर्ण (${stats.progressPercent}%)
+              ${stats.paidWeeksCount} / ${stats.totalPeriods} ${stats.periodUnitPlural} पूर्ण (${stats.progressPercent}%)
             </div>
           </div>
 
@@ -5109,12 +5129,12 @@ class UIManager {
               ${currency}${remainingToPay.toLocaleString('en-IN')}
             </div>
             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;">
-              ${remainingToPay > 0 ? `${50 - stats.paidWeeksCount} आठवडे भरणे बाकी` : 'सर्व हप्ते पूर्ण! 🎉'}
+              ${remainingToPay > 0 ? `${stats.remainingWeeksCount} ${stats.periodUnitPlural} भरणे बाकी` : 'सर्व हप्ते पूर्ण! 🎉'}
             </div>
           </div>
 
           <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.9rem;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">८% मॅच्युरिटी परतावा</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">+${stats.maturityInterestPercent}% मॅच्युरिटी परतावा</div>
             <div style="font-size: 1.25rem; font-weight: 800; color: var(--purple-400, #a855f7); margin-top: 0.2rem;">
               ${currency}${stats.maturityTotalPayout.toLocaleString('en-IN')}
             </div>
@@ -5162,11 +5182,11 @@ class UIManager {
           </div>
         </div>
 
-        <!-- ४. ५०-आठवडे बचत मॅट्रिक्स व प्रगती -->
+        <!-- ४. बचत मॅट्रिक्स व प्रगती -->
         <div style="margin-bottom: 0.5rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
             <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">
-              ५०-आठवडे बचत प्रगती खातावही (${stats.paidWeeksCount}/५० आठवडे - ${stats.progressPercent}%)
+              ${stats.totalPeriods}-${stats.periodUnitPlural} बचत प्रगती खातावही (${stats.paidWeeksCount}/${stats.totalPeriods} ${stats.periodUnitPlural} - ${stats.progressPercent}%)
             </div>
             <div style="font-size: 0.72rem; color: var(--text-muted);">
               🟢 जमा • 🔵 क्लिअर • 🟡 चालू हप्ता • 🔴 थकबाकी • ⚪ प्रलंबित
