@@ -6209,6 +6209,10 @@ body.customer-mode #mobileDrawerAdminMenu,
               <span class="sidebar-nav-icon">📜</span>
               <span class="sidebar-nav-text">माझे लेजर कार्ड अहवाल</span>
             </button>
+            <button type="button" class="sidebar-nav-item" onclick="window.ui.closeMobileDrawer(); window.authManager.logout();" style="color: #ef4444;" title="लॉगआउट करा">
+              <span class="sidebar-nav-icon">🚪</span>
+              <span class="sidebar-nav-text" data-i18n="nav_logout">लॉगआउट</span>
+            </button>
           </div>
         </div>
 
@@ -7049,6 +7053,9 @@ body.customer-mode #mobileDrawerAdminMenu,
             </button>
             <button class="btn btn-emerald" id="btnCustHeroVoucher" style="display: none; padding: 0.65rem 1.1rem; font-size: 0.88rem; font-weight: 700;">
               📜 मॅच्युरिटी व्हाउचर पहा
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.authManager.logout();" style="padding: 0.65rem 1.1rem; font-size: 0.88rem; font-weight: 700; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" title="लॉगआउट करा">
+              <span>🚪</span> <span data-i18n="nav_logout">लॉगआउट</span>
             </button>
           </div>
         </section>

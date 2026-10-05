@@ -88,11 +88,16 @@ class UIManager {
     if (!isAuth) {
       this.closeMobileDrawer();
       document.body.classList.remove('admin-mode', 'customer-mode');
-      if (loginOverlay) loginOverlay.classList.remove('hidden');
+      if (loginOverlay) {
+        loginOverlay.classList.remove('hidden');
+        loginOverlay.style.display = '';
+      }
       if (userProfileBadge) userProfileBadge.style.display = 'none';
       if (cloudStatusBadge) cloudStatusBadge.style.display = 'none';
       if (sidebarPrimaryAction) sidebarPrimaryAction.style.display = 'none';
       if (sidebarMainGroup) sidebarMainGroup.style.display = 'none';
+      if (mobileDrawerAdminMenu) mobileDrawerAdminMenu.style.display = 'none';
+      if (mobileDrawerCustomerMenu) mobileDrawerCustomerMenu.style.display = 'none';
       if (btnOpenAdminSettings) btnOpenAdminSettings.style.display = 'none';
       if (btnOpenTxnLog) btnOpenTxnLog.style.display = 'none';
       if (btnOpenAdminLoans) btnOpenAdminLoans.style.display = 'none';
@@ -104,8 +109,17 @@ class UIManager {
       if (customerPortalView) customerPortalView.style.display = 'none';
       const loansPageView = document.getElementById('loansPageView');
       if (loansPageView) loansPageView.style.display = 'none';
+      const membersPageView = document.getElementById('membersPageView');
+      if (membersPageView) membersPageView.style.display = 'none';
+      const reportsPageView = document.getElementById('reportsPageView');
+      if (reportsPageView) reportsPageView.style.display = 'none';
+      this.currentAdminView = 'dashboard';
+      this.currentView = 'dashboard';
     } else {
-      if (loginOverlay) loginOverlay.classList.add('hidden');
+      if (loginOverlay) {
+        loginOverlay.classList.add('hidden');
+        loginOverlay.style.display = 'none';
+      }
       if (userProfileBadge) userProfileBadge.style.display = 'flex';
 
       if (window.authManager.isAdmin()) {

@@ -47,25 +47,11 @@ class AuthManager {
   }
 
   isAuthenticated() {
-    if (this.session !== null && this.session.isLoggedIn === true) return true;
-    if (typeof document !== 'undefined' && document.body?.classList?.contains?.('admin-mode')) {
-      return true;
-    }
-    return false;
+    return this.session !== null && this.session.isLoggedIn === true;
   }
 
   isAdmin() {
-    if (this.session && this.session.isLoggedIn && this.session.role === 'admin') return true;
-    if (typeof document !== 'undefined' && document.body?.classList?.contains?.('admin-mode')) {
-      return true;
-    }
-    const dashboard = (typeof document !== 'undefined' && typeof document.getElementById === 'function') 
-      ? document.getElementById('dashboardView') 
-      : null;
-    if (dashboard?.style && dashboard.style.display && dashboard.style.display !== 'none') {
-      return true;
-    }
-    return false;
+    return this.isAuthenticated() && this.session.role === 'admin';
   }
 
   isCustomer() {
@@ -212,30 +198,49 @@ class AuthManager {
   logout() {
     this.session = null;
     try {
-      localStorage.removeItem(SESSION_KEY);
-      sessionStorage.removeItem(SESSION_KEY);
-      localStorage.removeItem('sukhakarta_admin_session_v1');
-      sessionStorage.removeItem('sukhakarta_admin_session_v1');
-      localStorage.removeItem('sukhakarta_bishi_session_v2');
-      sessionStorage.removeItem('sukhakarta_bishi_session_v2');
-      localStorage.removeItem('sukhakarta_secure_session_v3');
-      sessionStorage.removeItem('sukhakarta_secure_session_v3');
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem('sukhakarta_admin_session_v1');
+        localStorage.removeItem('sukhakarta_bishi_session_v2');
+        localStorage.removeItem('sukhakarta_secure_session_v3');
+      }
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem('sukhakarta_admin_session_v1');
+        sessionStorage.removeItem('sukhakarta_bishi_session_v2');
+        sessionStorage.removeItem('sukhakarta_secure_session_v3');
+      }
     } catch (e) {
       console.error('Session storage clear error', e);
     }
 
     if (typeof document !== 'undefined') {
+      document.body?.classList?.remove?.('admin-mode', 'customer-mode');
       const passInput = document.getElementById('loginPassword');
       if (passInput) passInput.value = '';
+      const identInput = document.getElementById('loginIdentifier');
+      if (identInput) identInput.value = '';
       const errEl = document.getElementById('unifiedLoginError');
       if (errEl) errEl.style.display = 'none';
+    }
+
+    if (typeof window !== 'undefined' && window.location && window.location.hash) {
+      try {
+        history.pushState(null, '', window.location.pathname + window.location.search);
+      } catch (_) {
+        window.location.hash = '';
+      }
     }
 
     if (window.ui && typeof window.ui.closeAllModals === 'function') {
       window.ui.closeAllModals();
     }
+    if (window.ui && typeof window.ui.closeMobileDrawer === 'function') {
+      window.ui.closeMobileDrawer();
+    }
+    const isEn = typeof window !== 'undefined' && window.i18n && typeof window.i18n.isEnglish === 'function' && window.i18n.isEnglish();
     if (window.ui && typeof window.ui.showToast === 'function') {
-      window.ui.showToast('यशस्वीरीत्या लॉगआउट झाले', 'info');
+      window.ui.showToast(isEn ? 'Successfully logged out' : 'यशस्वीरीत्या लॉगआउट झाले', 'info');
     }
     if (window.ui && typeof window.ui.checkAuthView === 'function') {
       window.ui.checkAuthView();
