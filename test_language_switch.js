@@ -71,4 +71,84 @@ if (toggled !== 'mr' || window.i18n.getLanguage() !== 'mr') throw new Error('Tog
 console.log('LocalStorage persisted lang:', global.localStorage.getItem('sukhakarta_lang'), '(Expected: mr)');
 if (global.localStorage.getItem('sukhakarta_lang') !== 'mr') throw new Error('LocalStorage should persist mr');
 
-console.log('✅ ALL LANGUAGE SWITCHING TESTS PASSED PERFECTLY!');
+// Test 5: Member Ledger Card Report in English vs Marathi
+console.log('\n--- Testing Member Ledger Card Report Language Switching ---');
+// Load translit, store, and receipt
+eval(fs.readFileSync('./js/marathi_translit.js', 'utf-8'));
+eval(fs.readFileSync('./js/store.js', 'utf-8'));
+eval(fs.readFileSync('./js/receipt.js', 'utf-8'));
+
+const testMember = window.bishiStore.addMember({
+  name: 'आदित्य पाटील (Aditya Patil)',
+  phone: '9822123456',
+  weeklyAmount: 500,
+  startWeek: 1,
+  nominee: 'अमित पाटील',
+  notes: 'सांगली'
+});
+window.bishiStore.recordPayment(testMember.id, 1, 500, 'Cash', 'हप्ता', 0);
+
+// A) When in Marathi mode
+window.i18n.setLanguage('mr', true);
+const mrLedgerHTML = window.receiptManager.generateMemberLedgerReportHTML(testMember, 1, false);
+const mrLedgerWA = window.receiptManager.generateMemberLedgerWhatsAppText(testMember, 1);
+
+if (!mrLedgerHTML.includes('सदस्य खातावही कार्ड रजिस्टर')) {
+  throw new Error('Marathi ledger report missing "सदस्य खातावही कार्ड रजिस्टर"');
+}
+if (!mrLedgerHTML.includes('खाते क्र.:') || !mrLedgerHTML.includes('सभासदाचे नाव:')) {
+  throw new Error('Marathi ledger report missing Marathi table headers');
+}
+if (mrLedgerHTML.includes('Member Ledger Card Register')) {
+  throw new Error('Marathi ledger report should NOT contain English title');
+}
+if (!mrLedgerWA.includes('सदस्य खातावही कार्ड रजिस्टर')) {
+  throw new Error('Marathi WhatsApp ledger text missing Marathi title');
+}
+console.log('✓ Marathi mode correctly produces 100% Marathi Ledger Report & WhatsApp text');
+
+// B) When in English mode
+window.i18n.setLanguage('en', true);
+const enLedgerHTML = window.receiptManager.generateMemberLedgerReportHTML(testMember, 1, false);
+const enLedgerWA = window.receiptManager.generateMemberLedgerWhatsAppText(testMember, 1);
+
+const expectedEnglishMarkers = [
+  'Member Ledger Card Register',
+  'Office: Head Office',
+  'Account No.:',
+  'Member Name:',
+  'Installment:',
+  'Address & Mobile:',
+  'Total Bishi Payout:',
+  'Dividend & Interest Rate:',
+  'Installment Deposit',
+  'Total Deposit',
+  'Remaining Balance',
+  'Total',
+  '1) Nominee: अमित पाटील',
+  '2) Dividend / Payout Interest',
+  '3) Account No.:',
+  '4) Total Final Payout:',
+  'Secretary / President'
+];
+
+for (const marker of expectedEnglishMarkers) {
+  if (!enLedgerHTML.includes(marker)) {
+    throw new Error(`English ledger report missing expected marker: "${marker}"`);
+  }
+}
+
+if (!enLedgerWA.includes('Member Ledger Card Register') || !enLedgerWA.includes('*Member:* Aditya Patil') || !enLedgerWA.includes('Sukhakarta Bishi')) {
+  throw new Error('English WhatsApp ledger text missing English title, Member name, or Sukhakarta Bishi branding');
+}
+console.log('✓ English mode correctly produces English Ledger Report & WhatsApp text');
+
+// C) Switch back to Marathi
+window.i18n.setLanguage('mr', true);
+const resetMrHTML = window.receiptManager.generateMemberLedgerReportHTML(testMember, 1, false);
+if (resetMrHTML.includes('Member Ledger Card Register') || !resetMrHTML.includes('सदस्य खातावही कार्ड रजिस्टर')) {
+  throw new Error('Failed to cleanly reset to Marathi');
+}
+console.log('✓ Cleanly reverted back to Marathi mode');
+
+console.log('\n✅ ALL LANGUAGE SWITCHING & LEDGER REPORT TESTS PASSED PERFECTLY!');

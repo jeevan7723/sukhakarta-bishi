@@ -187,7 +187,23 @@
     btn_share_whatsapp: { mr: '💬 WhatsApp वर पाठवा', en: '💬 Share on WhatsApp' },
     btn_export_excel: { mr: '📊 Excel डाउनलोड', en: '📊 Export Excel' },
     btn_export_csv: { mr: '📄 CSV डाउनलोड', en: '📄 Export CSV' },
-    btn_backup_json: { mr: '💾 JSON बॅकअप', en: '💾 Backup JSON' }
+    btn_backup_json: { mr: '💾 JSON बॅकअप', en: '💾 Backup JSON' },
+
+    // Reports & Member Ledger Card
+    reports_hero_title: { mr: 'बीशी अहवाल व अधिकृत सदस्य खातावही कार्ड रजिस्टर', en: 'Bishi Reports & Official Member Ledger Card Register' },
+    reports_hero_desc: { mr: 'शासकीय व अधिकृत लेजर कार्ड रजिस्टर अहवाल — हप्ते, मुद्दल, व्याज व अंतिम परतावा गणना', en: 'Official member ledger card register report — installments, principal, interest, and final payout calculation' },
+    reports_badge: { mr: '📋 अधिकृत खातावही कार्ड रजिस्टर', en: '📋 Official Ledger Card Register' },
+    modal_ledger_title: { mr: 'अधिकृत सदस्य खातावही कार्ड रजिस्टर', en: 'Official Member Ledger Card Register' },
+    btn_print_report: { mr: 'अहवाल प्रिंट करा', en: 'Print Report' },
+    btn_print_ledger_card: { mr: 'लेजर कार्ड प्रिंट करा', en: 'Print Ledger Card' },
+    btn_save_pdf: { mr: 'PDF सेव्ह करा', en: 'Save PDF' },
+    reports_select_member: { mr: '👤 सदस्य निवडा:', en: '👤 Select Member:' },
+    reports_cycle_lbl: { mr: '🔄 सायकल:', en: '🔄 Cycle:' },
+    reports_weeks_view_lbl: { mr: '👁️ आठवडे दृश्य:', en: '👁️ Weeks View:' },
+    reports_filter_active: { mr: '✓ भरलेले / चालू आठवडे', en: '✓ Active Weeks' },
+    reports_filter_all: { mr: 'सर्व ५० आठवडे', en: 'All 50 Weeks' },
+    reports_filter_all_months: { mr: 'सर्व १२ महिने', en: 'All 12 Months' },
+    btn_done: { mr: 'पूर्ण', en: 'Done' }
   };
 
   // Phrases for automatic bidirectional DOM scanning
@@ -239,7 +255,21 @@
     ['५०-आठवडे बचत फंड', '50-Week Savings Fund'],
     ['५०-आठवडे बचत फंड व पासबुक पोर्टल', '50-Week Savings Fund & Passbook Portal'],
     ['नवीन कर्ज द्या', 'Disburse New Loan'],
-    ['सदस्य कर्ज व्यवस्थापन व ३% व्याज खातावही', 'Member Loan Management & 3% Interest Ledger']
+    ['सदस्य कर्ज व्यवस्थापन व ३% व्याज खातावही', 'Member Loan Management & 3% Interest Ledger'],
+    ['बीशी अहवाल व अधिकृत सदस्य खातावही कार्ड रजिस्टर', 'Bishi Reports & Official Member Ledger Card Register'],
+    ['शासकीय व अधिकृत लेजर कार्ड रजिस्टर अहवाल — हप्ते, मुद्दल, व्याज व अंतिम परतावा गणना', 'Official member ledger card register report — installments, principal, interest, and final payout calculation'],
+    ['अधिकृत खातावही कार्ड रजिस्टर', 'Official Ledger Card Register'],
+    ['अधिकृत सदस्य खातावही कार्ड रजिस्टर', 'Official Member Ledger Card Register'],
+    ['सदस्य खातावही कार्ड रजिस्टर', 'Member Ledger Card Register'],
+    ['अहवाल प्रिंट करा', 'Print Report'],
+    ['लेजर कार्ड प्रिंट करा', 'Print Ledger Card'],
+    ['PDF सेव्ह करा', 'Save PDF'],
+    ['सदस्य निवडा:', 'Select Member:'],
+    ['आठवडे दृश्य:', 'Weeks View:'],
+    ['✓ भरलेले / चालू आठवडे', '✓ Active Weeks'],
+    ['सर्व ५० आठवडे', 'All 50 Weeks'],
+    ['सर्व १२ महिने', 'All 12 Months'],
+    ['पूर्ण', 'Done']
   ];
 
   class I18nManager {

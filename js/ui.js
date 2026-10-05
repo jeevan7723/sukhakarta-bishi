@@ -212,9 +212,21 @@ class UIManager {
         this.renderMembersPage();
       } else if (this.currentAdminView === 'loans') {
         this.renderLoansPage();
+      } else if (this.currentAdminView === 'reports') {
+        this.renderReportsPage();
       }
     } else if (window.authManager.isCustomer()) {
       this.renderCustomerPortal();
+    }
+
+    // If Member Ledger Modal is open, re-render it so it instantly adapts to the selected language
+    const ledgerModal = document.getElementById('memberLedgerModal');
+    if (ledgerModal && ledgerModal.classList.contains('active') && window.receiptManager && window.receiptManager.currentLedgerMemberId) {
+      window.receiptManager.showMemberLedgerCard(
+        window.receiptManager.currentLedgerMemberId,
+        window.receiptManager.currentLedgerCycleNumber,
+        window.receiptManager.currentLedgerShowAllWeeks
+      );
     }
   }
 
@@ -4273,6 +4285,7 @@ class UIManager {
   }
 
   renderReportsPage(targetMemberId = null) {
+    const isEn = typeof window !== 'undefined' && window.i18n && typeof window.i18n.isEnglish === 'function' && window.i18n.isEnglish();
     const allMembers = window.bishiStore ? window.bishiStore.getMembers() : [];
     const reportArea = document.getElementById('reportPageContentArea');
     const selectEl = document.getElementById('reportsMemberSelect');
@@ -4286,9 +4299,9 @@ class UIManager {
         reportArea.innerHTML = `
           <div style="text-align: center; padding: 3.5rem 1.5rem; background: #ffffff; border-radius: var(--radius-lg); border: 2px dashed #853d1b;">
             <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">📋</div>
-            <h3 style="color: #853d1b; font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem;">कोणताही सदस्य उपलब्ध नाही</h3>
-            <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 1.25rem;">अधिकृत लेजर कार्ड रजिस्टर अहवाल पाहण्यासाठी प्रथम बीशीमध्ये सदस्य जोडा.</p>
-            <button type="button" class="btn btn-primary" onclick="window.ui.openAddMemberModal()">➕ नवीन सदस्य जोडा</button>
+            <h3 style="color: #853d1b; font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem;">${isEn ? 'No Member Available' : 'कोणताही सदस्य उपलब्ध नाही'}</h3>
+            <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 1.25rem;">${isEn ? 'Add members to the Bishi first to view official ledger card registers.' : 'अधिकृत लेजर कार्ड रजिस्टर अहवाल पाहण्यासाठी प्रथम बीशीमध्ये सदस्य जोडा.'}</p>
+            <button type="button" class="btn btn-primary" onclick="window.ui.openAddMemberModal()">${isEn ? '➕ Add New Member' : '➕ नवीन सदस्य जोडा'}</button>
           </div>
         `;
       }
@@ -4321,7 +4334,9 @@ class UIManager {
         const acc = m.accountNo || (m.id ? m.id.replace(/\D/g, '') || m.id : '');
         const sel = m.id === member.id ? 'selected' : '';
         const rawName = window.bishiStore ? (window.bishiStore.getMemberMarathiName ? window.bishiStore.getMemberMarathiName(m) : m.name) : m.name;
-        const mName = (rawName || '').replace(/\s*\([a-zA-Z\s.-]+\)/g, '').trim();
+        const mMarathi = (rawName || '').replace(/\s*\([a-zA-Z\s.-]+\)/g, '').trim();
+        const mEnglish = (m.name || '').replace(/\s*\([a-zA-Z\s.-]+\)/g, '').trim();
+        const mName = isEn ? (mEnglish || mMarathi) : mMarathi;
         return `<option value="${m.id}" ${sel}>#${acc} - ${mName} (${m.phone || '-'})</option>`;
       }).join('');
       if (window.authManager && window.authManager.isCustomer()) {
@@ -4338,8 +4353,8 @@ class UIManager {
       if (member.pastCycles && member.pastCycles.length > 0) {
         cycleWrap.style.display = 'flex';
         cycleSelect.innerHTML = `
-          <option value="${activeCycleNum}" ${viewingCycle === activeCycleNum ? 'selected' : ''}>चालू सायकल ${activeCycleNum}</option>
-          ${member.pastCycles.map(pc => `<option value="${pc.cycleNumber}" ${viewingCycle === pc.cycleNumber ? 'selected' : ''}>सायकल ${pc.cycleNumber} (जतन)</option>`).join('')}
+          <option value="${activeCycleNum}" ${viewingCycle === activeCycleNum ? 'selected' : ''}>${isEn ? `Current Cycle ${activeCycleNum}` : `चालू सायकल ${activeCycleNum}`}</option>
+          ${member.pastCycles.map(pc => `<option value="${pc.cycleNumber}" ${viewingCycle === pc.cycleNumber ? 'selected' : ''}>${isEn ? `Cycle ${pc.cycleNumber} (Saved)` : `सायकल ${pc.cycleNumber} (जतन)`}</option>`).join('')}
         `;
       } else {
         cycleWrap.style.display = 'none';
@@ -4350,7 +4365,10 @@ class UIManager {
     // Update filter toggle buttons
     const btnActive = document.getElementById('btnReportsFilterActive');
     const btnAll = document.getElementById('btnReportsFilterAll');
+    const isMonthly = member.frequency === 'monthly';
     if (btnActive && btnAll) {
+      btnActive.textContent = isEn ? '✓ Active Weeks' : '✓ भरलेले / चालू आठवडे';
+      btnAll.textContent = isEn ? (isMonthly ? 'All 12 Months' : 'All 50 Weeks') : (isMonthly ? 'सर्व १२ महिने' : 'सर्व ५० आठवडे');
       if (this.currentReportsShowAllWeeks) {
         btnActive.className = 'btn btn-sm btn-secondary';
         btnAll.className = 'btn btn-sm btn-primary';
@@ -4362,14 +4380,15 @@ class UIManager {
 
     // Update member info badge
     if (infoBadge) {
-      const weekly = member.weeklyAmount || 2000;
+      const weekly = member.monthlyAmount || member.weeklyAmount || 2000;
       const acc = member.accountNo || (member.id ? member.id.replace(/\D/g, '') || member.id : '1');
+      const unitStr = isMonthly ? (isEn ? '/month' : '/महिना') : (isEn ? '/week' : '/आठवडा');
       infoBadge.innerHTML = `
-        <div style="font-weight: 700; color: #853d1b;">खाते क्र.: <strong>#${acc}</strong></div>
+        <div style="font-weight: 700; color: #853d1b;">${isEn ? 'Account No.:' : 'खाते क्र.:'} <strong>#${acc}</strong></div>
         <div style="color: #cfa890;">•</div>
-        <div>हप्ता: <strong style="color: #047857;">₹${Number(weekly).toLocaleString('en-IN')}/आठवडा</strong></div>
+        <div>${isEn ? 'Installment:' : 'हप्ता:'} <strong style="color: #047857;">₹${Number(weekly).toLocaleString('en-IN')}${unitStr}</strong></div>
         <div style="color: #cfa890;">•</div>
-        <div>सायकल: <strong>${viewingCycle}</strong></div>
+        <div>${isEn ? 'Cycle:' : 'सायकल:'} <strong>${viewingCycle}</strong></div>
       `;
     }
 
