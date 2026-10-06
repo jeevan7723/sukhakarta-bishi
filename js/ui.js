@@ -4108,11 +4108,39 @@ class UIManager {
     document.getElementById('adminLoansModal')?.classList.add('active');
   }
 
+  // --- कर्ज कृती सिलेक्ट ड्रॉपडाउन HTML (Reusable Loan Action Select) ---
+  renderLoanActionSelectHtml(loan, details, isPaid, interestPaymentsList, currency, extraClass = '') {
+    const hasInterestDue = !isPaid && !details.isGracePeriodActive;
+    const isPartiallyPaid = Boolean(details && details.isPartiallyPaid);
+
+    return `
+      <select class="loan-action-select ${extraClass}" onchange="window.ui.handleLoanActionSelect(this, '${loan.id}')" aria-label="कर्ज कृती निवडा" title="कर्ज कृती निवडा">
+        <option value="" selected disabled>⚡ कृती निवडा ▾</option>
+        <option value="loanAssignVoucher">📄 कर्ज वाटप व्हाउचर (Loan Assign Voucher)</option>
+        ${!isPaid ? `
+          <option value="payLoan">✅ कर्ज फेड नोंदवा (Pay Loan)</option>
+        ` : `
+          <option value="loanRepaymentReceipt">🧾 कर्ज परतफेड पावती (Repayment Receipt)</option>
+        `}
+        ${hasInterestDue ? `
+          <option value="payInterest">💰 व्याज जमा करा (+${currency}${details.interestAmount})</option>
+          <option value="sendReminder">💬 WhatsApp व्याज मेसेज</option>
+        ` : ''}
+        ${interestPaymentsList && interestPaymentsList.length > 0 ? `
+          <option value="interestReceipt">🧾 व्याज पावती पहा (Interest Receipt)</option>
+        ` : ''}
+        ${isPartiallyPaid && !isPaid ? `
+          <option value="loanRepaymentReceipt">🧾 हप्ता पावती पहा (Partial Repayment Receipt)</option>
+        ` : ''}
+        <option value="cancelLoan">❌ कर्ज नोंद रद्द करा</option>
+      </select>
+    `;
+  }
+
   // --- कर्ज कृती ड्रॉपडाउन लिस्ट सेल HTML (Loan Table Action Dropdown List) ---
   renderLoanActionCellHtml(loan, details, isPaid, interestPaymentsList, currency) {
     const hasGraceBadge = !isPaid && details.isGracePeriodActive;
     const hasInterestDue = !isPaid && !details.isGracePeriodActive;
-    const isPartiallyPaid = Boolean(details && details.isPartiallyPaid);
 
     return `
       <div class="loan-action-cell">
@@ -4126,26 +4154,7 @@ class UIManager {
             💰 व्याज देय
           </span>
         ` : ''}
-        <select class="loan-action-select" onchange="window.ui.handleLoanActionSelect(this, '${loan.id}')" aria-label="कर्ज कृती निवडा" title="कर्ज कृती निवडा">
-          <option value="" selected disabled>⚡ कृती निवडा ▾</option>
-          <option value="loanAssignVoucher">📄 कर्ज वाटप व्हाउचर (Loan Assign Voucher)</option>
-          ${!isPaid ? `
-            <option value="payLoan">✅ कर्ज फेड नोंदवा (Pay Loan)</option>
-          ` : `
-            <option value="loanRepaymentReceipt">🧾 कर्ज परतफेड पावती (Repayment Receipt)</option>
-          `}
-          ${hasInterestDue ? `
-            <option value="payInterest">💰 व्याज जमा करा (+${currency}${details.interestAmount})</option>
-            <option value="sendReminder">💬 WhatsApp व्याज मेसेज</option>
-          ` : ''}
-          ${interestPaymentsList && interestPaymentsList.length > 0 ? `
-            <option value="interestReceipt">🧾 व्याज पावती पहा (Interest Receipt)</option>
-          ` : ''}
-          ${isPartiallyPaid && !isPaid ? `
-            <option value="loanRepaymentReceipt">🧾 हप्ता पावती पहा (Partial Repayment Receipt)</option>
-          ` : ''}
-          <option value="cancelLoan">❌ कर्ज नोंद रद्द करा</option>
-        </select>
+        ${this.renderLoanActionSelectHtml(loan, details, isPaid, interestPaymentsList, currency)}
       </div>
     `;
   }
@@ -4526,9 +4535,9 @@ class UIManager {
     if (!allMembers || allMembers.length === 0) {
       if (reportArea) {
         reportArea.innerHTML = `
-          <div style="text-align: center; padding: 3.5rem 1.5rem; background: #ffffff; border-radius: var(--radius-lg); border: 2px dashed #853d1b;">
+          <div style="text-align: center; padding: 3.5rem 1.5rem; background: #ffffff; border-radius: var(--radius-lg); border: 2px dashed #059669;">
             <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">📋</div>
-            <h3 style="color: #853d1b; font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem;">${isEn ? 'No Member Available' : 'कोणताही सदस्य उपलब्ध नाही'}</h3>
+            <h3 style="color: #047857; font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem;">${isEn ? 'No Member Available' : 'कोणताही सदस्य उपलब्ध नाही'}</h3>
             <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 1.25rem;">${isEn ? 'Add members to the Bishi first to view official ledger card registers.' : 'अधिकृत लेजर कार्ड रजिस्टर अहवाल पाहण्यासाठी प्रथम बीशीमध्ये सदस्य जोडा.'}</p>
             <button type="button" class="btn btn-primary" onclick="window.ui.openAddMemberModal()">${isEn ? '➕ Add New Member' : '➕ नवीन सदस्य जोडा'}</button>
           </div>
@@ -4613,10 +4622,10 @@ class UIManager {
       const acc = member.accountNo || (member.id ? member.id.replace(/\D/g, '') || member.id : '1');
       const unitStr = isMonthly ? (isEn ? '/month' : '/महिना') : (isEn ? '/week' : '/आठवडा');
       infoBadge.innerHTML = `
-        <div style="font-weight: 700; color: #853d1b;">${isEn ? 'Account No.:' : 'खाते क्र.:'} <strong>#${acc}</strong></div>
-        <div style="color: #cfa890;">•</div>
+        <div style="font-weight: 700; color: #047857;">${isEn ? 'Account No.:' : 'खाते क्र.:'} <strong>#${acc}</strong></div>
+        <div style="color: #cbd5e1;">•</div>
         <div>${isEn ? 'Installment:' : 'हप्ता:'} <strong style="color: #047857;">₹${Number(weekly).toLocaleString('en-IN')}${unitStr}</strong></div>
-        <div style="color: #cfa890;">•</div>
+        <div style="color: #cbd5e1;">•</div>
         <div>${isEn ? 'Cycle:' : 'सायकल:'} <strong>${viewingCycle}</strong></div>
       `;
     }
@@ -4995,7 +5004,7 @@ class UIManager {
                 <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); window.ui.openMemberProfileModal('${member.id}')" title="संपूर्ण प्रोफाईल व सर्व तपशील पहा" style="font-weight: 700;">
                   👤 प्रोफाईल
                 </button>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); window.receiptManager.showMemberLedgerCard('${member.id}')" title="अधिकृत लेजर कार्ड रजिस्टर पहा व प्रिंट करा" style="font-weight: 700; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.06);">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); window.receiptManager.showMemberLedgerCard('${member.id}')" title="अधिकृत लेजर कार्ड रजिस्टर पहा व प्रिंट करा" style="font-weight: 700; color: #047857; border-color: rgba(4, 120, 87, 0.4); background: rgba(4, 120, 87, 0.06);">
                   📋 लेजर कार्ड
                 </button>
                 ${stats.isFullyPaid ? `
@@ -5206,7 +5215,7 @@ class UIManager {
                   <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openMemberProfileModal('${member.id}')" style="flex: 1; justify-content: center; font-weight: 700;" title="संपूर्ण प्रोफाईल पहा">
                     👤 प्रोफाईल
                   </button>
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showMemberLedgerCard('${member.id}')" style="flex: 1; justify-content: center; font-weight: 700; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4);" title="लेजर कार्ड पहा व प्रिंट करा">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showMemberLedgerCard('${member.id}')" style="flex: 1; justify-content: center; font-weight: 700; color: #047857; border-color: rgba(4, 120, 87, 0.4);" title="लेजर कार्ड पहा व प्रिंट करा">
                     📋 लेजर
                   </button>
                   ${stats.isFullyPaid ? `
@@ -5387,7 +5396,7 @@ class UIManager {
               <button type="button" class="btn btn-secondary btn-sm" onclick="window.closeAllModals(); window.ui.openPassbookModal('${member.id}');" style="font-weight: 700; padding: 0.45rem 0.9rem;">
                 📖 पासबुक उघडा
               </button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.closeAllModals(); window.receiptManager.showMemberLedgerCard('${member.id}');" style="font-weight: 700; padding: 0.45rem 0.9rem; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08);" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.closeAllModals(); window.receiptManager.showMemberLedgerCard('${member.id}');" style="font-weight: 700; padding: 0.45rem 0.9rem; color: #047857; border-color: rgba(4, 120, 87, 0.4); background: rgba(4, 120, 87, 0.08);" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
                 📋 लेजर कार्ड
               </button>
               <button type="button" class="btn btn-secondary btn-sm" onclick="window.closeAllModals(); window.ui.openEditMemberModal('${member.id}');" style="font-weight: 700; padding: 0.45rem 0.85rem;">
@@ -5555,7 +5564,7 @@ class UIManager {
         <button type="button" class="btn btn-secondary" onclick="window.closeAllModals(); window.ui.openPassbookModal('${member.id}');" style="font-weight: 700;">
           📖 संपूर्ण पासबुक
         </button>
-        <button type="button" class="btn btn-secondary" onclick="window.closeAllModals(); window.receiptManager.showMemberLedgerCard('${member.id}');" style="font-weight: 700; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08);" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
+        <button type="button" class="btn btn-secondary" onclick="window.closeAllModals(); window.receiptManager.showMemberLedgerCard('${member.id}');" style="font-weight: 700; color: #047857; border-color: rgba(4, 120, 87, 0.4); background: rgba(4, 120, 87, 0.08);" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
           📋 लेजर कार्ड रजिस्टर
         </button>
         ${cleanPhone.length >= 10 ? `
@@ -5677,14 +5686,24 @@ class UIManager {
       const tr = document.createElement('tr');
 
       let graceHtml = '';
+      let cardGraceHtml = '';
       if (isPaid) {
         graceHtml = loan.interestPaid > 0 
           ? `<span style="color: var(--rose-400); font-weight: 700;">+${currency}${loan.interestPaid.toLocaleString('en-IN')} (३% व्याज)</span>` 
           : `<span style="color: var(--emerald-400); font-weight: 700;">₹० (०% सवलतीत पूर्ण)</span>`;
+        cardGraceHtml = loan.interestPaid > 0
+          ? `<div class="status-pill status-overdue" style="font-size: 0.74rem; width: 100%; white-space: normal; line-height: 1.4; padding: 0.35rem 0.65rem; border-radius: var(--radius-sm);"><span style="color: var(--rose-400); font-weight: 700;">+${currency}${loan.interestPaid.toLocaleString('en-IN')} (३% व्याज आकारले • पूर्ण फेड)</span></div>`
+          : `<div class="status-pill status-paid" style="font-size: 0.74rem; width: 100%; white-space: normal; line-height: 1.4; padding: 0.35rem 0.65rem; border-radius: var(--radius-sm);"><span style="color: var(--emerald-400); font-weight: 700;">₹० (०% सवलतीत पूर्ण फेड)</span></div>`;
       } else if (details.isGracePeriodActive) {
         graceHtml = `<span class="status-pill status-paid" style="font-size: 0.72rem; background: rgba(16, 185, 129, 0.15); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.35);">🟢 चक्र ${details.currentCycleNumber}: सवलत चालू (०% व्याज • ${details.remainingGraceWeeks} आठवडे बाकी)</span>`;
+        cardGraceHtml = `<div class="status-pill status-paid" style="font-size: 0.74rem; width: 100%; white-space: normal; line-height: 1.4; padding: 0.35rem 0.65rem; border-radius: var(--radius-sm); background: rgba(16, 185, 129, 0.12); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.35);">
+          🟢 <strong>चक्र ${details.currentCycleNumber}:</strong> ०% सवलत चालू (${details.remainingGraceWeeks} आठवडे बाकी • W${details.nextInterestDueWeek} ला देय)
+        </div>`;
       } else {
         graceHtml = `<span class="status-pill status-overdue" style="font-size: 0.72rem; background: rgba(245, 158, 11, 0.15); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.35);">⚠️ चक्र ${details.currentCycleNumber}: +${currency}${details.interestAmount.toLocaleString('en-IN')} (४ आठवडे पूर्ण • ३% व्याज देय)</span>`;
+        cardGraceHtml = `<div class="status-pill status-overdue" style="font-size: 0.74rem; width: 100%; white-space: normal; line-height: 1.4; padding: 0.35rem 0.65rem; border-radius: var(--radius-sm); background: rgba(245, 158, 11, 0.14); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.45); font-weight: 600;">
+          ⚠️ <strong>चक्र ${details.currentCycleNumber}:</strong> +${currency}${details.interestAmount.toLocaleString('en-IN')} देय (४ आठवडे पूर्ण • ३% व्याज देय)
+        </div>`;
       }
 
       const totalInterestCollectedOnLoan = Number(loan.totalInterestPaid || 0);
@@ -5811,21 +5830,36 @@ class UIManager {
               </span>
             </div>
 
-            <div class="loan-data-row" style="grid-column: 1 / -1;">
+            <div class="loan-data-row loan-interest-box" style="grid-column: 1 / -1;">
               <span class="loan-data-label">३% व्याज स्थिती</span>
-              <div style="margin-top: 0.2rem;">
-                ${graceHtml}
-                ${totalInterestCollectedOnLoan > 0 ? `<div style="font-size: 0.7rem; color: var(--emerald-400); font-weight: 700; margin-top: 0.25rem;">💰 जमा व्याज: ${currency}${totalInterestCollectedOnLoan.toLocaleString('en-IN')} (${interestPaymentsList.length} चक्र)</div>` : ''}
+              <div style="margin-top: 0.25rem;">
+                ${cardGraceHtml}
+                ${totalInterestCollectedOnLoan > 0 ? `<div style="font-size: 0.74rem; color: var(--emerald-400); font-weight: 700; margin-top: 0.3rem; display: flex; align-items: center; gap: 0.3rem;"><span>💰</span><span>जमा व्याज: <strong>${currency}${totalInterestCollectedOnLoan.toLocaleString('en-IN')}</strong> (${interestPaymentsList.length} चक्र)</span></div>` : ''}
               </div>
             </div>
           </div>
 
           <div class="loan-card-footer">
-            <div style="font-size: 0.75rem; color: var(--text-muted);">
-              ${isPaid ? `पूर्ण फेड तारीख: <strong>${loan.paidDate || '-'}</strong>` : `स्थिती: <strong>${details.isGracePeriodActive ? '०% सवलत चालू' : '३% व्याज लागू'}</strong>`}
+            <div class="loan-card-footer-meta">
+              <span style="font-size: 0.76rem; color: var(--text-muted);">
+                ${isPaid ? `पूर्ण फेड तारीख: <strong style="color: var(--text-primary);">${loan.paidDate || '-'}</strong>` : `स्थिती: <strong style="color: ${details.isGracePeriodActive ? 'var(--emerald-400)' : 'var(--gold-400)'};">${details.isGracePeriodActive ? '🟢 ०% सवलत चालू' : '⚠️ ३% व्याज देय'}</strong>`}
+              </span>
+              ${!isPaid ? (details.isGracePeriodActive ? `
+                <span class="status-pill status-paid" style="font-size: 0.7rem; padding: 0.18rem 0.5rem; background: rgba(16, 185, 129, 0.12); color: var(--emerald-400); border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; white-space: nowrap;">
+                  ⏳ W${details.nextInterestDueWeek} ला देय
+                </span>
+              ` : `
+                <span class="status-pill status-overdue" style="font-size: 0.7rem; padding: 0.18rem 0.5rem; background: rgba(245, 158, 11, 0.18); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.5); font-weight: 700; white-space: nowrap;">
+                  💰 +${currency}${details.interestAmount} देय
+                </span>
+              `) : `
+                <span class="status-pill status-paid" style="font-size: 0.7rem; padding: 0.18rem 0.5rem; font-weight: 700; white-space: nowrap;">
+                  ✅ पूर्ण जमा
+                </span>
+              `}
             </div>
-            <div style="flex: 1; display: flex; justify-content: flex-end; min-width: 140px;">
-              ${this.renderLoanActionCellHtml(loan, details, isPaid, interestPaymentsList, currency)}
+            <div class="loan-card-action-wrap">
+              ${this.renderLoanActionSelectHtml(loan, details, isPaid, interestPaymentsList, currency, 'loan-card-action-select')}
             </div>
           </div>
         `;

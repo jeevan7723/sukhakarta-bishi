@@ -1554,7 +1554,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           <td style="text-align: center; font-weight: 700; color: #991b1b;">
             ${fineAmt > 0 ? currency + fineAmt.toLocaleString('en-IN') : '-'}
           </td>
-          <td style="text-align: center; font-weight: 700; color: #7c2d12;">
+          <td style="text-align: center; font-weight: 700; color: #065f46;">
             ${loanGivenAmt > 0 ? currency + loanGivenAmt.toLocaleString('en-IN') : '-'}
           </td>
           <td style="text-align: center; font-weight: 700; color: #047857;">
@@ -1642,11 +1642,11 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
             </tr>
             ${totalLoanDisbursed > 0 ? `
               <tr>
-                <td class="info-lbl" style="background: #7c2d12; color: #ffffff;">${isEn ? 'Loan Details:' : 'कर्ज तपशील:'}</td>
-                <td class="info-val" style="background: #fffdf5; font-weight: 700; color: #7c2d12;">
+                <td class="info-lbl" style="background: linear-gradient(135deg, #064e3b, #047857); color: #ffffff;">${isEn ? 'Loan Details:' : 'कर्ज तपशील:'}</td>
+                <td class="info-val" style="background: #f8fafc; font-weight: 700; color: #0f172a;">
                   ${isEn ? `Total Disbursed: <strong>${currency}${totalLoanDisbursed.toLocaleString('en-IN')}</strong> • Remaining Principal: <strong style="color: ${remainingLoanPrincipal > 0 ? '#dc2626' : '#059669'};">${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}</strong>` : `एकूण वाटप: <strong>${currency}${totalLoanDisbursed.toLocaleString('en-IN')}</strong> • बाकी मुद्दल: <strong style="color: ${remainingLoanPrincipal > 0 ? '#dc2626' : '#059669'};">${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}</strong>`}
                 </td>
-                <td class="info-lbl" style="background: #047857; color: #ffffff;">${isEn ? 'Loan Interest Deposited:' : 'कर्ज व्याज जमा:'}</td>
+                <td class="info-lbl" style="background: linear-gradient(135deg, #064e3b, #047857); color: #ffffff;">${isEn ? 'Loan Interest Deposited:' : 'कर्ज व्याज जमा:'}</td>
                 <td class="info-val" style="background: #f0fdf4; font-weight: 700; color: #047857;">
                   ${isEn ? `Total Interest: <span style="background: #d1fae5; color: #047857; padding: 0.15rem 0.55rem; border-radius: 4px; border: 1px solid #10b981; font-weight: 800;">+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')} (3% Rate)</span>` : `एकूण जमा व्याज: <span style="background: #d1fae5; color: #047857; padding: 0.15rem 0.55rem; border-radius: 4px; border: 1px solid #10b981; font-weight: 800;">+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')} (३% दर)</span>`}
                 </td>
@@ -1667,7 +1667,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
                 <th style="width: 95px;" class="th-green">${isEn ? 'Installment Deposit' : 'जमा हप्ता'}<br><span class="th-green-sub">(${currency})</span></th>
                 <th style="width: 105px;" class="th-green">${isEn ? 'Total Deposit' : 'एकूण जमा'}<br><span class="th-green-sub">(${currency})</span></th>
                 <th style="width: 65px;" class="th-red">${isEn ? 'Fine' : 'दंड'}<br><span style="font-size: 0.72rem; font-weight: 600;">(${currency})</span></th>
-                <th style="width: 85px;" class="th-brown">${isEn ? 'Loan Disbursed' : 'कर्ज वाटप'}<br><span style="font-size: 0.72rem; font-weight: 600; color: #7c2d12;">(${currency})</span></th>
+                <th style="width: 85px;" class="th-brown">${isEn ? 'Loan Disbursed' : 'कर्ज वाटप'}<br><span style="font-size: 0.72rem; font-weight: 600; color: #065f46;">(${currency})</span></th>
                 <th style="width: 110px;" class="th-brown">${isEn ? 'Loan Principal Repaid' : 'कर्ज परतफेड मुद्दल'}<br><span class="th-green-sub">(${currency})</span></th>
                 <th style="width: 110px;" class="th-brown">${isEn ? 'Loan Interest Deposited' : 'कर्ज व्याज जमा'}<br><span class="th-green-sub">(${currency})</span></th>
                 <th style="width: 60px;" class="th-red">${isEn ? 'Fine' : 'दंड'}<br><span style="font-size: 0.72rem; font-weight: 600;">(${currency})</span></th>
@@ -1703,7 +1703,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
             <div class="notes-line notes-acc">${isEn ? `3) Account No.: ${accountNo}` : `३) खाते क्र.: ${accountNo}`}</div>
             <div class="notes-line notes-payout">${isEn ? `4) Total Final Payout: ${currency}${totalWithInterest.toLocaleString('en-IN')} ${!isPayoutTime ? '(Current Savings • Payable with ' + annualInterestPercent + '% annual interest upon completing ' + totalPeriods + ' ' + periodUnitPlural + ')' : ''}` : `४) एकूण अंतिम परतावा: ${currency}${totalWithInterest.toLocaleString('en-IN')} ${!isPayoutTime ? '(चालू बचत • ' + totalPeriods + ' ' + periodUnitPlural + ' पूर्ण झाल्यावर ' + annualInterestPercent + '% वार्षिक व्याजासह वाटप)' : ''}`}</div>
             ${totalLoanDisbursed > 0 ? `
-              <div class="notes-line" style="color: #7c2d12; font-weight: 700; border-top: 1px dashed #d1d5db; padding-top: 3px; margin-top: 2px;">
+              <div class="notes-line" style="color: #065f46; font-weight: 700; border-top: 1px dashed #a7f3d0; padding-top: 3px; margin-top: 2px;">
                 ${isEn ? `5) Loan & Interest Ledger: Total Loan ${currency}${totalLoanDisbursed.toLocaleString('en-IN')} (Remaining Principal: ${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}) • Total 3% Interest: +${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}` : `५) कर्ज व व्याज ताळेबंद: एकूण कर्ज ${currency}${totalLoanDisbursed.toLocaleString('en-IN')} (बाकी मुद्दल: ${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}) • एकूण जमा ३% व्याज: +${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}`}
               </div>
             ` : ''}
@@ -1859,8 +1859,8 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     if (allMembers && allMembers.length > 1 && !isCustomerRole) {
       memberSelectorHTML = `
         <div style="display: flex; align-items: center; gap: 0.4rem;">
-          <span style="font-size: 0.78rem; font-weight: 700; color: #853d1b;">${isEn ? '👤 Member:' : '👤 सदस्य:'}</span>
-          <select class="form-control" style="padding: 0.25rem 0.6rem; font-size: 0.78rem; width: auto; font-weight: 700; border-color: rgba(133, 61, 27, 0.4); background: #fff;" onchange="window.receiptManager.showMemberLedgerCard(this.value, null, ${showAllWeeks})">
+          <span style="font-size: 0.78rem; font-weight: 700; color: #047857;">${isEn ? '👤 Member:' : '👤 सदस्य:'}</span>
+          <select class="form-control" style="padding: 0.25rem 0.6rem; font-size: 0.78rem; width: auto; font-weight: 700; border-color: rgba(4, 120, 87, 0.4); background: #fff;" onchange="window.receiptManager.showMemberLedgerCard(this.value, null, ${showAllWeeks})">
             ${allMembers.map(m => {
               const acc = m.accountNo || (m.id ? m.id.replace(/\D/g, '') || m.id : '');
               const sel = m.id === member.id ? 'selected' : '';
@@ -1911,14 +1911,14 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
           <!-- थेट लेजर कार्ड भाषा टॉगल (Direct Language Toggle in Modal) -->
           <div class="lang-toggle-pills" style="display: inline-flex; border: 1px solid #d1d5db; border-radius: 20px; padding: 2px; background: #f3f4f6;">
-            <button type="button" class="lang-pill-btn ${!isEn ? 'active' : ''}" style="padding: 0.2rem 0.55rem; font-size: 0.74rem; font-weight: 700; border-radius: 16px; border: none; cursor: pointer; ${!isEn ? 'background: #853d1b; color: #fff;' : 'background: transparent; color: #4b5563;'}" onclick="window.i18n.setLanguage('mr')">मराठी</button>
-            <button type="button" class="lang-pill-btn ${isEn ? 'active' : ''}" style="padding: 0.2rem 0.55rem; font-size: 0.74rem; font-weight: 700; border-radius: 16px; border: none; cursor: pointer; ${isEn ? 'background: #853d1b; color: #fff;' : 'background: transparent; color: #4b5563;'}" onclick="window.i18n.setLanguage('en')">EN</button>
+            <button type="button" class="lang-pill-btn ${!isEn ? 'active' : ''}" style="padding: 0.2rem 0.55rem; font-size: 0.74rem; font-weight: 700; border-radius: 16px; border: none; cursor: pointer; ${!isEn ? 'background: #047857; color: #fff;' : 'background: transparent; color: #4b5563;'}" onclick="window.i18n.setLanguage('mr')">मराठी</button>
+            <button type="button" class="lang-pill-btn ${isEn ? 'active' : ''}" style="padding: 0.2rem 0.55rem; font-size: 0.74rem; font-weight: 700; border-radius: 16px; border: none; cursor: pointer; ${isEn ? 'background: #047857; color: #fff;' : 'background: transparent; color: #4b5563;'}" onclick="window.i18n.setLanguage('en')">EN</button>
           </div>
 
           <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="background: #25d366; color: #000; font-weight: 700; font-size: 0.75rem; text-decoration: none;">
             ${isEn ? '💬 Share WhatsApp' : '💬 WhatsApp वर पाठवा'}
           </a>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.printMemberLedgerCard()" style="font-size: 0.75rem; font-weight: 700; color: #7c3a1e; border-color: #7c3a1e;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.printMemberLedgerCard()" style="font-size: 0.75rem; font-weight: 700; color: #047857; border-color: #047857;">
             ${isEn ? '🖨️ Print Ledger' : '🖨️ लेजर प्रिंट करा'}
           </button>
         </div>

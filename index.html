@@ -507,6 +507,33 @@
   color: #0f172a !important;
 }
 
+[data-theme="light"] .loan-card-action-select {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] .loan-card-action-select:hover {
+  background-color: #ffffff !important;
+  border-color: #10b981 !important;
+  color: #0f172a !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="light"] .loan-card-action-select:focus {
+  background-color: #ffffff !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .loan-card-action-select option,
+[data-theme="light"] .loan-card-action-select optgroup {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
 [data-theme="light"] .loans-filter-bar {
   background: #f8fafc !important;
   border-bottom-color: #e2e8f0 !important;
@@ -2195,7 +2222,9 @@ select option:checked {
   transition: all var(--transition-fast);
   box-shadow: var(--shadow-sm);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .loan-mobile-card:hover {
@@ -2240,6 +2269,7 @@ select option:checked {
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem 1rem;
   font-size: 0.84rem;
+  flex: 1;
 }
 
 .loan-data-row {
@@ -2262,13 +2292,35 @@ select option:checked {
 }
 
 .loan-card-footer {
-  padding-top: 0.75rem;
+  margin-top: auto;
+  padding-top: 0.85rem;
   border-top: 1px dashed var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.loan-card-footer-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+.loan-card-action-wrap {
+  width: 100%;
+}
+
+.loan-card-action-select {
+  width: 100% !important;
+  display: block !important;
+  padding: 0.5rem 2.2rem 0.5rem 0.85rem !important;
+  font-size: 0.85rem !important;
+  min-height: 40px !important;
+  border-radius: var(--radius-sm) !important;
+  box-sizing: border-box !important;
 }
 
 .table-scroll-hint-bar {
@@ -3148,12 +3200,12 @@ select.member-action-select:active {
   margin: 0 auto;
   background: #ffffff;
   color: #111827;
-  border: 2.5px solid #853d1b;
-  border-radius: 6px;
+  border: 2.5px solid #047857;
+  border-radius: 8px;
   padding: 22px 26px;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  box-shadow: 0 4px 24px rgba(133, 61, 27, 0.09);
+  box-shadow: 0 4px 24px rgba(4, 120, 87, 0.1);
 }
 
 .ledger-top-header {
@@ -3165,8 +3217,8 @@ select.member-action-select:active {
 
 .ledger-brand-title {
   font-size: 1.15rem;
-  font-weight: 700;
-  color: #853d1b;
+  font-weight: 800;
+  color: #047857;
   line-height: 1.2;
   margin-bottom: 2px;
 }
@@ -3174,13 +3226,13 @@ select.member-action-select:active {
 .ledger-doc-title {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #231610;
+  color: #0f172a;
   letter-spacing: -0.01em;
 }
 
 .ledger-top-meta {
   font-size: 0.86rem;
-  color: #111827;
+  color: #334155;
   font-weight: 700;
   text-align: right;
   white-space: nowrap;
@@ -3191,12 +3243,12 @@ select.member-action-select:active {
   text-align: right;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #111827;
+  color: #64748b;
   margin-top: 1px;
 }
 
 .ledger-header-divider {
-  border-bottom: 2px solid #853d1b;
+  border-bottom: 2px solid #059669;
   margin: 6px 0 14px 0;
   width: 100%;
 }
@@ -3205,18 +3257,21 @@ select.member-action-select:active {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 14px;
-  border: 1.5px solid #853d1b;
+  border: 1.5px solid #047857;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .ledger-info-table td {
   padding: 6px 12px;
   font-size: 0.84rem;
-  border: 1px solid #853d1b;
+  border: 1px solid #059669;
   vertical-align: middle;
 }
 
 .ledger-info-table .info-lbl {
-  background-color: #853d1b;
+  background: linear-gradient(135deg, #064e3b, #047857);
+  background-color: #047857;
   color: #ffffff;
   font-weight: 700;
   width: 19%;
@@ -3224,11 +3279,11 @@ select.member-action-select:active {
 }
 
 .ledger-info-table .info-val {
-  background-color: #fffdf5;
-  color: #111827;
+  background-color: #f8fafc;
+  color: #0f172a;
   font-weight: 700;
   width: 31%;
-  border: 1px solid #cfa890;
+  border: 1px solid #cbd5e1;
 }
 
 .ledger-info-table .info-green {
@@ -3237,12 +3292,12 @@ select.member-action-select:active {
 }
 
 .ledger-info-table .info-blue {
-  color: #1d4ed8;
+  color: #0284c7;
   font-weight: 800;
 }
 
 .ledger-info-table .info-base-int {
-  color: #475569;
+  color: #64748b;
   font-size: 0.85em;
   font-weight: 600;
   margin-left: 3px;
@@ -3258,14 +3313,14 @@ select.member-action-select:active {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.78rem;
-  border: 1.5px solid #853d1b;
+  border: 1.5px solid #047857;
 }
 
 .ledger-data-table th {
-  background-color: #faede2;
-  color: #111827;
+  background-color: #ecfdf5;
+  color: #064e3b;
   font-weight: 700;
-  border: 1px solid #853d1b;
+  border: 1px solid #a7f3d0;
   padding: 6px 4px;
   text-align: center;
   line-height: 1.25;
@@ -3276,11 +3331,11 @@ select.member-action-select:active {
 }
 
 .ledger-data-table th.th-red {
-  color: #991b1b;
+  color: #b91c1c;
 }
 
 .ledger-data-table th.th-brown {
-  color: #7c2d12;
+  color: #065f46;
 }
 
 .ledger-data-table .th-green-sub {
@@ -3289,26 +3344,27 @@ select.member-action-select:active {
 }
 
 .ledger-data-table td {
-  border: 1px solid #dfcec3;
+  border: 1px solid #e2e8f0;
   padding: 5px 6px;
-  color: #111827;
+  color: #0f172a;
   font-size: 0.8rem;
   vertical-align: middle;
 }
 
 .ledger-data-table tbody tr:nth-child(even) {
-  background-color: #faf5ef;
+  background-color: #f8fafc;
 }
 
 .ledger-data-table tbody tr:hover {
-  background-color: #f5ece3;
+  background-color: #f1f5f9;
 }
 
 .ledger-data-table .total-row td {
-  background-color: #853d1b !important;
+  background: linear-gradient(135deg, #064e3b, #047857) !important;
+  background-color: #047857 !important;
   color: #ffffff !important;
   font-weight: 800;
-  border: 1.5px solid #853d1b;
+  border: 1.5px solid #047857;
   padding: 7px 6px;
   font-size: 0.82rem;
 }
@@ -3322,13 +3378,13 @@ select.member-action-select:active {
 }
 
 .ledger-notes-card {
-  background-color: #fffdf5;
-  border: 1.5px solid #853d1b;
+  background-color: #f0fdf4;
+  border: 1.5px solid #10b981;
   border-radius: 6px;
   padding: 8px 14px;
   font-size: 0.82rem;
   line-height: 1.8;
-  color: #111827;
+  color: #0f172a;
   min-width: 280px;
 }
 
@@ -3452,7 +3508,7 @@ select.member-action-select:active {
     grid-template-columns: 105px minmax(0, 1fr) !important;
     width: 100% !important;
     margin-bottom: 0 !important;
-    border: 1.5px solid #853d1b !important;
+    border: 1.5px solid #047857 !important;
   }
 
   .ledger-info-table tbody,
@@ -3464,7 +3520,7 @@ select.member-action-select:active {
     box-sizing: border-box !important;
     padding: 6px 8px !important;
     font-size: 0.78rem !important;
-    border: 1px solid #853d1b !important;
+    border: 1px solid #047857 !important;
     word-break: break-word !important;
   }
 
@@ -3475,7 +3531,7 @@ select.member-action-select:active {
     line-height: 1.25 !important;
     display: flex !important;
     align-items: center !important;
-    background-color: #853d1b !important;
+    background-color: #047857 !important;
     color: #ffffff !important;
     font-weight: 700 !important;
   }
@@ -3484,21 +3540,21 @@ select.member-action-select:active {
     width: auto !important;
     font-size: 0.8rem !important;
     line-height: 1.35 !important;
-    background-color: #fffdf5 !important;
-    border-color: #cfa890 !important;
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
   }
 
   .ledger-mobile-scroll-hint {
     display: block !important;
     font-size: 0.72rem !important;
-    color: #853d1b !important;
+    color: #047857 !important;
     font-weight: 700 !important;
     text-align: center !important;
-    background: #faede2 !important;
+    background: #ecfdf5 !important;
     padding: 5px 8px !important;
     border-radius: 4px !important;
     margin-bottom: 6px !important;
-    border: 1px dashed #cfa890 !important;
+    border: 1px dashed #a7f3d0 !important;
   }
 
   .ledger-table-wrap {
@@ -3507,7 +3563,7 @@ select.member-action-select:active {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     margin-bottom: 12px !important;
-    border: 1px solid #853d1b !important;
+    border: 1px solid #047857 !important;
     border-radius: 4px !important;
     background: #ffffff !important;
   }
@@ -3627,7 +3683,7 @@ select.member-action-select:active {
     max-width: 100% !important;
     margin: 0 !important;
     padding: 14px 18px !important;
-    border: 2.5px solid #853d1b !important;
+    border: 2.5px solid #047857 !important;
     box-shadow: none !important;
     background: #ffffff !important;
     -webkit-print-color-adjust: exact !important;
@@ -7416,13 +7472,13 @@ body {
             <button type="button" class="btn btn-secondary btn-sm hero-back-btn" id="reportsHeroBackBtn" onclick="window.ui.navigateToDashboard()" title="मुख्य बचत डॅशबोर्डवर परत जा">
               <span id="reportsHeroBackBtnText">⬅️ मुख्य डॅशबोर्ड</span>
             </button>
-            <span class="status-pill" id="reportsHeroBadge" style="font-size: 0.75rem; padding: 0.22rem 0.75rem; background: rgba(133, 61, 27, 0.15); color: #853d1b; border: 1px solid rgba(133, 61, 27, 0.35); font-weight: 700;">
+            <span class="status-pill" id="reportsHeroBadge" style="font-size: 0.75rem; padding: 0.22rem 0.75rem; background: rgba(4, 120, 87, 0.12); color: #047857; border: 1px solid rgba(4, 120, 87, 0.3); font-weight: 700;">
               📋 अधिकृत खातावही कार्ड रजिस्टर
             </span>
           </div>
 
           <div class="hero-main-content">
-            <div class="hero-icon-container" style="background: linear-gradient(135deg, rgba(133, 61, 27, 0.2), rgba(245, 158, 11, 0.25)); color: #853d1b; font-size: 2rem;">
+            <div class="hero-icon-container" style="background: linear-gradient(135deg, rgba(4, 120, 87, 0.2), rgba(16, 185, 129, 0.15)); color: #047857; font-size: 2rem;">
               📜
             </div>
             <div class="hero-heading-block">
@@ -7447,15 +7503,15 @@ body {
         </div>
 
         <!-- अहवाल नियंत्रक टूलबार (Controls Toolbar) -->
-        <div class="glass-card" style="padding: 1.15rem 1.35rem; margin-bottom: 1.5rem; border: 1.5px solid rgba(133, 61, 27, 0.25); background: #ffffff;">
+        <div class="glass-card" style="padding: 1.15rem 1.35rem; margin-bottom: 1.5rem; border: 1.5px solid rgba(4, 120, 87, 0.25); background: #ffffff;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; flex: 1;">
               <!-- सदस्य निवड ड्रॉपडाउन -->
               <div style="display: flex; flex-direction: column; gap: 0.3rem;">
-                <label for="reportsMemberSelect" id="reportsMemberSelectLabel" style="font-size: 0.78rem; font-weight: 700; color: #853d1b; text-transform: uppercase;">
+                <label for="reportsMemberSelect" id="reportsMemberSelectLabel" style="font-size: 0.78rem; font-weight: 700; color: #047857; text-transform: uppercase;">
                   👤 सदस्य निवडा:
                 </label>
-                <select id="reportsMemberSelect" class="form-control" style="font-weight: 700; font-size: 0.88rem; min-width: 260px; border-color: #853d1b; background: #fffdf5;" onchange="window.ui.onReportsMemberChange(this.value)">
+                <select id="reportsMemberSelect" class="form-control" style="font-weight: 700; font-size: 0.88rem; min-width: 260px; border-color: #047857; background: #f0fdf4;" onchange="window.ui.onReportsMemberChange(this.value)">
                   <!-- डायनॅमिकली भरले जाईल -->
                 </select>
               </div>
@@ -7487,7 +7543,7 @@ body {
             </div>
 
             <!-- जलद सदस्य माहिती बॅज -->
-            <div id="reportsMemberInfoBadge" style="background: #fffdf5; border: 1px solid #cfa890; border-radius: var(--radius-md); padding: 0.5rem 0.9rem; font-size: 0.82rem; color: #111827; display: flex; align-items: center; gap: 0.75rem;">
+            <div id="reportsMemberInfoBadge" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: var(--radius-md); padding: 0.5rem 0.9rem; font-size: 0.82rem; color: #111827; display: flex; align-items: center; gap: 0.75rem;">
               <!-- भरले जाईल -->
             </div>
           </div>
@@ -7541,7 +7597,7 @@ body {
             <button class="btn btn-secondary" id="btnCustHeroPassbook" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.1rem; font-size: 0.88rem; font-weight: 700; border-color: rgba(59, 130, 246, 0.4); color: var(--blue-300); background: rgba(59, 130, 246, 0.12);" title="सदस्य ५०-आठवडे पासबुक व खातावही पहा">
               <span>📖</span> सदस्य खातावही (पासबुक पहा)
             </button>
-            <button class="btn btn-secondary" id="btnCustHeroPrintLedgerCard" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.1rem; font-size: 0.88rem; font-weight: 700; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08);" title="अधिकृत लेजर कार्ड रजिस्टर पहा व प्रिंट करा">
+            <button class="btn btn-secondary" id="btnCustHeroPrintLedgerCard" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.1rem; font-size: 0.88rem; font-weight: 700; color: #047857; border-color: rgba(4, 120, 87, 0.4); background: rgba(4, 120, 87, 0.08);" title="अधिकृत लेजर कार्ड रजिस्टर पहा व प्रिंट करा">
               <span>📋</span> लेजर कार्ड रिपोर्ट
             </button>
             <button class="btn btn-secondary" id="btnCustHeroDownloadLedger" style="padding: 0.65rem 1.1rem; font-size: 0.88rem;">
@@ -7780,7 +7836,7 @@ body {
               <p id="custHistorySectionDesc" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="cust_history_sub">आपल्या ५०-आठवडे बीशीचे जमा हप्ते आणि डिजिटल पावत्यांचा संपूर्ण तपशील.</p>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <button class="btn btn-secondary btn-sm" id="btnCustPrintLedgerCard" style="font-weight: 700; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08);">
+              <button class="btn btn-secondary btn-sm" id="btnCustPrintLedgerCard" style="font-weight: 700; color: #047857; border-color: rgba(4, 120, 87, 0.4); background: rgba(4, 120, 87, 0.08);">
                 📋 माझे लेजर कार्ड पहा / प्रिंट करा
               </button>
               <button class="btn btn-secondary btn-sm" id="btnCustDownloadMyLedger">
@@ -8196,7 +8252,7 @@ body {
             <button type="button" class="btn btn-secondary btn-sm" id="passbookBtnWipeDeposits" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: var(--gold-400); border-color: rgba(245, 158, 11, 0.4);" title="या सदस्याचा जमा भरणा डेटा पुसा (Wipe Deposits)">
               🧹 भरणा पुसा
             </button>
-            <button type="button" class="btn btn-secondary btn-sm" id="passbookBtnLedgerCard" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08); font-weight: 700;" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
+            <button type="button" class="btn btn-secondary btn-sm" id="passbookBtnLedgerCard" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: #047857; border-color: rgba(4, 120, 87, 0.4); background: rgba(4, 120, 87, 0.08); font-weight: 700;" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
               📋 लेजर कार्ड
             </button>
           </div>
@@ -8241,7 +8297,7 @@ body {
           <button type="button" class="btn btn-emerald" id="btnPassbookRestartPlan" style="display: none; font-weight: 800; background: linear-gradient(135deg, var(--emerald-600), var(--blue-600));">
             🔄 नवीन प्लॅन सुरू करा (पुढील सायकल)
           </button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btnPassbookLedgerCardFooter" style="color: #7c3a1e; border-color: rgba(124, 58, 30, 0.4); background: rgba(124, 58, 30, 0.08); font-weight: 700;" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnPassbookLedgerCardFooter" style="color: #047857; border-color: rgba(4, 120, 87, 0.4); background: rgba(4, 120, 87, 0.08); font-weight: 700;" title="अधिकृत सदस्य लेजर कार्ड रजिस्टर प्रिंट किंवा शेअर करा">
             📋 लेजर कार्ड रजिस्टर
           </button>
           <button type="button" class="btn btn-secondary btn-sm" id="btnPassbookWipeDepositsFooter" style="color: var(--gold-400); border-color: rgba(245, 158, 11, 0.4); font-weight: 700;">
@@ -9294,18 +9350,18 @@ body {
   <!-- मोडल १३: अधिकृत सदस्य खातावही कार्ड रजिस्टर (Member Ledger Card Register) -->
   <div class="modal-overlay" id="memberLedgerModal">
     <div class="modal-container" style="max-width: 1100px; width: 96%; background: var(--bg-secondary);">
-      <div class="modal-header" style="background: linear-gradient(135deg, rgba(124, 58, 30, 0.15), rgba(245, 158, 11, 0.15)); border-bottom: 2px solid #7c3a1e;">
-        <h3 class="modal-title" style="color: #7c3a1e;">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(4, 120, 87, 0.15), rgba(16, 185, 129, 0.08)); border-bottom: 2px solid #047857;">
+        <h3 class="modal-title" style="color: #047857;">
           <span>📋</span> <span id="memberLedgerModalTitleText" data-i18n="modal_ledger_title">अधिकृत सदस्य खातावही कार्ड रजिस्टर</span>
         </h3>
         <button type="button" class="modal-close" data-modal-close onclick="window.ui.closeModal('memberLedgerModal')" title="बंद करा">&times;</button>
       </div>
-      <div class="modal-body" id="memberLedgerModalBody" style="padding: 1.25rem 1rem; overflow-x: auto; background: #fdfaf8;">
+      <div class="modal-body" id="memberLedgerModalBody" style="padding: 1.25rem 1rem; overflow-x: auto; background: #f8fafc;">
         <!-- डायनॅमिकली भरले जाते (Populated via window.receiptManager.showMemberLedgerCard) -->
       </div>
       <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-          <button type="button" class="btn btn-secondary" id="memberLedgerPrintBtn" onclick="window.receiptManager.printMemberLedgerCard()" style="font-weight: 700; color: #7c3a1e; border-color: #7c3a1e;">
+          <button type="button" class="btn btn-secondary" id="memberLedgerPrintBtn" onclick="window.receiptManager.printMemberLedgerCard()" style="font-weight: 700; color: #047857; border-color: #047857;">
             🖨️ लेजर कार्ड प्रिंट करा
           </button>
           <button type="button" class="btn btn-secondary" id="memberLedgerPdfBtn" onclick="window.receiptManager.printMemberLedgerCard()" style="font-weight: 700;">
