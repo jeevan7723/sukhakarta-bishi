@@ -4775,7 +4775,7 @@ class UIManager {
 
     // बॅज अद्ययावत
     const badgeEl = document.getElementById('membersPageCountBadge');
-    if (badgeEl) badgeEl.textContent = `${allMembers.length} नोंदणीकृत सदस्य`;
+    if (badgeEl) badgeEl.textContent = `${allMembers.length} सदस्य (${activeMembers.length} सक्रिय)`;
 
     // २. शोध व फिल्टर लागू करणे (Search & Filter)
     let filteredMembers = [...allMembers];
