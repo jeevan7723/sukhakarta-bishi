@@ -712,6 +712,18 @@ class BishiStore {
     }
 
     this.saveState();
+    if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyInstallmentCompleted === 'function') {
+      window.notificationManager.notifyInstallmentCompleted(member, {
+        weekNumber: targetWeekNum,
+        amount: inputDeposit,
+        finePaid: actualFine,
+        totalAmount: inputDeposit + actualFine,
+        receiptNo: primaryReceiptNo,
+        paymentMode: paymentMode,
+        isFullyPaid: stats.isFullyPaid,
+        isJustCompleted: isJustCompleted
+      });
+    }
     return {
       member,
       week: member.weeks[startWeekIndex],
@@ -806,6 +818,18 @@ class BishiStore {
     member.status = 'completed';
     const stats = this.calculateMemberStats(member);
     this.saveState();
+    if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyInstallmentCompleted === 'function') {
+      window.notificationManager.notifyInstallmentCompleted(member, {
+        weekNumber: targetWeek,
+        amount: totalBulkDeposit,
+        receiptNo: primaryReceiptNo,
+        paymentMode: paymentMode,
+        isBulk: true,
+        unpaidCount: unpaidCount,
+        isFullyPaid: true,
+        isJustCompleted: true
+      });
+    }
 
     return {
       member,

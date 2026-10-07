@@ -274,6 +274,42 @@
     }
 
     // ==========================================================================
+    // 💰 ३. सदस्यास हप्ता पूर्ण भरणा सूचना (Installment Completed Notification to Member)
+    // ==========================================================================
+    notifyInstallmentCompleted(member, details = {}) {
+      const memName = member ? (member.nameMarathi || member.name) : 'सदस्य';
+      const memId = member ? member.id : '';
+      const amount = Number(details.amount || 0);
+      const weekNum = details.weekNumber || 1;
+      const receiptNo = details.receiptNo || '';
+
+      let title = `✅ बीशी हप्ता भरणा यशस्वी (आठवडा ${weekNum})`;
+      let body = `${memName} (आयडी: ${memId}) आठवडा ${weekNum} चा ₹${amount.toLocaleString('en-IN')} हप्ता यशस्वीरीत्या जमा झाला आहे. (पावती क्र. ${receiptNo})`;
+
+      if (details.isBulk) {
+        title = `🎉 एकरकमी हप्ते जमा - बीशी पूर्ण!`;
+        body = `${memName} (आयडी: ${memId}) यांचे उर्वरित सर्व ${details.unpaidCount || ''} आठवड्यांचे हप्ते (₹${amount.toLocaleString('en-IN')}) जमा झाले आहेत. बीशी १००% पूर्ण!`;
+      } else if (details.isJustCompleted || details.isFullyPaid) {
+        title = `🏆 ५० आठवडे बीशी पूर्ण - अभिनंदन!`;
+        body = `${memName} (आयडी: ${memId}) यांनी सर्व ५० आठवड्यांचे हप्ते यशस्वीरीत्या पूर्ण भरले आहेत! मॅच्युरिटी परतावा पात्र.`;
+      }
+
+      this.notify({
+        title,
+        body,
+        type: 'installment',
+        url: `./app.html#members`,
+        meta: {
+          memberId: memId,
+          weekNumber: weekNum,
+          amount,
+          receiptNo,
+          action: 'installment_completed'
+        }
+      });
+    }
+
+    // ==========================================================================
     // 💳 २. सर्व कर्ज ॲक्शन्स सूचना (All Loan Actions Notifications)
     // ==========================================================================
 

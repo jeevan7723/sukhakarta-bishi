@@ -175,4 +175,26 @@ nm.markAllAsRead();
 assert.strictEqual(nm.getUnreadCount(), 0, 'Unread count should be 0 after markAllAsRead');
 console.log('✅ Mark all as read verified');
 
-console.log('\n🎉 ALL NOTIFICATION UNIT TESTS (1 to 8) PASSED WITH 100% SUCCESS!');
+console.log('--- Test 9: Member Installment Completed Notification (After Admin Deposit) ---');
+const testMemberForInstallment = {
+  id: 'SKB-005',
+  name: 'संतोष जाधव',
+  nameMarathi: 'संतोष जाधव'
+};
+nm.notifyInstallmentCompleted(testMemberForInstallment, {
+  weekNumber: 3,
+  amount: 2000,
+  receiptNo: 'REC-SKB-005-W3-9999',
+  isFullyPaid: false
+});
+
+const completedNotif = nm.notifications[0];
+assert.strictEqual(completedNotif.type, 'installment', 'Type should be installment');
+assert.ok(completedNotif.title.includes('हप्ता भरणा यशस्वी'), 'Title should state installment completed');
+assert.ok(completedNotif.body.includes('संतोष जाधव'), 'Body should mention member name');
+assert.ok(completedNotif.body.includes('₹2,000'), 'Body should mention deposited amount');
+assert.ok(completedNotif.body.includes('आठवडा 3'), 'Body should mention week number');
+console.log('✅ Member installment completed notification verified:', completedNotif.title, '->', completedNotif.body);
+
+console.log('\n🎉 ALL NOTIFICATION UNIT TESTS (1 to 9) PASSED WITH 100% SUCCESS!');
+
