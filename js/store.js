@@ -1289,6 +1289,9 @@ class BishiStore {
     });
 
     this.saveState();
+    if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyLoanDisbursed === 'function') {
+      window.notificationManager.notifyLoanDisbursed(newLoan, member);
+    }
     return { success: true, loan: newLoan, message: `सदस्य ${member.name} यांना ₹${principal.toLocaleString('en-IN')} कर्ज यशस्वीरीत्या वाटप करण्यात आले.` };
   }
 
@@ -1366,6 +1369,9 @@ class BishiStore {
     });
 
     this.saveState();
+    if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyLoanInterestPaid === 'function') {
+      window.notificationManager.notifyLoanInterestPaid(loan, interestPaymentRecord);
+    }
     return {
       success: true,
       loan,
@@ -1497,6 +1503,13 @@ class BishiStore {
     });
 
     this.saveState();
+    if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyLoanRepayment === 'function') {
+      window.notificationManager.notifyLoanRepayment(loan, {
+        repaidAmount: totalRepaid,
+        remainingPrincipal: remainingPrincipalAfter,
+        isFullySettled
+      });
+    }
     return {
       success: true,
       loan,
@@ -1526,6 +1539,14 @@ class BishiStore {
     this.state.transactions = (this.state.transactions || []).filter(t => (t.loanId || '').toUpperCase() !== clean);
 
     this.saveState();
+    if (typeof window !== 'undefined' && window.notificationManager) {
+      window.notificationManager.notify({
+        title: '🗑️ कर्ज रद्द केले (Loan Cancelled)',
+        body: `${removed.memberName} यांचे कर्ज क्र. ${removed.id} (₹${(removed.principalAmount || 0).toLocaleString('en-IN')}) रद्द करण्यात आले.`,
+        type: 'loan',
+        url: './app.html#loans'
+      });
+    }
     return { success: true, removedLoan: removed, message: 'कर्ज नोंद यशस्वीरीत्या काढून टाकली.' };
   }
 

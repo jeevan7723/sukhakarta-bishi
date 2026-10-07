@@ -3,7 +3,7 @@
  * Provides offline capabilities, instant loading, and asset caching for Website and Mobile App
  */
 
-const CACHE_NAME = 'sukhakarta-bishi-v1.2.0';
+const CACHE_NAME = 'sukhakarta-bishi-v1.3.0';
 
 const PRECACHE_ASSETS = [
   './',
@@ -28,6 +28,7 @@ const PRECACHE_ASSETS = [
   './js/auth.js',
   './js/receipt.js',
   './js/export.js',
+  './js/notifications.js',
   './js/ui.js',
   './js/pwa.js',
   './js/app.js'
@@ -120,3 +121,28 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// 4. Notification Click Event - Handle user tapping notification on mobile or desktop
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const clickTarget = (event.notification.data && event.notification.data.url) ? event.notification.data.url : './app.html';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          if (clickTarget && client.url.includes(clickTarget.split('#')[0])) {
+            if (clickTarget.includes('#')) {
+              client.navigate(clickTarget);
+            }
+            return client.focus();
+          }
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(clickTarget);
+      }
+    })
+  );
+});
+

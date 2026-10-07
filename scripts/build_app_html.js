@@ -44,6 +44,10 @@ const bottomNavHtml = `
       <span class="bnav-icon">📜</span>
       <span class="bnav-label">अहवाल</span>
     </button>
+    <button type="button" class="bottom-nav-item" id="bnavNotifications" onclick="window.notificationManager.openModal();" title="सूचना केंद्र">
+      <span class="bnav-icon" style="position: relative;">🔔<span class="bnav-notif-dot" id="bnavNotifDot" style="display: none; position: absolute; top: -3px; right: -5px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span></span>
+      <span class="bnav-label">सूचना</span>
+    </button>
     <button type="button" class="bottom-nav-item" id="bnavMenu" onclick="window.ui.toggleMobileDrawer()">
       <span class="bnav-icon">☰</span>
       <span class="bnav-label">मेनू</span>
