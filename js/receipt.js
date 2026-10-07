@@ -321,6 +321,31 @@ _सुखकर्ता बीशी सोबत नियमित बचत
     this.openReceiptModal();
   }
 
+  // सदस्यास थेट WhatsApp संदेश पाठवणे (Send Direct WhatsApp Message to Member after Deposit)
+  sendWhatsAppMessage(memberId, weekNumber, cycleNumber = null) {
+    const member = window.bishiStore.getMember(memberId);
+    if (!member) return;
+
+    let weekData = null;
+    if (cycleNumber && Number(cycleNumber) < (member.currentCycle || 1)) {
+      const pastCycle = (member.pastCycles || []).find(c => c.cycleNumber === Number(cycleNumber));
+      if (pastCycle && pastCycle.weeks) {
+        weekData = pastCycle.weeks.find(w => w.weekNumber === Number(weekNumber));
+      }
+    } else {
+      weekData = member.weeks.find(w => w.weekNumber === Number(weekNumber));
+    }
+    if (!weekData) return;
+
+    const bishiMeta = window.bishiStore.state.meta;
+    const waText = this.generateWhatsAppText(member, weekData, bishiMeta);
+    const cleanPhone = (member.phone || '').replace(/\D/g, '');
+    const waUrl = cleanPhone 
+      ? `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(waText)}` 
+      : `https://wa.me/?text=${encodeURIComponent(waText)}`;
+    window.open(waUrl, '_blank');
+  }
+
   showPayoutVoucherModal(memberId, cycleNumber = null) {
     const member = window.bishiStore.getMember(memberId);
     if (!member) {

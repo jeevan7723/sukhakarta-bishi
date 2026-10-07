@@ -2460,7 +2460,14 @@ class UIManager {
           }
         }
 
+        const shouldSendMessage = document.getElementById('collectModalSendMessageCheckbox')?.checked !== false;
         window.receiptManager.showReceiptModal(this.selectedMemberId, this.selectedCollectWeek);
+
+        if (shouldSendMessage && window.receiptManager && typeof window.receiptManager.sendWhatsAppMessage === 'function') {
+          setTimeout(() => {
+            window.receiptManager.sendWhatsAppMessage(this.selectedMemberId, this.selectedCollectWeek);
+          }, 350);
+        }
       } else {
         this.showToast('⚠️ पेमेंट नोंदवताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.', 'error');
       }
