@@ -781,6 +781,17 @@ class ExportManager {
     const memberCount = (window.bishiStore?.state?.members || []).length;
     const txnCount = (window.bishiStore?.state?.transactions || []).length;
     window.ui?.showToast(`✅ थेट अद्ययावत बॅकअप डाउनलोड झाला (${memberCount} सदस्य, ${txnCount} व्यवहार)!`, 'success');
+    // Also trigger local 11-file rolling queue
+    if (window.gdriveBackupManager && typeof window.gdriveBackupManager.saveLocalRollingBackup === 'function') {
+      window.gdriveBackupManager.saveLocalRollingBackup(fileName, jsonStr);
+    }
+  }
+
+  // --- Google Drive बॅकअप (कमाल ११ फाईल्स रोटेशन) ---
+  async backupToGoogleDrive() {
+    if (window.gdriveBackupManager) {
+      return await window.gdriveBackupManager.backupNow();
+    }
   }
 
   // --- डेटाबेस रिस्टोर (JSON Restore) ---

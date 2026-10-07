@@ -236,6 +236,11 @@ class UIManager {
       }
     }
 
+    // Google Drive ऑटो-बॅकअप स्थिती अद्ययावत करा
+    if (window.gdriveBackupManager && typeof window.gdriveBackupManager.renderStatusUI === 'function') {
+      window.gdriveBackupManager.renderStatusUI();
+    }
+
     // If Member Ledger Modal is open, re-render it so it instantly adapts to the selected language
     const ledgerModal = document.getElementById('memberLedgerModal');
     const isLedgerOpen = ledgerModal && (ledgerModal.classList.contains('active') || (ledgerModal.style && ledgerModal.style.display === 'block'));
@@ -7037,5 +7042,114 @@ class UIManager {
     }
   }
 }
+
+// --- Google Drive Auto-Backup Helpers ---
+window.saveGdriveSettingsFromUi = function() {
+  const clientId = document.getElementById('gdriveClientIdInput')?.value || '';
+  const scriptUrl = document.getElementById('gdriveScriptUrlInput')?.value || '';
+  const backupTime = document.getElementById('gdriveBackupTimeInput')?.value || '22:00';
+  const autoEnabled = document.getElementById('gdriveAutoEnabledCheck')?.checked;
+  window.gdriveBackupManager?.saveSettings(clientId, scriptUrl, backupTime, autoEnabled);
+};
+
+window.APPS_SCRIPT_TEMPLATE = `// सुखकर्ता बीशी - Google Apps Script Web App (११ फाईल्स ऑटो रोटेशन)
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var folderName = data.folderName || "सुखकर्ता बीशी बॅकअप";
+    var fileName = data.fileName || ("सुखकर्ता_बीशी_बॅकअप_" + new Date().toISOString() + ".json");
+    var content = data.content || "{}";
+    var maxFiles = data.maxFiles || 11;
+    
+    // १. फोल्डर शोधा किंवा नवीन तयार करा
+    var folders = DriveApp.getFoldersByName(folderName);
+    var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+    
+    // २. नवीन बॅकअप फाईल सेव्ह करा
+    var newFile = folder.createFile(fileName, content, MimeType.PLAIN_TEXT);
+    
+    // ३. सर्व बॅकअप फाईल्स तपासा
+    var filesIter = folder.getFiles();
+    var filesList = [];
+    while (filesIter.hasNext()) {
+      var f = filesIter.next();
+      filesList.push({ id: f.getId(), name: f.getName(), date: f.getDateCreated(), fileObj: f });
+    }
+    
+    // ४. सर्वात जुनी ते नवीन क्रमाने लावा (FIFO)
+    filesList.sort(function(a, b) { return a.date.getTime() - b.date.getTime(); });
+    
+    // ५. जर ११ पेक्षा जास्त फाईल्स असतील तर सर्वात जुनी (१ ली) फाईल आपोआप डिलीट करा
+    var deletedCount = 0;
+    while (filesList.length > maxFiles) {
+      var oldest = filesList.shift();
+      oldest.fileObj.setTrashed(true);
+      deletedCount++;
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      fileId: newFile.getId(),
+      fileName: fileName,
+      deletedCount: deletedCount,
+      remainingCount: filesList.length
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+
+window.copyGdriveAppsScriptCode = function(btnElement) {
+  const codeBox = document.getElementById('gdriveScriptCodeBox');
+  const codeToCopy = (codeBox && codeBox.value) ? codeBox.value : window.APPS_SCRIPT_TEMPLATE;
+  
+  let copied = false;
+
+  // १. Textarea selection + execCommand (सर्व ब्राऊझर आणि Localhost वर १००% खात्रीशीर)
+  if (codeBox) {
+    codeBox.value = codeToCopy;
+    codeBox.focus();
+    codeBox.select();
+    codeBox.setSelectionRange(0, 99999);
+    try {
+      copied = document.execCommand('copy');
+    } catch (e) {
+      copied = false;
+    }
+  }
+
+  // २. Modern navigator.clipboard API
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(codeToCopy).then(() => {
+      copied = true;
+    }).catch(() => {});
+  }
+
+  // ३. Fallback prompt जर वरील दोन्ही अयशस्वी झाले
+  if (!copied && !codeBox) {
+    try {
+      window.prompt('खालील कोड कॉपी करा (Ctrl+C दाबा):', codeToCopy);
+      copied = true;
+    } catch (e) {}
+  }
+
+  // बटणावर तात्काळ हिरवा फीडबॅक दाखवणे
+  const btn = btnElement || document.getElementById('btnCopyGdriveScript');
+  if (btn) {
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '✅ कोड कॉपी झाला!';
+    btn.style.background = 'rgba(16, 185, 129, 0.25)';
+    btn.style.borderColor = 'var(--emerald-400)';
+    btn.style.color = 'var(--emerald-400)';
+    setTimeout(() => {
+      btn.innerHTML = origHtml;
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 2500);
+  }
+
+  window.ui?.showToast('📋 Google Apps Script कोड यशस्वीरीत्या कॉपी झाला!', 'success');
+};
 
 window.ui = new UIManager();

@@ -9508,6 +9508,49 @@ body {
             <button class="btn btn-secondary btn-sm" id="btnBackupJSON">बॅकअप JSON डाउनलोड करा</button>
           </div>
 
+          <!-- नवीन: Google Drive ऑटो-बॅकअप (कमाल ११ फाईल्स FIFO रोटेशन) -->
+          <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.09), rgba(16, 185, 129, 0.09)); border: 1.5px solid rgba(59, 130, 246, 0.35); padding: 1.15rem; border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                  <span style="font-size: 1.25rem;">☁️</span>
+                  <span style="font-weight: 800; color: var(--text-primary); font-size: 0.95rem;">Google Drive ऑटो बॅकअप (११ फाईल्स रोटेशन)</span>
+                  <span class="gdrive-status-badge"></span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                  दररोज ठरविक वेळेस बॅकअप आपोआप सेव्ह होतो. ११ फाईल्स साठल्यानंतर १२ वी फाईल येताच सर्वात जुनी (१ ली) फाईल आपोआप डिलीट होते.
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary btn-sm btn-gdrive-connect" id="btnMainGdriveConnect" onclick="window.gdriveBackupManager?.connect();" style="display: inline-flex; align-items: center; gap: 0.35rem; background: linear-gradient(135deg, #4285F4, #34A853); font-weight: 700;">
+                  <span>🌐</span> Google ने कनेक्ट करा
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="window.gdriveBackupManager?.openGdriveModal();" style="border-color: rgba(59, 130, 246, 0.4); color: var(--blue-400);">
+                  ⚙️ Drive सेटिंग्ज व यादी
+                </button>
+                <button type="button" class="btn btn-primary btn-sm btn-gdrive-backup-now" onclick="window.gdriveBackupManager?.backupNow();" style="background: linear-gradient(135deg, var(--emerald-500), #2563eb);">
+                  ☁️ आताच Drive वर बॅकअप घ्या
+                </button>
+              </div>
+            </div>
+
+            <!-- लाइव्ह स्थिती माहिती पट्टी -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.65rem; background: var(--bg-card); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.76rem;">
+              <div>
+                <span style="color: var(--text-muted);">खाते:</span>
+                <span style="font-weight: 700; color: var(--text-primary); margin-left: 0.3rem;" class="gdrive-account-text">तपासत आहे...</span>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">नियोजित वेळ:</span>
+                <span style="font-weight: 700; color: var(--emerald-400); margin-left: 0.3rem;" class="gdrive-schedule-text">दररोज २२:०० वाजता</span>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">शेवटचा बॅकअप:</span>
+                <span style="font-weight: 700; color: var(--gold-400); margin-left: 0.3rem;" class="gdrive-last-backup-text">—</span>
+              </div>
+            </div>
+          </div>
+
           <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="font-weight: 700; color: var(--text-primary);">बॅकअप फाईलवरून डेटा पूर्ववत करा (Restore)</div>
@@ -9526,6 +9569,173 @@ body {
             </div>
             <button class="btn btn-danger btn-sm" id="btnClearAllData">सर्व डेटा साफ करा</button>
           </div>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-modal-close onclick="window.closeAllModals()">बंद करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- मोडल: Google Drive ऑटो बॅकअप व्यवस्थापन (११ फाईल्स रोटेशन) -->
+  <div class="modal-overlay" id="gdriveModal">
+    <div class="modal-container" style="max-width: 680px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(16, 185, 129, 0.18));">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>☁️</span> Google Drive ऑटो बॅकअप व्यवस्थापन
+        </h3>
+        <button type="button" class="modal-close" data-modal-close onclick="window.closeAllModals()" title="बंद करा">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.25rem;">
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+
+          <!-- १. स्टेटस व कनेक्ट कार्ड -->
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.1rem;">🔗</span>
+                <span style="font-weight: 700; color: var(--text-primary); font-size: 0.9rem;">Google Drive कनेक्शन स्थिती</span>
+                <span class="gdrive-status-badge"></span>
+              </div>
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary btn-sm btn-gdrive-connect" id="btnGdriveConnect" onclick="window.gdriveBackupManager?.connect();" style="display: inline-flex; align-items: center; gap: 0.35rem; background: linear-gradient(135deg, #4285F4, #34A853); font-weight: 700;">
+                  <span>🌐</span> Google ने कनेक्ट करा
+                </button>
+                <button type="button" class="btn btn-danger btn-sm btn-gdrive-disconnect" id="btnGdriveDisconnect" onclick="window.gdriveBackupManager?.disconnect();" style="display: none;">
+                  डिस्कनेक्ट करा
+                </button>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; font-size: 0.8rem; background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <div>
+                <span style="color: var(--text-muted);">जोडलेले खाते:</span>
+                <div style="font-weight: 700; color: var(--text-primary); margin-top: 0.15rem;" class="gdrive-account-text">तपासत आहे...</div>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">शेवटचा यशस्वी बॅकअप:</span>
+                <div style="font-weight: 700; color: var(--gold-400); margin-top: 0.15rem;" class="gdrive-last-backup-text">अद्याप घेतलेला नाही</div>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">Drive मधील बॅकअप फोल्डर:</span>
+                <div style="font-weight: 700; color: var(--emerald-400); margin-top: 0.15rem;">📁 सुखकर्ता बीशी बॅकअप</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- २. शेड्युल आणि ११-फाईल्स रोटेशन नियम कार्ड -->
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span>⏰</span> दैनिक ऑटो बॅकअप शेड्युल व फाईल रोटेशन
+            </div>
+
+            <form id="gdriveSettingsForm" onsubmit="event.preventDefault(); window.saveGdriveSettingsFromUi();" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">दररोज आपोआप बॅकअप घ्या (Auto-Backup)</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">ठरविक वेळेस बॅकअप फाइल आपोआप Google Drive वर पाठवली जाईल</div>
+                </div>
+                <input type="checkbox" id="gdriveAutoEnabledCheck" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--emerald-500);">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div>
+                  <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 0.3rem;">
+                    ⏰ दररोज बॅकअप घेण्याची वेळ
+                  </label>
+                  <input type="time" id="gdriveBackupTimeInput" value="22:00" class="form-control" style="width: 100%; height: 38px; font-weight: 700; color: var(--emerald-400);">
+                </div>
+                <div>
+                  <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 0.3rem;">
+                    📦 कमाल फाईल्स मर्यादा (FIFO नियम)
+                  </label>
+                  <div style="height: 38px; display: flex; align-items: center; padding: 0 0.75rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 800; color: var(--gold-400);">
+                    ११ फाईल्स (१२ वी आल्यास १ ली डिलीट)
+                  </div>
+                </div>
+              </div>
+
+              <!-- ११ फाईल्स FIFO नियम माहिती पट्टी -->
+              <div style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid var(--emerald-400); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45;">
+                <strong style="color: var(--emerald-400);">✨ ११-फाईल ऑटोमॅटिक रोटेशन:</strong> Drive वर नेहमी नवीनतम ११ बॅकअप फाईल्स सुरक्षित राहतील. १२ वा नवीन बॅकअप येताच सिस्टम आपोआप सर्वात जुनी १ ली फाईल कायमची हटवते.
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem;">
+                <button type="submit" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+                  💾 सेटिंग्ज सेव्ह करा
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ३. त्वरित कृती बटण (Instant Backup Button) -->
+          <div style="display: flex; gap: 0.5rem; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.85rem 1rem; border-radius: var(--radius-md); flex-wrap: wrap;">
+            <div>
+              <div style="font-weight: 800; color: var(--text-primary); font-size: 0.9rem;">थेट Google Drive वर बॅकअप घ्या</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">आता चालू असलेला संपूर्ण डेटाबेस क्षणात Drive वर सुरक्षित सेव्ह करा</div>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm btn-gdrive-backup-now" onclick="window.gdriveBackupManager?.backupNow();" style="background: linear-gradient(135deg, var(--emerald-500), #2563eb); font-weight: 800; padding: 0.55rem 1rem;">
+              ☁️ आताच Google Drive वर बॅकअप घ्या
+            </button>
+          </div>
+
+          <!-- ४. Google Drive मधील बॅकअप फाईल्स यादी (List of Files in Drive) -->
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div style="font-weight: 700; color: var(--text-primary); font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📂</span> Google Drive मधील बॅकअप फाईल्स (कमाल ११)
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.gdriveBackupManager?.loadFilesList();" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" title="यादी रीफ्रेश करा">
+                🔄 रीफ्रेश
+              </button>
+            </div>
+            
+            <div id="gdriveFilesList" style="max-height: 240px; overflow-y: auto;">
+              <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                फाईल्स तपासत आहे...
+              </div>
+            </div>
+          </div>
+
+          <!-- ५. प्रगत एकत्रीकरण पर्याय (Google Client ID व Apps Script) -->
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem 1rem; font-size: 0.8rem;">
+            <summary style="font-weight: 700; color: var(--text-secondary); cursor: pointer; user-select: none;">
+              ⚙️ प्रगत Google Drive कनेक्शन पर्याय (Client ID / Apps Script Webhook)
+            </summary>
+            <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;">
+              <div>
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">
+                  पर्याय १: Google Cloud OAuth 2.0 Client ID (अधिकृत Google साइन-इन)
+                </label>
+                <input type="text" id="gdriveClientIdInput" placeholder="उदा. 1234567890-abcdef.apps.googleusercontent.com" class="form-control" style="width: 100%; height: 34px; font-size: 0.78rem;">
+                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;">
+                  Google Cloud Console मधून मोफत Web Client ID तयार करून येथे टाका.
+                </div>
+              </div>
+
+              <div style="border-top: 1px dashed var(--border-color); padding-top: 0.65rem;">
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">
+                  पर्याय २: Google Apps Script Web App URL (१-क्लिक सोपा पर्याय)
+                </label>
+                <input type="text" id="gdriveScriptUrlInput" placeholder="उदा. https://script.google.com/macros/s/AKfycb.../exec" class="form-control" style="width: 100%; height: 34px; font-size: 0.78rem;">
+                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;">
+                  Client ID शिवाय थेट Google Drive वर सेव्ह करण्यासाठी खालील कोड <a href="https://script.google.com/home/start" target="_blank" style="color: var(--blue-400); text-decoration: underline;">Google Apps Script</a> मध्ये पेस्ट करून Web App Deploy करा आणि त्याची URL वर टाका:
+                </div>
+                
+                <!-- Apps Script Code Box with 1-Click Copy -->
+                <div style="margin-top: 0.5rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                    <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 700;">Google Apps Script कोड:</span>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCopyGdriveScript" onclick="window.copyGdriveAppsScriptCode(this);" style="font-size: 0.75rem; padding: 0.25rem 0.65rem; font-weight: 700; border-color: rgba(16, 185, 129, 0.4); color: var(--emerald-400);">
+                      📋 Apps Script कोड कॉपी करा
+                    </button>
+                  </div>
+                  <textarea id="gdriveScriptCodeBox" readonly onclick="this.select();" style="width: 100%; height: 130px; font-family: var(--font-mono, monospace); font-size: 0.72rem; background: rgba(0, 0, 0, 0.45); color: #6ee7b7; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; resize: vertical; line-height: 1.4; outline: none;"></textarea>
+                </div>
+              </div>
+            </div>
+          </details>
 
         </div>
       </div>
@@ -9863,17 +10073,21 @@ body {
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
+  <!-- Google Identity Services (Google Drive OAuth) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <!-- Javascript Scripts (Cache-Busted) -->
   <script src="js/xlsx.full.min.js"></script>
-  <script src="js/firebase.js?v=2.8.6"></script>
-  <script src="js/marathi_translit.js?v=2.8.6"></script>
-  <script src="js/i18n.js?v=2.8.6"></script>
-  <script src="js/store.js?v=2.8.6"></script>
-  <script src="js/auth.js?v=2.8.6"></script>
-  <script src="js/receipt.js?v=2.8.6"></script>
-  <script src="js/export.js?v=2.8.6"></script>
-  <script src="js/ui.js?v=2.8.6"></script>
-  <script src="js/pwa.js?v=2.8.6"></script>
-  <script src="js/app.js?v=2.8.6"></script>
+  <script src="js/firebase.js?v=2.8.8"></script>
+  <script src="js/marathi_translit.js?v=2.8.8"></script>
+  <script src="js/i18n.js?v=2.8.8"></script>
+  <script src="js/store.js?v=2.8.8"></script>
+  <script src="js/auth.js?v=2.8.8"></script>
+  <script src="js/receipt.js?v=2.8.8"></script>
+  <script src="js/export.js?v=2.8.8"></script>
+  <script src="js/gdrive.js?v=2.8.8"></script>
+  <script src="js/ui.js?v=2.8.8"></script>
+  <script src="js/pwa.js?v=2.8.8"></script>
+  <script src="js/app.js?v=2.8.8"></script>
 </body>
 </html>

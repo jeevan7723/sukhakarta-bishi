@@ -161,8 +161,9 @@ async function populateRecentData() {
   console.log('\n--- Writing Member Documents (Collection: "members") ---');
   for (const m of members) {
     const doc = buildMemberDocument(m, transactions, loans, meta);
-    await writeFirestoreDoc('members', m.id, doc);
-    console.log(`✅ [members/${m.id}]: Saved "${m.name}" (${doc.weeks.length} weeks, ${doc.transactions.length} txns, ${doc.loans.length} loans).`);
+    const docId = m.name ? `${m.id} - ${m.name.replace(/[/\\#?]/g, '-').trim()}` : m.id;
+    await writeFirestoreDoc('members', docId, doc);
+    console.log(`✅ [members/${docId}]: Saved "${m.name}" (${doc.weeks.length} weeks, ${doc.transactions.length} txns, ${doc.loans.length} loans).`);
   }
 
   // 2. Write Transactions collection
@@ -179,12 +180,13 @@ async function populateRecentData() {
   // 3. Write Loans collection
   console.log('\n--- Writing Loan Documents (Collection: "loans") ---');
   for (const loan of loans) {
-    await writeFirestoreDoc('loans', loan.id, {
+    const docId = loan.memberName ? `${loan.id} - ${loan.memberName.replace(/[/\\#?]/g, '-').trim()}` : loan.id;
+    await writeFirestoreDoc('loans', docId, {
       ...loan,
       _section: 'loans',
       _updatedAt: new Date().toISOString()
     });
-    console.log(`✅ [loans/${loan.id}]: Saved loan for ${loan.memberName} (₹${loan.principalAmount}).`);
+    console.log(`✅ [loans/${docId}]: Saved loan for ${loan.memberName} (₹${loan.principalAmount}).`);
   }
 
   // 4. Write Settings collection

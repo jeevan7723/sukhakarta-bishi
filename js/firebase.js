@@ -215,10 +215,11 @@ class FirebaseSyncManager {
     // 1. Unified snapshot
     await this.patchFirestoreDocViaRest('sukhakarta_bishi', 'live_state', payload);
     
-    // 2. Separate Member documents
+    // 2. Separate Member documents (उदा. "SKB-001 - aditya patil")
     for (const member of (payload.members || [])) {
+      const docId = this.getMemberDocId(member);
       const memberDoc = this.buildMemberDocument(member, payload);
-      await this.patchFirestoreDocViaRest('members', member.id, memberDoc);
+      await this.patchFirestoreDocViaRest('members', docId, memberDoc);
     }
 
     // 3. Transactions
@@ -230,9 +231,10 @@ class FirebaseSyncManager {
       });
     }
 
-    // 4. Loans
+    // 4. Loans (उदा. "LN-SKB-001-01 - aditya patil")
     for (const loan of (payload.loans || [])) {
-      await this.patchFirestoreDocViaRest('loans', loan.id, {
+      const docId = this.getLoanDocId(loan);
+      await this.patchFirestoreDocViaRest('loans', docId, {
         ...loan,
         _section: 'loans',
         _updatedAt: new Date().toISOString()
@@ -408,6 +410,26 @@ class FirebaseSyncManager {
     this.hasRemoteData = true;
   }
 
+  // --- ३.० सदस्य डॉक्युमेंट आयडी तयार करणे (उदा. "SKB-001 - aditya patil") ---
+  getMemberDocId(member) {
+    if (!member) return '';
+    const id = member.id || '';
+    const name = (member.name || '').trim();
+    if (!name) return id;
+    const cleanName = name.replace(/[/\\#?]/g, '-').trim();
+    return `${id} - ${cleanName}`;
+  }
+
+  // --- ३.०१ कर्ज डॉक्युमेंट आयडी तयार करणे (उदा. "LN-SKB-001-01 - aditya patil") ---
+  getLoanDocId(loan) {
+    if (!loan) return '';
+    const id = loan.id || '';
+    const name = (loan.memberName || '').trim();
+    if (!name) return id;
+    const cleanName = name.replace(/[/\\#?]/g, '-').trim();
+    return `${id} - ${cleanName}`;
+  }
+
   // --- ३.१ सर्व डेटा समाविष्ट असलेले स्वतंत्र सदस्य डॉक्युमेंट तयार करणे (Comprehensive Member Document) ---
   buildMemberDocument(member, storeState = null) {
     const store = storeState || (window.bishiStore && window.bishiStore.state);
@@ -578,15 +600,15 @@ class FirebaseSyncManager {
     if (this.firestore) {
       try {
         const membersList = payload.members || [];
-        const activeMemberIds = new Set(membersList.map(m => m.id));
+        const activeMemberDocIds = new Set(membersList.map(m => this.getMemberDocId(m)));
 
-        // Delete old obsolete member documents that are not in local members
+        // Delete old obsolete member documents that are not in local members (e.g. old "SKB-001" or renamed names)
         try {
           const existingMembersSnap = await this.firestore.collection('members').get();
           const batch = this.firestore.batch();
           let hasDeletions = false;
           existingMembersSnap.forEach(doc => {
-            if (!activeMemberIds.has(doc.id)) {
+            if (!activeMemberDocIds.has(doc.id)) {
               batch.delete(doc.ref);
               hasDeletions = true;
             }
@@ -596,17 +618,35 @@ class FirebaseSyncManager {
           console.warn('Notice cleaning obsolete members:', e);
         }
 
-        // (A) Write Separate Document for each active member
+        // (A) Write Separate Document for each active member (उदा. "SKB-001 - aditya patil")
         for (const m of membersList) {
+          const docId = this.getMemberDocId(m);
           const memberDoc = this.buildMemberDocument(m, payload);
-          await this.firestore.collection('members').doc(m.id).set(memberDoc);
+          await this.firestore.collection('members').doc(docId).set(memberDoc);
         }
 
         // (B) Write Separate Document for each settled member
         const settledList = payload.settledMembers || [];
+        const activeSettledDocIds = new Set(settledList.map(sm => this.getMemberDocId(sm)));
+        try {
+          const existingSettledSnap = await this.firestore.collection('settled_members').get();
+          const batchSettled = this.firestore.batch();
+          let hasSettledDel = false;
+          existingSettledSnap.forEach(doc => {
+            if (!activeSettledDocIds.has(doc.id)) {
+              batchSettled.delete(doc.ref);
+              hasSettledDel = true;
+            }
+          });
+          if (hasSettledDel) await batchSettled.commit();
+        } catch (e) {
+          console.warn('Notice cleaning obsolete settled members:', e);
+        }
+
         for (const sm of settledList) {
+          const docId = this.getMemberDocId(sm);
           const settledDoc = this.buildMemberDocument(sm, payload);
-          await this.firestore.collection('settled_members').doc(sm.id).set(settledDoc);
+          await this.firestore.collection('settled_members').doc(docId).set(settledDoc);
         }
 
         // (C) Write Separate Document for each transaction & clean old
@@ -633,15 +673,15 @@ class FirebaseSyncManager {
           });
         }
 
-        // (D) Write Separate Document for each loan & clean old
+        // (D) Write Separate Document for each loan & clean old (उदा. "LN-SKB-001-01 - aditya patil")
         const loanList = payload.loans || [];
-        const activeLoanIds = new Set(loanList.map(l => l.id));
+        const activeLoanDocIds = new Set(loanList.map(l => this.getLoanDocId(l)));
         try {
           const existingLoansSnap = await this.firestore.collection('loans').get();
           const batchLoans = this.firestore.batch();
           let hasLoanDel = false;
           existingLoansSnap.forEach(doc => {
-            if (!activeLoanIds.has(doc.id)) {
+            if (!activeLoanDocIds.has(doc.id)) {
               batchLoans.delete(doc.ref);
               hasLoanDel = true;
             }
@@ -650,7 +690,8 @@ class FirebaseSyncManager {
         } catch (e) {}
 
         for (const loan of loanList) {
-          await this.firestore.collection('loans').doc(loan.id).set({
+          const docId = this.getLoanDocId(loan);
+          await this.firestore.collection('loans').doc(docId).set({
             ...loan,
             _section: 'loans',
             _updatedAt: new Date().toISOString()
@@ -873,10 +914,23 @@ class FirebaseSyncManager {
   async syncMemberToCloud(memberId) {
     const member = window.bishiStore.getMember(memberId);
     if (!member) return null;
+    const docId = this.getMemberDocId(member);
     const memberDoc = this.buildMemberDocument(member);
     if (this.firestore) {
       try {
-        await this.firestore.collection('members').doc(memberId).set(memberDoc);
+        // Clean any old docs for this member whose name might have changed
+        const snap = await this.firestore.collection('members').get();
+        const batch = this.firestore.batch();
+        let hasOld = false;
+        snap.forEach(d => {
+          if ((d.id === memberId || d.id.startsWith(`${memberId} -`) || (d.data() && d.data().id === memberId)) && d.id !== docId) {
+            batch.delete(d.ref);
+            hasOld = true;
+          }
+        });
+        if (hasOld) await batch.commit();
+
+        await this.firestore.collection('members').doc(docId).set(memberDoc);
       } catch (e) {
         console.warn('Error syncing member doc to Firestore:', e);
       }
@@ -906,7 +960,16 @@ class FirebaseSyncManager {
       // 1. Explicitly remove member's dedicated document from Firestore collection 'members'
       if (this.firestore) {
         try {
-          await this.firestore.collection('members').doc(memberId).delete();
+          const snap = await this.firestore.collection('members').get();
+          const batch = this.firestore.batch();
+          let hasDel = false;
+          snap.forEach(d => {
+            if (d.id === memberId || d.id.startsWith(`${memberId} -`) || (d.data() && d.data().id === memberId)) {
+              batch.delete(d.ref);
+              hasDel = true;
+            }
+          });
+          if (hasDel) await batch.commit();
         } catch (e) {
           console.warn('Error deleting member doc from Firestore:', e);
         }

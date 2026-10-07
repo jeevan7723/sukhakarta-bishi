@@ -189,8 +189,9 @@ async function migrate() {
   console.log('\n--- Writing Individual Member Documents (Collection: "members") ---');
   for (const m of members) {
     const fullDoc = buildComprehensiveMemberDoc(m, transactions, loans, meta.totalWeeks || 50, meta.maturityInterestPercent || 8);
-    await writeFirestoreDoc('members', m.id, fullDoc);
-    console.log(`✅ [members/${m.id}]: Saved "${m.name}" with all 50 weeks, ${fullDoc.transactions.length} txns, and summary (Total Paid: ₹${fullDoc.summary.totalPaid}).`);
+    const docId = m.name ? `${m.id} - ${m.name.replace(/[/\\#?]/g, '-').trim()}` : m.id;
+    await writeFirestoreDoc('members', docId, fullDoc);
+    console.log(`✅ [members/${docId}]: Saved "${m.name}" with all 50 weeks, ${fullDoc.transactions.length} txns, and summary (Total Paid: ₹${fullDoc.summary.totalPaid}).`);
   }
 
   // 3. Write settled members to collection 'settled_members'
@@ -198,8 +199,9 @@ async function migrate() {
     console.log('\n--- Writing Settled Members (Collection: "settled_members") ---');
     for (const sm of settledMembers) {
       const fullDoc = buildComprehensiveMemberDoc(sm, transactions, loans, meta.totalWeeks || 50, meta.maturityInterestPercent || 8);
-      await writeFirestoreDoc('settled_members', sm.id, fullDoc);
-      console.log(`✅ [settled_members/${sm.id}]: Saved settled member "${sm.name}".`);
+      const docId = sm.name ? `${sm.id} - ${sm.name.replace(/[/\\#?]/g, '-').trim()}` : sm.id;
+      await writeFirestoreDoc('settled_members', docId, fullDoc);
+      console.log(`✅ [settled_members/${docId}]: Saved settled member "${sm.name}".`);
     }
   }
 
@@ -224,8 +226,9 @@ async function migrate() {
         _section: 'loans',
         _updatedAt: new Date().toISOString()
       };
-      await writeFirestoreDoc('loans', loan.id, loanDoc);
-      console.log(`✅ [loans/${loan.id}]: Saved loan.`);
+      const docId = loan.memberName ? `${loan.id} - ${loan.memberName.replace(/[/\\#?]/g, '-').trim()}` : loan.id;
+      await writeFirestoreDoc('loans', docId, loanDoc);
+      console.log(`✅ [loans/${docId}]: Saved loan.`);
     }
   }
 
