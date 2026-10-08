@@ -276,13 +276,16 @@ class UIManager {
 
   setFilter(filterName) {
     this.currentFilter = filterName || 'all';
-    document.querySelectorAll('.filter-btn').forEach(btn => {
+    document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.filter === this.currentFilter);
     });
     this.renderMembersTable();
   }
 
   filterCompletedMembers() {
+    if (this.currentAdminView !== 'members') {
+      this.navigateToMembersPage();
+    }
     this.searchQuery = '';
     const searchInput = document.getElementById('memberSearchInput');
     if (searchInput) searchInput.value = '';
@@ -4490,6 +4493,8 @@ class UIManager {
 
     this.renderMembersPage();
     this.renderWeekPills();
+    this.renderMembersTable();
+    this.renderSummaryBanner();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

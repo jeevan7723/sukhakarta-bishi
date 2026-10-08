@@ -6992,108 +6992,110 @@ body {
           </div>
         </section>
 
-        <!-- ५०-आठवडे नेव्हिगेटर कॅरोसेल बार -->
-        <section class="week-navigator-card">
-          <div class="week-nav-header">
-            <div class="week-nav-title">
-              <h2 style="font-size: 1.15rem; font-weight: 700;">साप्ताहिक कलेक्शन सायकल</h2>
-              <span class="current-week-badge" id="currentWeekDisplayTitle">आठवडा १</span>
+        <!-- मुख्य डॅशबोर्ड व्यवस्थापन व थेट नेव्हिगेशन हब (Dashboard Quick Hub & Section Access) -->
+        <section class="dashboard-hub-section" style="margin-top: 1rem; margin-bottom: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                <span>🚀</span> मुख्य नियंत्रण व थेट व्यवस्थापन हब
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                सर्व सदस्यांची माहिती, ५०-आठवडे कलेक्शन सायकल, कर्ज वाटप आणि अहवाल व्यवस्थापनासाठी थेट पर्याय.
+              </p>
             </div>
-            <div class="week-nav-controls">
-              <button class="btn btn-secondary btn-sm" id="btnPrevWeek" title="मागील आठवडा">◀ मागील</button>
-              <select id="weekDropdownSelect" class="week-dropdown-select" aria-label="आठवडा निवडा" title="थेट आठवडा निवडा"></select>
-              <button class="btn btn-secondary btn-sm" id="btnNextWeek" title="पुढील आठवडा">पुढील ▶</button>
-            </div>
-          </div>
-          <div class="week-scroll-container" id="weekScrollContainer">
-            <!-- आठवडा १ ते ५० बटणे डायनॅमिकली भरली जातात -->
-          </div>
-        </section>
-
-        <!-- निवडलेल्या आठवड्याचा सारांश बॅनर -->
-        <section class="week-summary-banner">
-          <div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">निवडलेला आठवडा</div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary);" id="bannerCurrentWeekNumber">आठवडा १ / ५०</div>
-          </div>
-          <div class="summary-details">
-            <div class="summary-item">
-              <span class="label">अपेक्षित हप्ता लक्ष्य</span>
-              <span class="val" id="bannerWeekTarget" style="color: var(--text-primary);">₹0</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">आतापर्यंत जमा रक्कम</span>
-              <span class="val" id="bannerWeekCollected" style="color: var(--emerald-400);">₹0</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">या आठवड्याची बाकी</span>
-              <span class="val" id="bannerWeekPending" style="color: var(--rose-400);">₹0</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">कलेक्शन टक्केवारी</span>
-              <span class="val" id="bannerWeekRate" style="color: var(--gold-400);">0%</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- ५०-आठवडे पूर्ण अभिनंदन अलर्ट बॅनर -->
-        <div id="adminMaturityAlertBanner" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(16, 185, 129, 0.15)); border: 1.5px solid var(--gold-400); border-radius: var(--radius-lg); padding: 1.15rem 1.35rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.18);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-            <div style="display: flex; align-items: center; gap: 0.85rem;">
-              <div style="font-size: 2rem; line-height: 1;">🏆</div>
-              <div>
-                <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary);">
-                  ५०-आठवड्यांचे चक्र पूर्ण झाले!
-                </div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;" id="adminMaturityAlertText">
-                  सदस्याने सर्व ५० साप्ताहिक हप्ते पूर्ण केले आहेत. ८% मॅच्युरिटी व्याज बोनस जोडला गेला आहे!
-                </div>
-              </div>
-            </div>
-            <div style="display: flex; gap: 0.5rem;">
-              <button type="button" class="btn btn-gold btn-sm" id="btnFilterCompletedMembers" onclick="window.ui.filterCompletedMembers()" title="पूर्ण झालेले सदस्य पहा व फिल्टर करा">
-                👀 पूर्ण झालेले सदस्य पहा
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary btn-sm" onclick="window.ui.openAddMemberModal()">
+                <span>➕</span> नवीन सदस्य नोंदणी
+              </button>
+              <button type="button" class="btn btn-emerald btn-sm" onclick="window.ui.openGiveLoanModal()">
+                <span>💳</span> नवीन कर्ज वाटप
               </button>
             </div>
           </div>
-        </div>
 
-        <!-- टूलबार: शोध आणि फिल्टर (केवळ प्रशासक ॲडमिन पॅनल) -->
-        <section class="toolbar-card">
-          <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="memberSearchInput" class="search-input" placeholder="सदस्याचे नाव, फोन नंबर किंवा आयडी शोधा...">
+          <div class="dashboard-hub-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+            
+            <!-- हब कार्ड १: सर्व सदस्य डेटा व साप्ताहिक कलेक्शन सायकल -->
+            <div class="glass-card hub-card" style="padding: 1.35rem; cursor: pointer; transition: all 0.25s ease; border-left: 4px solid var(--blue-500); display: flex; flex-direction: column; justify-content: space-between;" onclick="window.ui.navigateToMembersPage()">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                  <div style="font-size: 2.2rem; line-height: 1;">👥</div>
+                  <span class="status-pill status-paid" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;">५०-आठवडे सायकल</span>
+                </div>
+                <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem;">
+                  सर्व सदस्य डेटा व कलेक्शन सायकल
+                </h4>
+                <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">
+                  साप्ताहिक व मासिक कलेक्शन सायकल, हप्ता भरणा, ५०-आठवडे प्रगती आणि सर्व सदस्यांची खातावही.
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">थेट सदस्य पेज</span>
+                <span style="color: var(--blue-400); font-weight: 700; font-size: 0.88rem;">सर्व सदस्य डेटा पहा ➔</span>
+              </div>
+            </div>
+
+            <!-- हब कार्ड २: कर्ज व्यवस्थापन व ३% व्याज खातावही -->
+            <div class="glass-card hub-card" style="padding: 1.35rem; cursor: pointer; transition: all 0.25s ease; border-left: 4px solid #a855f7; display: flex; flex-direction: column; justify-content: space-between;" onclick="window.ui.navigateToLoansPage()">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                  <div style="font-size: 2.2rem; line-height: 1;">💳</div>
+                  <span class="status-pill" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-size: 0.72rem; padding: 0.2rem 0.6rem;">३% मासिक व्याज</span>
+                </div>
+                <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem;">
+                  कर्ज खातावही व ३% व्याज
+                </h4>
+                <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">
+                  सर्व वाटप कर्जे, ४-आठवड्यांचे ०% सवलत चक्र, ३% व्याज आकारणी व परतफेड पावत्या.
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">थेट कर्ज खातावही</span>
+                <span style="color: #c084fc; font-weight: 700; font-size: 0.88rem;">कर्ज व्यवस्थापन उघडा ➔</span>
+              </div>
+            </div>
+
+            <!-- हब कार्ड ३: अधिकृत सदस्य लेजर कार्ड अहवाल -->
+            <div class="glass-card hub-card" style="padding: 1.35rem; cursor: pointer; transition: all 0.25s ease; border-left: 4px solid var(--emerald-500); display: flex; flex-direction: column; justify-content: space-between;" onclick="window.ui.navigateToReportsPage()">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                  <div style="font-size: 2.2rem; line-height: 1;">📜</div>
+                  <span class="status-pill status-paid" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;">प्रिंट व PDF</span>
+                </div>
+                <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem;">
+                  लेजर कार्ड अहवाल रजिस्टर
+                </h4>
+                <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">
+                  प्रत्येक सदस्याचे अधिकृत लेजर कार्ड अहवाल, आठवडेनिहाय ठेवी व प्रिंट/डाऊनलोड पावत्या.
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">थेट अहवाल रजिस्टर</span>
+                <span style="color: var(--emerald-400); font-weight: 700; font-size: 0.88rem;">अहवाल रजिस्टर उघडा ➔</span>
+              </div>
+            </div>
+
+            <!-- हब कार्ड ४: सर्व व्यवहार खातावही व एक्सपोर्ट -->
+            <div class="glass-card hub-card" style="padding: 1.35rem; cursor: pointer; transition: all 0.25s ease; border-left: 4px solid var(--gold-500); display: flex; flex-direction: column; justify-content: space-between;" onclick="window.ui.switchAdminTxnSubtab('all'); document.getElementById('adminTxnModal').classList.add('active');">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                  <div style="font-size: 2.2rem; line-height: 1;">📋</div>
+                  <span class="status-pill status-pending" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;">थेट व्यवहार</span>
+                </div>
+                <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem;">
+                  सर्व व्यवहार खातावही व लॉग
+                </h4>
+                <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">
+                  ठेवी, कर्ज परतफेड आणि लेट फी दंडांची संपूर्ण ऑडिट नोंदवही व इतिहास.
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">संपूर्ण ऑडिट</span>
+                <span style="color: var(--gold-400); font-weight: 700; font-size: 0.88rem;">सर्व खातावही उघडा ➔</span>
+              </div>
+            </div>
+
           </div>
-
-          <div class="filter-group">
-            <button class="filter-btn active" data-filter="all">सर्व सदस्य</button>
-            <button class="filter-btn" data-filter="weekly">📅 साप्ताहिक</button>
-            <button class="filter-btn" data-filter="monthly">🗓️ मासिक</button>
-            <button class="filter-btn" data-filter="pending">या कालावधीची बाकी</button>
-            <button class="filter-btn" data-filter="overdue">थकबाकी / लेट</button>
-            <button class="filter-btn" data-filter="paid">जमा झालेले</button>
-            <button class="filter-btn" data-filter="completed">पूर्ण झालेले</button>
-          </div>
-        </section>
-
-        <!-- साप्ताहिक व मासिक कलेक्शन टेबल -->
-        <section class="table-responsive">
-          <table class="custom-table" id="membersTable">
-            <thead>
-              <tr>
-                <th>सदस्य तपशील</th>
-                <th>हप्ता रक्कम</th>
-                <th>सद्य स्थिती</th>
-                <th>एकूण जमा बचत</th>
-                <th>पुढील हप्ता / लक्ष्य</th>
-                <th>बचत प्रगती</th>
-                <th style="text-align: right;">क्रिया / ऑप्शन्स</th>
-              </tr>
-            </thead>
-            <tbody id="membersTableBody">
-              <!-- डायनॅमिकली भरले जाते -->
-            </tbody>
-          </table>
         </section>
       </div>
 
@@ -7375,6 +7377,127 @@ body {
             </div>
           </div>
         </section>
+
+        <!-- ==========================================================================
+             विभाग १: साप्ताहिक कलेक्शन सायकल (Weekly Collection Cycle & Instant Deposits)
+             ========================================================================== -->
+        <!-- ५०-आठवडे नेव्हिगेटर कॅरोसेल बार -->
+        <section class="week-navigator-card">
+          <div class="week-nav-header">
+            <div class="week-nav-title">
+              <h2 style="font-size: 1.15rem; font-weight: 700;">साप्ताहिक कलेक्शन सायकल</h2>
+              <span class="current-week-badge" id="currentWeekDisplayTitle">आठवडा १</span>
+            </div>
+            <div class="week-nav-controls">
+              <button class="btn btn-secondary btn-sm" id="btnPrevWeek" title="मागील आठवडा">◀ मागील</button>
+              <select id="weekDropdownSelect" class="week-dropdown-select" aria-label="आठवडा निवडा" title="थेट आठवडा निवडा"></select>
+              <button class="btn btn-secondary btn-sm" id="btnNextWeek" title="पुढील आठवडा">पुढील ▶</button>
+            </div>
+          </div>
+          <div class="week-scroll-container" id="weekScrollContainer">
+            <!-- आठवडा १ ते ५० बटणे डायनॅमिकली भरली जातात -->
+          </div>
+        </section>
+
+        <!-- निवडलेल्या आठवड्याचा सारांश बॅनर -->
+        <section class="week-summary-banner">
+          <div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">निवडलेला आठवडा</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary);" id="bannerCurrentWeekNumber">आठवडा १ / ५०</div>
+          </div>
+          <div class="summary-details">
+            <div class="summary-item">
+              <span class="label">अपेक्षित हप्ता लक्ष्य</span>
+              <span class="val" id="bannerWeekTarget" style="color: var(--text-primary);">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">आतापर्यंत जमा रक्कम</span>
+              <span class="val" id="bannerWeekCollected" style="color: var(--emerald-400);">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">या आठवड्याची बाकी</span>
+              <span class="val" id="bannerWeekPending" style="color: var(--rose-400);">₹0</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">कलेक्शन टक्केवारी</span>
+              <span class="val" id="bannerWeekRate" style="color: var(--gold-400);">0%</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ५०-आठवडे पूर्ण अभिनंदन अलर्ट बॅनर -->
+        <div id="adminMaturityAlertBanner" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(16, 185, 129, 0.15)); border: 1.5px solid var(--gold-400); border-radius: var(--radius-lg); padding: 1.15rem 1.35rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.18);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div style="font-size: 2rem; line-height: 1;">🏆</div>
+              <div>
+                <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary);">
+                  ५०-आठवड्यांचे चक्र पूर्ण झाले!
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;" id="adminMaturityAlertText">
+                  सदस्याने सर्व ५० साप्ताहिक हप्ते पूर्ण केले आहेत. ८% मॅच्युरिटी व्याज बोनस जोडला गेला आहे!
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button type="button" class="btn btn-gold btn-sm" id="btnFilterCompletedMembers" onclick="window.ui.filterCompletedMembers()" title="पूर्ण झालेले सदस्य पहा व फिल्टर करा">
+                👀 पूर्ण झालेले सदस्य पहा
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- टूलबार: शोध आणि फिल्टर (केवळ प्रशासक ॲडमिन पॅनल) -->
+        <section class="toolbar-card">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="memberSearchInput" class="search-input" placeholder="सदस्याचे नाव, फोन नंबर किंवा आयडी शोधा...">
+          </div>
+
+          <div class="filter-group">
+            <button class="filter-btn active" data-filter="all">सर्व सदस्य</button>
+            <button class="filter-btn" data-filter="weekly">📅 साप्ताहिक</button>
+            <button class="filter-btn" data-filter="monthly">🗓️ मासिक</button>
+            <button class="filter-btn" data-filter="pending">या कालावधीची बाकी</button>
+            <button class="filter-btn" data-filter="overdue">थकबाकी / लेट</button>
+            <button class="filter-btn" data-filter="paid">जमा झालेले</button>
+            <button class="filter-btn" data-filter="completed">पूर्ण झालेले</button>
+          </div>
+        </section>
+
+        <!-- साप्ताहिक व मासिक कलेक्शन टेबल -->
+        <section class="table-responsive" style="margin-bottom: 2rem;">
+          <table class="custom-table" id="membersTable">
+            <thead>
+              <tr>
+                <th>सदस्य तपशील</th>
+                <th>हप्ता रक्कम</th>
+                <th>सद्य स्थिती</th>
+                <th>एकूण जमा बचत</th>
+                <th>पुढील हप्ता / लक्ष्य</th>
+                <th>बचत प्रगती</th>
+                <th style="text-align: right;">क्रिया / ऑप्शन्स</th>
+              </tr>
+            </thead>
+            <tbody id="membersTableBody">
+              <!-- डायनॅमिकली भरले जाते -->
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ==========================================================================
+             विभाग २: सर्व सदस्यांची खातावही व संपूर्ण संपर्क प्रोफाईल (All Members Master Ledger & Profiles)
+             ========================================================================== -->
+        <div style="margin-top: 2.75rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 1.75rem;">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+              <span>📋</span> सर्व सदस्यांची संपूर्ण प्रोफाईल खातावही व ५०-आठवडे पासबुक
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+              प्रत्येक सदस्याची वैयक्तिक माहिती, फोन, वारसदार, थेट ५०-आठवडे पासबुक प्रगती आणि संपादन पर्याय.
+            </p>
+          </div>
+        </div>
 
         <!-- सर्च, फिल्टर्स व व्ह्यू टॉगल टूलबार -->
         <div class="glass-card" style="margin-bottom: 1.25rem; padding: 1rem 1.25rem;">
