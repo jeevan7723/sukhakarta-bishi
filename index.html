@@ -7448,7 +7448,7 @@ body {
         </div>
 
         <!-- टूलबार: शोध आणि फिल्टर (केवळ प्रशासक ॲडमिन पॅनल) -->
-        <section class="toolbar-card">
+        <section class="toolbar-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.85rem;">
           <div class="search-box">
             <span class="search-icon">🔍</span>
             <input type="text" id="memberSearchInput" class="search-input" placeholder="सदस्याचे नाव, फोन नंबर किंवा आयडी शोधा...">
@@ -7459,14 +7459,25 @@ body {
             <button class="filter-btn" data-filter="weekly">📅 साप्ताहिक</button>
             <button class="filter-btn" data-filter="monthly">🗓️ मासिक</button>
             <button class="filter-btn" data-filter="pending">या कालावधीची बाकी</button>
-            <button class="filter-btn" data-filter="overdue">थकबाकी / लेट</button>
+            <button class="filter-btn" data-filter="overdue">🔴 थकबाकी असलेले</button>
+            <button class="filter-btn" data-filter="with-loans">💳 कर्ज असलेले</button>
             <button class="filter-btn" data-filter="paid">जमा झालेले</button>
-            <button class="filter-btn" data-filter="completed">पूर्ण झालेले</button>
+            <button class="filter-btn" data-filter="completed">५० आठवडे पूर्ण</button>
+          </div>
+
+          <!-- व्ह्यू स्विचर (टेबल / कार्ड्स) -->
+          <div style="display: flex; gap: 0.25rem; background: var(--bg-tertiary); padding: 0.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-left: auto;">
+            <button type="button" class="btn btn-sm btn-primary btn-view-table" style="padding: 0.3rem 0.65rem; font-size: 0.78rem; font-weight: 700;" onclick="window.ui.switchMembersPageView('table')" title="तक्ता स्वरूपात पहा">
+              📋 टेबल
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary btn-view-grid" style="padding: 0.3rem 0.65rem; font-size: 0.78rem; font-weight: 700;" onclick="window.ui.switchMembersPageView('grid')" title="कार्ड ग्रीड स्वरूपात पहा">
+              🗂️ कार्ड्स
+            </button>
           </div>
         </section>
 
-        <!-- साप्ताहिक व मासिक कलेक्शन टेबल -->
-        <section class="table-responsive" style="margin-bottom: 2rem;">
+        <!-- साप्ताहिक व मासिक कलेक्शन टेबल (Table View) -->
+        <section class="table-responsive" id="mpTableViewContainer" style="margin-bottom: 2rem;">
           <table class="custom-table" id="membersTable">
             <thead>
               <tr>
@@ -7485,77 +7496,10 @@ body {
           </table>
         </section>
 
-        <!-- ==========================================================================
-             विभाग २: सर्व सदस्यांची खातावही व संपूर्ण संपर्क प्रोफाईल (All Members Master Ledger & Profiles)
-             ========================================================================== -->
-        <div style="margin-top: 2.75rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 1.75rem;">
-          <div>
-            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
-              <span>📋</span> सर्व सदस्यांची संपूर्ण प्रोफाईल खातावही व ५०-आठवडे पासबुक
-            </h3>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
-              प्रत्येक सदस्याची वैयक्तिक माहिती, फोन, वारसदार, थेट ५०-आठवडे पासबुक प्रगती आणि संपादन पर्याय.
-            </p>
-          </div>
-        </div>
-
-        <!-- सर्च, फिल्टर्स व व्ह्यू टॉगल टूलबार -->
-        <div class="glass-card" style="margin-bottom: 1.25rem; padding: 1rem 1.25rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.85rem;">
-            
-            <!-- सर्च बार -->
-            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 250px; max-width: 420px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.4rem 0.85rem;">
-              <span>🔍</span>
-              <input type="text" id="membersPageSearchInput" placeholder="सदस्य नाव, फोन, आयडी, वारसदार किंवा पत्ता शोधा..." style="border: none; background: transparent; outline: none; width: 100%; font-size: 0.88rem; color: var(--text-primary);">
-            </div>
-
-            <!-- फिल्टर बटणे -->
-            <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;" id="membersPageFilterGroup">
-              <button type="button" class="filter-btn active" data-mp-filter="all">सर्व सदस्य</button>
-              <button type="button" class="filter-btn" data-mp-filter="active">सक्रिय (Active)</button>
-              <button type="button" class="filter-btn" data-mp-filter="completed">५० आठवडे पूर्ण</button>
-              <button type="button" class="filter-btn" data-mp-filter="with-loans">💳 कर्ज असलेले</button>
-              <button type="button" class="filter-btn" data-mp-filter="overdue">🔴 थकबाकी असलेले</button>
-            </div>
-
-            <!-- व्ह्यू स्विचर (टेबल / कार्ड्स) -->
-            <div style="display: flex; gap: 0.25rem; background: var(--bg-tertiary); padding: 0.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-              <button type="button" class="btn btn-sm btn-primary" id="btnMpViewTable" style="padding: 0.3rem 0.65rem; font-size: 0.78rem; font-weight: 700;" title="तक्ता स्वरूपात पहा">
-                📋 टेबल
-              </button>
-              <button type="button" class="btn btn-sm btn-secondary" id="btnMpViewGrid" style="padding: 0.3rem 0.65rem; font-size: 0.78rem; font-weight: 700;" title="कार्ड ग्रीड स्वरूपात पहा">
-                🗂️ कार्ड्स
-              </button>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- टेबल व्ह्यू कंटेनर -->
-        <div id="mpTableViewContainer" class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
-          <div class="table-responsive">
-            <table class="custom-table" style="width: 100%; margin: 0;">
-              <thead>
-                <tr>
-                  <th style="min-width: 210px;">सदस्य प्रोफाईल व संपर्क</th>
-                  <th style="min-width: 150px;">साप्ताहिक हप्ता व लक्ष्य</th>
-                  <th style="min-width: 150px;">एकूण ठेव व परतावा</th>
-                  <th style="min-width: 160px;">सक्रिय कर्ज स्थिती</th>
-                  <th style="min-width: 170px;">५०-आठवडे प्रगती (पासबुक)</th>
-                  <th style="text-align: right; min-width: 170px;">व्यवस्थापन क्रिया</th>
-                </tr>
-              </thead>
-              <tbody id="membersPageTableBody">
-                <!-- भरले जाईल -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- कार्ड ग्रीड व्ह्यू कंटेनर (पर्यायी) -->
+        <!-- कार्ड ग्रीड व्ह्यू कंटेनर (Card Grid View) -->
         <div id="mpGridViewContainer" style="display: none; margin-bottom: 2rem;">
           <div id="membersPageGridBody" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem;">
-            <!-- भरले जाईल -->
+            <!-- डायनॅमिकली भरले जाते -->
           </div>
         </div>
 

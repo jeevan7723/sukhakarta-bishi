@@ -276,10 +276,12 @@ class UIManager {
 
   setFilter(filterName) {
     this.currentFilter = filterName || 'all';
+    this.membersPageFilter = this.currentFilter;
     document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.filter === this.currentFilter);
     });
     this.renderMembersTable();
+    this.renderMembersPage();
   }
 
   filterCompletedMembers() {
@@ -1526,6 +1528,11 @@ class UIManager {
       members = members.filter(m => {
         const stats = window.bishiStore.calculateMemberStats(m);
         return stats.overdueWeeksCount > 0;
+      });
+    } else if (this.currentFilter === 'with-loans') {
+      members = members.filter(m => {
+        const loanSummary = window.bishiStore.getMemberLoanSummary(m.id);
+        return loanSummary && loanSummary.activeLoansCount > 0;
       });
     } else if (this.currentFilter === 'completed') {
       members = members.filter(m => {
@@ -4792,7 +4799,7 @@ class UIManager {
     // २. शोध व फिल्टर लागू करणे (Search & Filter)
     let filteredMembers = [...allMembers];
 
-    const q = (this.membersPageSearchQuery || '').toLowerCase().trim();
+    const q = (this.searchQuery || this.membersPageSearchQuery || '').toLowerCase().trim();
     if (q) {
       filteredMembers = filteredMembers.filter(m => {
         const marathiName = window.bishiStore.getMemberMarathiName(m) || '';
@@ -4805,8 +4812,12 @@ class UIManager {
       });
     }
 
-    const filter = this.membersPageFilter || 'all';
-    if (filter === 'active') {
+    const filter = this.currentFilter || this.membersPageFilter || 'all';
+    if (filter === 'weekly') {
+      filteredMembers = filteredMembers.filter(m => (m.frequency || 'weekly') === 'weekly');
+    } else if (filter === 'monthly') {
+      filteredMembers = filteredMembers.filter(m => m.frequency === 'monthly');
+    } else if (filter === 'active') {
       filteredMembers = filteredMembers.filter(m => m.status === 'active');
     } else if (filter === 'completed') {
       filteredMembers = filteredMembers.filter(m => {
@@ -4822,6 +4833,25 @@ class UIManager {
       filteredMembers = filteredMembers.filter(m => {
         const stats = window.bishiStore.calculateMemberStats(m);
         return stats.overdueWeeksCount > 0;
+      });
+    } else if (filter === 'paid') {
+      filteredMembers = filteredMembers.filter(m => {
+        const stats = window.bishiStore.calculateMemberStats(m);
+        if (stats.isMonthly) {
+          const wk = m.weeks.find(w => w.weekNumber === (stats.isFullyPaid ? 12 : Math.max(1, stats.nextDueWeek - 1)));
+          return (wk && wk.status === 'paid' && Number(wk.amountPaid || 0) >= stats.installmentAmount) || stats.isFullyPaid;
+        }
+        const wk = m.weeks.find(w => w.weekNumber === currentWeek);
+        return (wk && wk.status === 'paid' && Number(wk.amountPaid || 0) >= stats.installmentAmount) || (currentWeek <= stats.effectivePaidWeeks);
+      });
+    } else if (filter === 'pending') {
+      filteredMembers = filteredMembers.filter(m => {
+        const stats = window.bishiStore.calculateMemberStats(m);
+        if (stats.isFullyPaid) return false;
+        if (stats.isMonthly) return stats.effectivePaidWeeks < 12;
+        const wk = m.weeks.find(w => w.weekNumber === currentWeek);
+        const isPaid = (wk && wk.status === 'paid' && Number(wk.amountPaid || 0) >= stats.installmentAmount) || (currentWeek <= stats.effectivePaidWeeks);
+        return !isPaid;
       });
     }
 
@@ -5909,6 +5939,27 @@ class UIManager {
     }
     if (tableContainer) tableContainer.style.display = isGrid ? 'none' : 'block';
     if (gridContainer) gridContainer.style.display = isGrid ? 'block' : 'none';
+  }
+
+  switchMembersPageView(mode) {
+    this.membersPageViewMode = mode || 'table';
+    const isGrid = this.membersPageViewMode === 'grid';
+    
+    document.querySelectorAll('#btnMpViewTable, .btn-view-table').forEach(btn => {
+      btn.classList.toggle('btn-primary', !isGrid);
+      btn.classList.toggle('btn-secondary', isGrid);
+    });
+    document.querySelectorAll('#btnMpViewGrid, .btn-view-grid').forEach(btn => {
+      btn.classList.toggle('btn-primary', isGrid);
+      btn.classList.toggle('btn-secondary', !isGrid);
+    });
+
+    const tableContainer = document.getElementById('mpTableViewContainer');
+    const gridContainer = document.getElementById('mpGridViewContainer');
+    if (tableContainer) tableContainer.style.display = isGrid ? 'none' : 'block';
+    if (gridContainer) gridContainer.style.display = isGrid ? 'block' : 'none';
+
+    this.renderMembersPage();
   }
 
   openGiveLoanModal(memberId = null) {
