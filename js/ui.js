@@ -1653,7 +1653,7 @@ class UIManager {
                 ${isMonthly ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.45rem; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight:700;">${isEn ? '🗓️ Monthly' : '🗓️ मासिक'}</span>` : `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.45rem; background: rgba(59, 130, 246, 0.12); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.3); font-weight:700;">${isEn ? '📅 Weekly' : '📅 साप्ताहिक'}</span>`}
                 ${(member.currentCycle && member.currentCycle > 1) ? `<span class="status-pill" style="font-size:0.65rem; padding:0.1rem 0.4rem; background: rgba(59, 130, 246, 0.2); color: var(--blue-400); border: 1px solid var(--blue-400);">${isEn ? 'Cycle' : 'सायकल'} ${member.currentCycle}</span>` : ''}
                 ${hasActiveLoan ? `
-                  <button type="button" class="status-pill" onclick="event.stopPropagation(); window.ui.openAdminLoansModal()" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(59, 130, 246, 0.18); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.4); font-weight:700; cursor:pointer;" title="सक्रिय मुद्दल: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}${loanSummary.activeInterest > 0 ? ` (+३% व्याज: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')})` : ''} • कर्ज व्यवस्थापन पहा">💳 ${isEn ? 'Loan' : 'कर्ज'}: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}</button>
+                  <button type="button" class="status-pill" onclick="event.stopPropagation(); window.ui.navigateToLoansPage('${member.id}')" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(59, 130, 246, 0.18); color: var(--blue-400); border: 1px solid rgba(59, 130, 246, 0.4); font-weight:700; cursor:pointer;" title="सक्रिय मुद्दल: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}${loanSummary.activeInterest > 0 ? ` (+३% व्याज: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')})` : ''} • कर्ज व्यवस्थापन पहा">💳 ${isEn ? 'Loan' : 'कर्ज'}: ${currency}${loanSummary.activePrincipal.toLocaleString('en-IN')}</button>
                   ${isInterestDueThisWeek ? `
                     <button type="button" class="status-pill status-overdue interactive" onclick="event.stopPropagation(); window.ui.openPayLoanInterestModal('${firstActiveLoan.loan.id}')" style="font-size:0.65rem; padding:0.12rem 0.45rem; background: rgba(245, 158, 11, 0.22); color: var(--gold-400); border: 1px solid rgba(245, 158, 11, 0.6); font-weight:800; cursor:pointer;" title="४ आठवड्यांचे ३% व्याज देय आहे (+${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}) • व्याज जमा करा">💰 ${isEn ? '3% Interest Due' : '३% व्याज देय'}: +${currency}${loanSummary.activeInterest.toLocaleString('en-IN')}</button>
                   ` : ''}
@@ -4114,20 +4114,15 @@ class UIManager {
   // 💳 सदस्य कर्ज व्यवस्थापन (Admin Loan Controller & Ledger)
   // ==========================================================================
 
-  openAdminLoansModal() {
+  openAdminLoansModal(query = '') {
     if (!window.authManager.isAdmin()) {
       this.showToast('केवळ प्रशासक कर्ज व्यवस्थापन पाहू शकतात', 'error');
       return;
     }
-    this.adminLoansSearchQuery = '';
-    this.adminLoansStatusFilter = 'all';
-    const searchInput = document.getElementById('adminLoansSearchInput');
-    if (searchInput) searchInput.value = '';
-    const statusSelect = document.getElementById('adminLoansStatusFilter');
-    if (statusSelect) statusSelect.value = 'all';
-
-    this.renderAdminLoansModal();
-    document.getElementById('adminLoansModal')?.classList.add('active');
+    if (typeof window.closeAllModals === 'function') {
+      window.closeAllModals();
+    }
+    this.navigateToLoansPage(query);
   }
 
   // --- कर्ज कृती सिलेक्ट ड्रॉपडाउन HTML (Reusable Loan Action Select) ---
@@ -4355,10 +4350,16 @@ class UIManager {
   }
 
   // --- स्वतंत्र कर्ज व्यवस्थापन व खातावही पेज (Dedicated Loans Page View) ---
-  navigateToLoansPage() {
+  navigateToLoansPage(query = '') {
     if (!window.authManager.isAdmin()) {
       this.showToast('केवळ प्रशासक कर्ज खातावही पाहू शकतात', 'warning');
       return;
+    }
+    if (typeof window.closeAllModals === 'function') {
+      window.closeAllModals();
+    }
+    if (typeof this.closeMobileDrawer === 'function') {
+      this.closeMobileDrawer();
     }
     this.currentAdminView = 'loans';
     const dashboardView = document.getElementById('dashboardView');
@@ -4389,6 +4390,11 @@ class UIManager {
 
     if (window.location.hash !== '#loans') {
       try { history.pushState(null, '', '#loans'); } catch (_) { window.location.hash = 'loans'; }
+    }
+
+    const searchInput = document.getElementById('loansPageSearchInput');
+    if (searchInput) {
+      searchInput.value = query || '';
     }
 
     this.initLoansViewMode();
@@ -6511,9 +6517,11 @@ class UIManager {
       this.renderAdminTransactionsTab();
     });
 
-    // सदस्य कर्ज व्यवस्थापन मोडल (प्रशासक)
-    document.getElementById('btnOpenAdminLoans')?.addEventListener('click', () => {
-      this.openAdminLoansModal();
+    // सदस्य कर्ज व्यवस्थापन (प्रशासक - स्वतंत्र पेज, पॉप-अप नाही)
+    document.getElementById('btnOpenAdminLoans')?.addEventListener('click', (e) => {
+      e?.preventDefault?.();
+      this.closeMobileDrawer?.();
+      this.navigateToLoansPage();
     });
 
     document.getElementById('btnOpenGiveLoanModal')?.addEventListener('click', () => {
