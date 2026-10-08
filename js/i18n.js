@@ -73,7 +73,34 @@
     member_section_desc: { mr: 'सर्व सदस्यांची संपूर्ण वैयक्तिक माहिती, ५०-आठवडे ठेव खातावही, फोन, वारसदार, कर्ज स्थिती आणि पासबुक तपशील एकाच ठिकाणी.', en: 'Complete personal details, 50-week savings ledger, contact, nominee, loan status, and passbook records in one unified place.' },
     btn_view_all_members: { mr: 'सर्व सदस्य तपशील पहा ➔', en: 'View All Members ➔' },
     btn_open_in_new_page: { mr: 'नवीन पेजवर उघडा ↗', en: 'Open in New Page ↗' },
-    btn_new_member: { mr: 'नवीन सदस्य', en: 'New Member' },
+    // Hub Section (Quick Hub & Section Access)
+    hub_main_title: { mr: '<span>🚀</span> मुख्य नियंत्रण व थेट व्यवस्थापन हब', en: '<span>🚀</span> Quick Control & Direct Management Hub' },
+    hub_main_sub: { mr: 'सर्व सदस्यांची माहिती, ५०-आठवडे कलेक्शन सायकल, कर्ज वाटप आणि अहवाल व्यवस्थापनासाठी थेट पर्याय.', en: 'Direct options for all members data, 50-week collection cycle, loan disbursement, and report management.' },
+    hub_btn_add_member: { mr: '<span>➕</span> नवीन सदस्य नोंदणी', en: '<span>➕</span> New Member Registration' },
+    hub_btn_give_loan: { mr: '<span>💳</span> नवीन कर्ज वाटप', en: '<span>💳</span> Issue New Loan' },
+    hub_card1_badge: { mr: '५०-आठवडे सायकल', en: '50-Week Cycle' },
+    hub_card1_title: { mr: 'सर्व सदस्य डेटा व कलेक्शन सायकल', en: 'All Members Data & Collection Cycle' },
+    hub_card1_desc: { mr: 'साप्ताहिक व मासिक कलेक्शन सायकल, हप्ता भरणा, ५०-आठवडे प्रगती आणि सर्व सदस्यांची खातावही.', en: 'Weekly & monthly collection cycle, installment deposits, 50-week progress, and full members ledger.' },
+    hub_card1_tag: { mr: 'थेट सदस्य पेज', en: 'Direct Members Page' },
+    hub_card1_action: { mr: 'सर्व सदस्य डेटा पहा ➔', en: 'View All Members Data ➔' },
+    hub_card2_badge: { mr: '३% मासिक व्याज', en: '3% Monthly Interest' },
+    hub_card2_title: { mr: 'कर्ज खातावही व ३% व्याज', en: 'Loan Ledger & 3% Interest' },
+    hub_card2_desc: { mr: 'सर्व वाटप कर्जे, ४-आठवड्यांचे ०% सवलत चक्र, ३% व्याज आकारणी व परतफेड पावत्या.', en: 'All disbursed loans, 4-week 0% grace period, 3% interest calculation, and repayment receipts.' },
+    hub_card2_tag: { mr: 'थेट कर्ज खातावही', en: 'Direct Loan Ledger' },
+    hub_card2_action: { mr: 'कर्ज व्यवस्थापन उघडा ➔', en: 'Open Loan Management ➔' },
+    hub_card3_badge: { mr: 'प्रिंट व PDF', en: 'Print & PDF' },
+    hub_card3_title: { mr: 'लेजर कार्ड अहवाल रजिस्टर', en: 'Ledger Card Report Register' },
+    hub_card3_desc: { mr: 'प्रत्येक सदस्याचे अधिकृत लेजर कार्ड अहवाल, आठवडेनिहाय ठेवी व प्रिंट/डाऊनलोड पावत्या.', en: 'Official ledger card reports for each member, weekly deposits, and print/download receipts.' },
+    hub_card3_tag: { mr: 'थेट अहवाल रजिस्टर', en: 'Direct Report Register' },
+    hub_card3_action: { mr: 'अहवाल रजिस्टर उघडा ➔', en: 'Open Report Register ➔' },
+    hub_card4_badge: { mr: 'थेट व्यवहार', en: 'Direct Transactions' },
+    hub_card4_title: { mr: 'सर्व व्यवहार खातावही व लॉग', en: 'All Transactions Ledger & Log' },
+    hub_card4_desc: { mr: 'ठेवी, कर्ज परतफेड आणि लेट फी दंडांची संपूर्ण ऑडिट नोंदवही व इतिहास.', en: 'Complete audit log & history of deposits, loan repayments, and late fee fines.' },
+    hub_card4_tag: { mr: 'संपूर्ण ऑडिट', en: 'Complete Audit' },
+    hub_card4_action: { mr: 'सर्व खातावही उघडा ➔', en: 'Open All Transactions ➔' },
+    pwa_banner_title: { mr: 'सुखकर्ता बीशी मोबाईल ॲप', en: 'Sukhakarta Bishi Mobile App' },
+    pwa_banner_desc: { mr: 'अ‍ॅपप्रमाणे जलद व ऑफलाइन वापरण्यासाठी इन्स्टॉल करा', en: 'Install for fast access & offline support' },
+    pwa_banner_btn: { mr: '📲 इन्स्टॉल', en: '📲 Install' },
 
     // Weekly Cycle Navigator
     weekly_cycle_title: { mr: 'साप्ताहिक कलेक्शन सायकल', en: 'Weekly Collection Cycle' },
@@ -220,38 +247,218 @@
 
   // Phrases for automatic bidirectional DOM scanning
   const EXACT_PHRASE_PAIRS = [
+    // Top Brand & Nav
+    ['सुखकर्ता बीशी', 'Sukhakarta Bishi'],
+    ['५०-आठवडे बचत फंड', '50-Week Savings Fund'],
+    ['५०-आठवडे बचत फंड व पासबुक पोर्टल', '50-Week Savings Fund & Passbook Portal'],
+    ['✨ अधिकृत ५०-आठवडे बचत व फंड व्यवस्थापन', '✨ Official 50-Week Savings & Fund Management'],
+    ['🏛️ पारदर्शक ५०-आठवडे फंड पूल', '🏛️ Transparent 50-Week Fund Pool'],
+    ['💳 ३% नियमावली कर्ज खातावही', '💳 3% Rule Loan Ledger'],
+    ['🧾 झटपट WhatsApp पावत्या', '🧾 Instant WhatsApp Receipts'],
+    ['☁️ २४x७ सुरक्षित क्लाउड बॅकअप', '☁️ 24x7 Secure Cloud Backup'],
+    ['मुख्य मेनू', 'Main Menu'],
+    ['नवीन सदस्य जोडा', 'Add New Member'],
+    ['मुख्य बचत डॅशबोर्ड', 'Main Savings Dashboard'],
     ['मुख्य डॅशबोर्ड', 'Main Dashboard'],
     ['सर्व सदस्य डेटा', 'All Members Data'],
     ['कर्ज व्यवस्थापन', 'Loan Management'],
     ['सर्व खातावही', 'Transaction Log'],
     ['लेजर कार्ड अहवाल', 'Ledger Card Report'],
+    ['व्यवस्थापन व साधने', 'Management & Tools'],
     ['नियम व दंड दर', 'Rules & Fines'],
     ['बॅकअप / एक्सपोर्ट', 'Backup & Export'],
     ['डेटा साफ करा', 'Clear Data'],
-    ['नवीन सदस्य जोडा', 'Add New Member'],
-    ['मुख्य मेनू', 'Main Menu'],
-    ['व्यवस्थापन व साधने', 'Management & Tools'],
     ['माझे खाते', 'My Account'],
     ['माझे ५०-आठवडे पासबुक', 'My 50-Week Passbook'],
     ['माझी खातावही डाउनलोड', 'Download My Ledger'],
     ['माझे लेजर कार्ड अहवाल', 'My Ledger Card Report'],
     ['प्रणाली व सिंक', 'System & Sync'],
+    ['वेबसाइट ➔ Firebase सिंक', 'Website ➔ Firebase Sync'],
     ['थीम बदला (Dark/Light)', 'Toggle Theme (Dark/Light)'],
     ['प्रवेश ॲनिमेशन पहा', 'Watch Splash Animation'],
     ['लॉगआउट करा', 'Log Out'],
     ['लॉगआउट', 'Logout'],
+    ['मुख्य प्रशासक', 'Main Admin'],
+    ['प्रशासक नियंत्रण पॅनल', 'Admin Control Panel'],
+    ['डॅशबोर्ड', 'Dashboard'],
+    ['सदस्य', 'Members'],
+    ['कर्ज', 'Loans'],
+    ['अहवाल', 'Reports'],
+    ['सूचना', 'Notifications'],
+    ['मेनू', 'Menu'],
+    ['सूचना केंद्र', 'Notification Center'],
+
+    // Hub Cards & Dashboard Sections
+    ['मुख्य नियंत्रण व थेट व्यवस्थापन हब', 'Quick Control & Direct Management Hub'],
+    ['सर्व सदस्यांची माहिती, ५०-आठवडे कलेक्शन सायकल, कर्ज वाटप आणि अहवाल व्यवस्थापनासाठी थेट पर्याय.', 'Direct options for all members data, 50-week collection cycle, loan disbursement, and report management.'],
+    ['नवीन सदस्य नोंदणी', 'New Member Registration'],
+    ['नवीन कर्ज वाटप', 'Issue New Loan'],
+    ['सर्व सदस्य डेटा व कलेक्शन सायकल', 'All Members Data & Collection Cycle'],
+    ['५०-आठवडे सायकल', '50-Week Cycle'],
+    ['साप्ताहिक व मासिक कलेक्शन सायकल, हप्ता भरणा, ५०-आठवडे प्रगती आणि सर्व सदस्यांची खातावही.', 'Weekly & monthly collection cycle, installment deposits, 50-week progress, and full members ledger.'],
+    ['थेट सदस्य पेज', 'Direct Members Page'],
+    ['सर्व सदस्य डेटा पहा ➔', 'View All Members Data ➔'],
+    ['३% मासिक व्याज', '3% Monthly Interest'],
+    ['कर्ज खातावही व ३% व्याज', 'Loan Ledger & 3% Interest'],
+    ['सर्व वाटप कर्जे, ४-आठवड्यांचे ०% सवलत चक्र, ३% व्याज आकारणी व परतफेड पावत्या.', 'All disbursed loans, 4-week 0% grace period, 3% interest calculation, and repayment receipts.'],
+    ['थेट कर्ज खातावही', 'Direct Loan Ledger'],
+    ['कर्ज व्यवस्थापन उघडा ➔', 'Open Loan Management ➔'],
+    ['प्रिंट व PDF', 'Print & PDF'],
+    ['लेजर कार्ड अहवाल रजिस्टर', 'Ledger Card Report Register'],
+    ['प्रत्येक सदस्याचे अधिकृत लेजर कार्ड अहवाल, आठवडेनिहाय ठेवी व प्रिंट/डाऊनलोड पावत्या.', 'Official ledger card reports for each member, weekly deposits, and print/download receipts.'],
+    ['थेट अहवाल रजिस्टर', 'Direct Report Register'],
+    ['अहवाल रजिस्टर उघडा ➔', 'Open Report Register ➔'],
+    ['थेट व्यवहार', 'Direct Transactions'],
+    ['सर्व व्यवहार खातावही व लॉग', 'All Transactions Ledger & Log'],
+    ['ठेवी, कर्ज परतफेड आणि लेट फी दंडांची संपूर्ण ऑडिट नोंदवही व इतिहास.', 'Complete audit log & history of deposits, loan repayments, and late fee fines.'],
+    ['संपूर्ण ऑडिट', 'Complete Audit'],
+    ['सर्व खातावही उघडा ➔', 'Open All Transactions ➔'],
+    ['📲 इन्स्टॉल', '📲 Install'],
+    ['ऑडिट व पावत्या', 'Audit & Receipts'],
+    ['ठेवी, दंड, कर्ज वाटप, व्याज जमा व परतावा या सर्व आर्थिक व्यवहारांची संपूर्ण खातावही.', 'Complete ledger of all financial transactions: deposits, fines, loan disbursements, interest, and payouts.'],
+    ['थेट व्यवहार खातावही', 'Direct Transaction Log'],
+    ['सर्व व्यवहार पहा ➔', 'View All Transactions ➔'],
+
+    // Dashboard Statistics
+    ['सक्रिय सदस्य संख्या', 'Active Members Count'],
     ['सक्रिय सदस्य', 'Active Members'],
+    ['सेटल झालेले', 'Settled'],
     ['एकूण फंड लक्ष्य पूल', 'Total Fund Target Pool'],
+    ['५० आठवड्यांचे एकूण लक्ष्य', '50-Week Total Target'],
+    ['फंड उद्दिष्ट', 'Fund Target'],
     ['आतापर्यंत जमा एकूण बचत', 'Total Savings Collected'],
+    ['एकूण जमा', 'Total Collected'],
     ['चालू आठवडा कलेक्शन', 'Current Week Collection'],
+    ['सक्रिय बाकी कर्ज मुद्दल', 'Active Outstanding Principal'],
     ['सक्रिय बाकी कर्ज', 'Active Loan Balance'],
+    ['सक्रिय कर्जे', 'Active Loans'],
+    ['कर्ज पेज ➔', 'Loans Page ➔'],
     ['जमा ३% कर्ज व्याज', '3% Loan Interest Collected'],
+    ['४ आठवड्यांनंतर ३% व्याज', '3% Interest after 4 Weeks'],
+    ['कर्जे परतफेड', 'Loans Repaid'],
+
+    // All Members Page & Hero
+    ['सदस्य विभाग (सर्व सदस्य तपशील)', 'Members Section (All Members Details)'],
+    ['सर्व सदस्यांची संपूर्ण वैयक्तिक माहिती, ५०-आठवडे ठेव खातावही, फोन, वारसदार, कर्ज स्थिती आणि पासबुक तपशील एकाच ठिकाणी.', 'Complete personal details of all members, 50-week savings ledger, phone, nominee, loan status, and passbook records in one unified place.'],
+    ['नवीन सदस्य जोडा', 'Add New Member'],
+    ['नवीन पेजवर उघडा ↗', 'Open in New Page ↗'],
+    ['एकूण सदस्य संख्या', 'Total Members Count'],
+    ['सक्रिय बचतकर्ते', 'Active Savers'],
+    ['५०-आठवडे बीशी', '50-Week Bishi'],
+    ['एकूण साप्ताहिक हप्ता पूल', 'Total Weekly Installment Pool'],
+    ['प्रति आठवडा गोळा होणारी रक्कम', 'Amount collected per week'],
+    ['नियमित हप्ता', 'Regular Installment'],
+    ['सदस्यांची एकूण ठेव बचत', 'Total Member Deposits Saved'],
+    ['सर्व आठवड्यांची मिळून ठेव', 'Combined deposits of all weeks'],
+    ['एकूण बचत', 'Total Savings'],
+    ['मॅच्युरिटी परतावा उद्दिष्ट', 'Maturity Payout Target'],
+    ['सदस्य पूर्ण (५० आठवडे)', 'Members Completed (50 Weeks)'],
+    ['+८% बोनससह', 'With +8% Bonus'],
+    ['५०-आठवड्यांचे चक्र पूर्ण झाले!', '50-Week Cycle Completed!'],
+    ['सदस्याने सर्व ५० साप्ताहिक हप्ते पूर्ण केले आहेत. ८% मॅच्युरिटी व्याज बोनस जोडला गेला आहे!', 'Member has completed all 50 weekly installments. 8% maturity interest bonus applied!'],
+    ['👀 पूर्ण झालेले सदस्य पहा', '👀 View Completed Members'],
+    ['या कालावधीची बाकी', 'Pending for Period'],
+    ['🔴 थकबाकी असलेले', '🔴 Overdue'],
+    ['💳 कर्ज असलेले', '💳 With Loans'],
+    ['जमा झालेले', 'Paid / Deposited'],
+    ['५० आठवडे पूर्ण', '50 Weeks Completed'],
+    ['📋 टेबल', '📋 Table'],
+    ['🗂️ कार्ड्स', '🗂️ Cards'],
+    ['तक्ता स्वरूपात पहा', 'View in Table Format'],
+    ['कार्ड ग्रीड स्वरूपात पहा', 'View in Card Grid Format'],
+    ['सदस्य प्रोफाईल व संपर्क', 'Member Profile & Contact'],
+    ['साप्ताहिक हप्ता व लक्ष्य', 'Weekly Installment & Target'],
+    ['एकूण ठेव व परतावा', 'Total Deposit & Payout'],
+    ['सक्रिय कर्ज स्थिती', 'Active Loan Status'],
+    ['५०-आठवडे प्रगती (पासबुक)', '50-Week Progress (Passbook)'],
+    ['व्यवस्थापन क्रिया', 'Management Actions'],
+    ['दर महिना हप्ता', 'Monthly Installment'],
+    ['प्रति आठवडा हप्ता', 'Weekly Installment'],
+    ['सक्रिय बाकी मुद्दल', 'Active Outstanding Principal'],
+    ['सक्रिय बाकी', 'Active Balance'],
+    ['कर्ज तपशील ↗', 'Loan Details ↗'],
+    ['✓ कोणतेही कर्ज नाही', '✓ No Active Loan'],
+    ['➕ कर्ज द्या', '➕ Disburse Loan'],
+    ['📖 संपूर्ण पासबुक पहा', '📖 View Full Passbook'],
+    ['👤 प्रोफाईल', '👤 Profile'],
+    ['📋 लेजर कार्ड', '📋 Ledger Card'],
+    ['✏️ एडिट', '✏️ Edit'],
+    ['🗑️ सेटल', '🗑️ Settle'],
+    ['सदस्य नाव, फोन, आयडी, वारसदार किंवा पत्ता शोधा...', 'Search member name, phone, ID, nominee, or address...'],
+    ['सदस्याचे नाव, फोन नंबर किंवा आयडी शोधा...', 'Search member name, phone number, or ID...'],
+
+    // Loans Page
+    ['बीशी सदस्य कर्ज खातावही व ३% व्याज व्यवस्थापन', 'Bishi Member Loan Ledger & 3% Interest Management'],
+    ['सर्व वाटप कर्जे, ४-आठवड्यांचे ०% सवलत चक्र, ३% मासिक/आवर्ती व्याज आकारणी, व्हॉट्सअ‍ॅप स्मरणपत्रे व परतफेड पावत्या', 'All disbursed loans, 4-week 0% grace period, 3% interest calculation, WhatsApp reminders, and repayment receipts.'],
+    ['➕ नवीन कर्ज वाटप', '➕ Issue New Loan'],
+    ['➕ नवीन कर्ज', '➕ New Loan'],
+    ['एकूण वाटप कर्ज', 'Total Disbursed Loans'],
+    ['कर्जे वाटप', 'Loans Disbursed'],
+    ['एकूण मुद्दल', 'Total Principal'],
+    ['४-आठवडे चक्र व्याज', '4-Week Cycle Interest'],
+    ['पूर्ण परतफेड कर्जे', 'Fully Repaid Loans'],
+    ['कर्जे पूर्ण', 'Loans Settled'],
+    ['परतफेड', 'Repaid'],
+    ['सर्व कर्जे (All Loans)', 'All Loans'],
+    ['🔴 कर्ज बाकी (Pending Loans)', '🔴 Pending Loans'],
+    ['✅ पूर्ण फेड कर्जे (Paid / Settled)', '✅ Settled Loans'],
+    ['कर्ज क्र.', 'Loan No.'],
+    ['सदस्य नाव व संपर्क', 'Member Name & Contact'],
+    ['मूळ मुद्दल', 'Original Principal'],
+    ['वाटप आठवडा/तारीख', 'Issue Week / Date'],
+    ['कालावधी व सायकल', 'Duration & Cycle'],
+    ['४-आठवडे ३% व्याज स्थिती', '4-Week 3% Interest Status'],
+    ['एकूण देय रक्कम', 'Total Payable Amount'],
+    ['कृती (Actions)', 'Actions'],
+    ['↔️ संपूर्ण खातावही पाहण्यासाठी डावीकडे/उजवीकडे स्क्रोल करा (Swipe to view full ledger)', '↔️ Swipe left/right to view full ledger'],
+    ['🔍 सदस्याचे नाव, आयडी, मोबाईल किंवा कर्ज क्र. शोधा...', '🔍 Search member name, ID, mobile, or loan no...'],
+    ['कोणतीही कर्ज नोंद सापडली नाही', 'No loan records found'],
+    ['नवीन कर्ज वाटप करण्यासाठी वरील', 'To issue a new loan, click'],
+    ['बटणावर क्लिक करा.', 'button above.'],
+    ['आठवडे एकूण', 'Weeks Total'],
+    ['चालू सायकल:', 'Current Cycle:'],
+    ['आठवडे', 'Weeks'],
+    ['(पूर्ण जमा)', '(Fully Settled)'],
+    ['(उर्वरित बाकी + व्याज)', '(Remaining Balance + Interest)'],
+    ['(फक्त मुद्दल)', '(Principal Only)'],
+    ['(+३% व्याज)', '(+3% Interest)'],
+    ['✅ पूर्ण फेड', '✅ Fully Settled'],
+    ['🔴 कर्ज बाकी (Pending)', '🔴 Pending Loan'],
+    ['🟠 अंशतः भरले', '🟠 Partially Paid'],
+    ['💰 ३% कर्ज व्याज देय', '💰 3% Loan Interest Due'],
+    ['💰 ३% कर्ज व्याज देय:', '💰 3% Loan Interest Due:'],
+    ['💬 मेसेज', '💬 Message'],
+    ['✓ कर्ज व्याज जमा', '✓ Loan Interest Paid'],
+    ['⏳ सवलतीत / नियमित', '⏳ Grace Period / Regular'],
+    ['⏳ कर्ज सवलतीत', '⏳ Loan in Grace Period'],
+    ['सवलत चालू', 'Grace Period Active'],
+    ['⚡ कृती निवडा ▾', '⚡ Select Action ▾'],
+    ['📄 कर्ज वाटप व्हाउचर (Loan Assign Voucher)', '📄 Loan Assign Voucher'],
+    ['✅ कर्ज फेड नोंदवा (Pay Loan)', '✅ Record Loan Repayment'],
+    ['🧾 कर्ज परतफेड पावती (Repayment Receipt)', '🧾 Loan Repayment Receipt'],
+    ['💬 WhatsApp व्याज मेसेज', '💬 WhatsApp Interest Reminder'],
+    ['🧾 व्याज पावती पहा (Interest Receipt)', '🧾 View Interest Receipt'],
+    ['🧾 हप्ता पावती पहा (Partial Repayment Receipt)', '🧾 View Installment Receipt'],
+    ['❌ कर्ज नोंद रद्द करा', '❌ Cancel Loan Record'],
+    ['बाकी मुद्दल / मूळ कर्ज', 'Remaining / Original Principal'],
+    ['एकूण देय रक्कम', 'Total Payable Amount'],
+    ['वाटप आठवडा व तारीख', 'Disbursed Week & Date'],
+    ['३% व्याज स्थिती', '3% Interest Status'],
+    ['पूर्ण फेड तारीख:', 'Settled Date:'],
+
+    // Week navigation & summary banner
     ['साप्ताहिक कलेक्शन सायकल', 'Weekly Collection Cycle'],
-    ['निवडलेला आठवडा', 'Selected Week'],
-    ['अपेक्षित हप्ता लक्ष्य', 'Expected Installment Target'],
-    ['आतापर्यंत जमा रक्कम', 'Total Amount Collected'],
-    ['या आठवड्याची बाकी', 'Remaining Balance This Week'],
+    ['चालू आठवडा', 'Current Week'],
+    ['आठवडा', 'Week'],
+    ['महिना', 'Month'],
+    ['मागील आठवडा', 'Previous Week'],
+    ['पुढील आठवडा', 'Next Week'],
+    ['थेट आठवडा निवडा', 'Select Week Directly'],
     ['कलेक्शन टक्केवारी', 'Collection Rate'],
+    ['या आठवड्याची बाकी', 'Remaining Balance This Week'],
+    ['आतापर्यंत जमा रक्कम', 'Total Amount Collected'],
+    ['अपेक्षित हप्ता लक्ष्य', 'Expected Installment Target'],
+    ['निवडलेला आठवडा', 'Selected Week'],
     ['सदस्य तपशील', 'Member Details'],
     ['नियमित हप्ता', 'Installment Amount'],
     ['चालू हप्ता स्थिती', 'Current Installment Status'],
@@ -259,15 +466,50 @@
     ['शिल्लक बाकी', 'Remaining Due'],
     ['५०-आठवडे प्रगती', '50-Week Progress'],
     ['कृती / पर्याय', 'Actions / Options'],
-    ['लॉगिन करा', 'Log In'],
-    ['सदस्य आयडी / मोबाईल नंबर / युझरनेम', 'Member ID / Mobile Number / Username'],
-    ['पासवर्ड / पिन (PIN)', 'Password / PIN'],
-    ['माझे लॉगिन जतन ठेवा', 'Remember my login'],
-    ['प्रशासक व सदस्य प्रवेश', 'Admin & Member Access'],
-    ['५०-आठवडे बचत फंड', '50-Week Savings Fund'],
-    ['५०-आठवडे बचत फंड व पासबुक पोर्टल', '50-Week Savings Fund & Passbook Portal'],
-    ['नवीन कर्ज द्या', 'Disburse New Loan'],
-    ['सदस्य कर्ज व्यवस्थापन व ३% व्याज खातावही', 'Member Loan Management & 3% Interest Ledger'],
+    ['कृती / पावती', 'Actions / Receipt'],
+
+    // Filters & Actions
+    ['सर्व सदस्य', 'All Members'],
+    ['सर्व', 'All'],
+    ['📅 साप्ताहिक', '📅 Weekly'],
+    ['🗓️ मासिक', '🗓️ Monthly'],
+    ['जमा (Paid)', 'Paid'],
+    ['प्रलंबित (Pending)', 'Pending'],
+    ['थकबाकी (Overdue)', 'Overdue'],
+    ['पूर्ण (Completed)', 'Completed'],
+    ['नाव, मोबाईल किंवा आयडीने शोधा...', 'Search by name, mobile, or ID...'],
+    ['💰 जमा करा', '💰 Collect'],
+    ['💰 बाकी जमा', '💰 Collect Due'],
+    ['🧾 पावती', '🧾 Receipt'],
+    ['🎉 व्हाउचर', '🎉 Voucher'],
+    ['📖 पासबुक', '📖 Passbook'],
+    ['👤 प्रोफाईल', '👤 Profile'],
+    ['⚙️ पर्याय ▾', '⚙️ Options ▾'],
+    ['जमा', 'Paid'],
+    ['प्रलंबित', 'Pending'],
+    ['थकबाकी', 'Overdue'],
+    ['✓ क्लिअर', '✓ Cleared'],
+    ['पूर्ण 🏆', 'Completed 🏆'],
+    ['⚠️ अपूर्ण जमा', '⚠️ Partial'],
+    ['प्रति आठवडा', 'per week'],
+    ['दर महिना', 'per month'],
+    ['जादा', 'extra'],
+    ['दंड', 'fine'],
+    ['देय', 'Due'],
+    ['बाकी', 'Pending'],
+    ['बंद करा', 'Close'],
+    ['रद्द करा', 'Cancel'],
+    ['जतन करा', 'Save'],
+    ['सबमिट करा', 'Submit'],
+    ['नक्की करा', 'Confirm'],
+    ['🖨️ प्रिंट करा', '🖨️ Print'],
+    ['📥 डाउनलोड', '📥 Download'],
+    ['💬 WhatsApp वर पाठवा', '💬 Share on WhatsApp'],
+    ['📊 Excel डाउनलोड', '📊 Export Excel'],
+    ['📄 CSV डाउनलोड', '📄 Export CSV'],
+    ['💾 JSON बॅकअप', '💾 Backup JSON'],
+
+    // Reports & Ledger Card
     ['बीशी अहवाल व अधिकृत सदस्य खातावही कार्ड रजिस्टर', 'Bishi Reports & Official Member Ledger Card Register'],
     ['शासकीय व अधिकृत लेजर कार्ड रजिस्टर अहवाल — हप्ते, मुद्दल, व्याज व अंतिम परतावा गणना', 'Official member ledger card register report — installments, principal, interest, and final payout calculation'],
     ['अधिकृत खातावही कार्ड रजिस्टर', 'Official Ledger Card Register'],
@@ -283,7 +525,7 @@
     ['सर्व १२ महिने', 'All 12 Months'],
     ['पूर्ण', 'Done'],
 
-    // Customer Portal Specific Phrases
+    // Customer Portal
     ['माझे लेजर कार्ड पहा / प्रिंट करा', 'View / Print My Ledger Card'],
     ['📋 माझे लेजर कार्ड पहा / प्रिंट करा', '📋 View / Print My Ledger Card'],
     ['माझे लेजर कार्ड पहा', 'View My Ledger Card'],
@@ -333,7 +575,6 @@
     ['पेमेंट पद्धत', 'Payment Mode'],
     ['तारीख', 'Date'],
     ['पावती', 'Receipt'],
-    ['कर्ज क्र.', 'Loan No.'],
     ['मूळ रक्कम', 'Principal Amount'],
     ['वाटप तारीख', 'Disbursed Date'],
     ['कालावधी', 'Duration'],
@@ -344,8 +585,6 @@
     ['मासिक हप्ता', 'Monthly Installment'],
     ['साप्ताहिक हप्ता', 'Weekly Installment'],
     ['कालावधी प्रगती', 'Duration Progress'],
-    ['शिल्लक बाकी', 'Remaining Due'],
-    ['एकूण जमा', 'Total Deposit'],
     ['मॅच्युरिटी परतावा (+८%)', 'Maturity Payout (+8%)'],
     ['मॅच्युरिटी परतावा', 'Maturity Payout'],
     ['लेजर कार्ड', 'Ledger Card'],
@@ -358,7 +597,14 @@
     ['अ‍ॅप इन्स्टॉल', 'Install App'],
     ['सुखकर्ता बीशी मोबाईल ॲप', 'Sukhakarta Bishi Mobile App'],
     ['अ‍ॅपप्रमाणे जलद व ऑफलाइन वापरण्यासाठी इन्स्टॉल करा', 'Install for fast access & offline support'],
-    ['इन्स्टॉल', 'Install']
+    ['इन्स्टॉल', 'Install'],
+
+    // Login Screen
+    ['लॉगिन करा', 'Log In'],
+    ['सदस्य आयडी / मोबाईल नंबर / युझरनेम', 'Member ID / Mobile Number / Username'],
+    ['पासवर्ड / पिन (PIN)', 'Password / PIN'],
+    ['माझे लॉगिन जतन ठेवा', 'Remember my login'],
+    ['प्रशासक व सदस्य प्रवेश', 'Admin & Member Access']
   ];
 
   class I18nManager {
@@ -421,6 +667,9 @@
         }
       }
 
+      // Re-run DOM translation to catch any freshly rendered static strings
+      this.translateDOM();
+
       if (!silent && typeof window !== 'undefined' && window.ui && typeof window.ui.showToast === 'function') {
         window.ui.showToast(
           lang === 'en' ? '🌐 Language switched to English' : '🌐 भाषा बदलली: मराठी',
@@ -454,20 +703,22 @@
       if (typeof document === 'undefined') return;
 
       // Update pills in sidebar, login screen, or elsewhere
-      document.querySelectorAll('.lang-pill-btn').forEach(btn => {
-        const btnLang = btn.dataset.lang || btn.getAttribute('data-lang');
-        if (btnLang === this.currentLang) {
-          btn.classList.add('active');
-          btn.style.background = 'var(--emerald-500)';
-          btn.style.color = '#ffffff';
-          btn.style.boxShadow = '0 1px 4px rgba(5, 150, 105, 0.35)';
-        } else {
-          btn.classList.remove('active');
-          btn.style.background = 'transparent';
-          btn.style.color = 'var(--text-secondary)';
-          btn.style.boxShadow = 'none';
-        }
-      });
+      if (typeof document.querySelectorAll === 'function') {
+        document.querySelectorAll('.lang-pill-btn').forEach(btn => {
+          const btnLang = btn.dataset?.lang || btn.getAttribute?.('data-lang');
+          if (btnLang === this.currentLang) {
+            btn.classList.add('active');
+            btn.style.background = 'var(--emerald-500)';
+            btn.style.color = '#ffffff';
+            btn.style.boxShadow = '0 1px 4px rgba(5, 150, 105, 0.35)';
+          } else {
+            btn.classList.remove('active');
+            btn.style.background = 'transparent';
+            btn.style.color = 'var(--text-secondary)';
+            btn.style.boxShadow = 'none';
+          }
+        });
+      }
 
       // Update Mobile Top Bar Button Label
       const mobileLangLabel = document.getElementById('mobileLangLabel');
@@ -488,46 +739,146 @@
       const isEn = this.currentLang === 'en';
 
       // 1. Process elements with data-i18n
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (key && TRANSLATIONS[key]) {
-          const val = TRANSLATIONS[key][this.currentLang];
-          if (val) el.textContent = val;
-        }
-      });
-
-      // 2. Process data-i18n-placeholder
-      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        if (key && TRANSLATIONS[key]) {
-          const val = TRANSLATIONS[key][this.currentLang];
-          if (val) el.setAttribute('placeholder', val);
-        }
-      });
-
-      // 3. Process data-i18n-title
-      document.querySelectorAll('[data-i18n-title]').forEach(el => {
-        const key = el.getAttribute('data-i18n-title');
-        if (key && TRANSLATIONS[key]) {
-          const val = TRANSLATIONS[key][this.currentLang];
-          if (val) el.setAttribute('title', val);
-        }
-      });
-
-      // 4. Bidirectional Phrase Replacement for static labels in the DOM
-      EXACT_PHRASE_PAIRS.forEach(([mrPhrase, enPhrase]) => {
-        const fromPhrase = isEn ? mrPhrase : enPhrase;
-        const toPhrase = isEn ? enPhrase : mrPhrase;
-
-        // Fast text content check for leaf text nodes or headings/spans/buttons/table headers
-        const selectors = 'th, td, p, h1, h2, h3, h4, span, label, button, a, div.stat-label, div.sidebar-group-title, span.sidebar-nav-text';
-        document.querySelectorAll(selectors).forEach(el => {
-          // If element has only one text child or exact text match
-          if (el.children.length === 0 && el.textContent.trim() === fromPhrase) {
-            el.textContent = toPhrase;
+      if (typeof document.querySelectorAll === 'function') {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          if (key && TRANSLATIONS[key]) {
+            const val = TRANSLATIONS[key][this.currentLang];
+            if (val) {
+              if (val.includes('<') && val.includes('>')) {
+                el.innerHTML = val;
+              } else {
+                el.textContent = val;
+              }
+            }
           }
         });
+
+        // 2. Process data-i18n-placeholder
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+          const key = el.getAttribute('data-i18n-placeholder');
+          if (key && TRANSLATIONS[key]) {
+            const val = TRANSLATIONS[key][this.currentLang];
+            if (val) el.setAttribute('placeholder', val);
+          }
+        });
+
+        // 3. Process data-i18n-title
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+          const key = el.getAttribute('data-i18n-title');
+          if (key && TRANSLATIONS[key]) {
+            const val = TRANSLATIONS[key][this.currentLang];
+            if (val) el.setAttribute('title', val);
+          }
+        });
+      }
+
+      // 4. Sort phrase pairs by length descending so longer phrases match first
+      const sortedPairs = [...EXACT_PHRASE_PAIRS].sort((a, b) => {
+        const fromA = isEn ? a[0] : a[1];
+        const fromB = isEn ? b[0] : b[1];
+        return (fromB ? fromB.length : 0) - (fromA ? fromA.length : 0);
       });
+
+      // 5. Deep TreeWalker across all text nodes (replaces matching phrases everywhere in DOM)
+      if (typeof document.createTreeWalker === 'function' && document.body) {
+        try {
+          const walker = document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_TEXT,
+            {
+              acceptNode(node) {
+                if (!node || !node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                const parent = node.parentElement;
+                if (!parent) return NodeFilter.FILTER_REJECT;
+                const tag = parent.tagName;
+                if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
+              }
+            }
+          );
+
+          const textNodes = [];
+          while (walker.nextNode()) {
+            textNodes.push(walker.currentNode);
+          }
+
+          textNodes.forEach(node => {
+            let text = node.nodeValue;
+            let modified = false;
+
+            for (let i = 0; i < sortedPairs.length; i++) {
+              const [mrPhrase, enPhrase] = sortedPairs[i];
+              const from = isEn ? mrPhrase : enPhrase;
+              const to = isEn ? enPhrase : mrPhrase;
+
+              if (from && to && text.includes(from)) {
+                text = text.split(from).join(to);
+                modified = true;
+              }
+            }
+
+            if (modified) {
+              node.nodeValue = text;
+            }
+          });
+        } catch (e) {
+          console.warn('[i18n] TreeWalker error:', e);
+        }
+      }
+
+      // 6. Fast Element-level fallback & attribute translation
+      if (typeof document.querySelectorAll === 'function') {
+        const selectors = 'th, td, p, h1, h2, h3, h4, span, label, button, a, option, div.stat-label, div.sidebar-group-title, span.sidebar-nav-text';
+        try {
+          document.querySelectorAll(selectors).forEach(el => {
+            if (el.children.length === 0 && el.textContent) {
+              const trimmed = el.textContent.trim();
+              for (let i = 0; i < sortedPairs.length; i++) {
+                const [mrPhrase, enPhrase] = sortedPairs[i];
+                const from = isEn ? mrPhrase : enPhrase;
+                const to = isEn ? enPhrase : mrPhrase;
+                if (trimmed === from) {
+                  el.textContent = to;
+                  break;
+                }
+              }
+            }
+          });
+
+          // Translate placeholders
+          document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el => {
+            let ph = el.getAttribute('placeholder') || '';
+            let modified = false;
+            for (let i = 0; i < sortedPairs.length; i++) {
+              const [mrPhrase, enPhrase] = sortedPairs[i];
+              const from = isEn ? mrPhrase : enPhrase;
+              const to = isEn ? enPhrase : mrPhrase;
+              if (from && ph.includes(from)) {
+                ph = ph.split(from).join(to);
+                modified = true;
+              }
+            }
+            if (modified) el.setAttribute('placeholder', ph);
+          });
+
+          // Translate titles
+          document.querySelectorAll('[title]').forEach(el => {
+            let t = el.getAttribute('title') || '';
+            let modified = false;
+            for (let i = 0; i < sortedPairs.length; i++) {
+              const [mrPhrase, enPhrase] = sortedPairs[i];
+              const from = isEn ? mrPhrase : enPhrase;
+              const to = isEn ? enPhrase : mrPhrase;
+              if (from && t.includes(from)) {
+                t = t.split(from).join(to);
+                modified = true;
+              }
+            }
+            if (modified) el.setAttribute('title', t);
+          });
+        } catch (_) {}
+      }
     }
 
     init() {

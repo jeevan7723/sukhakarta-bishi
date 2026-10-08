@@ -3,7 +3,7 @@
  * Provides offline capabilities, instant loading, and asset caching for Website and Mobile App
  */
 
-const CACHE_NAME = 'sukhakarta-bishi-v1.3.0';
+const CACHE_NAME = 'sukhakarta-bishi-v1.3.1';
 
 const PRECACHE_ASSETS = [
   './',
