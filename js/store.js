@@ -17,6 +17,7 @@ const defaultState = {
     currentWeek: 1,
     defaultFineAmount: 50, // थकबाकी हप्ता नियमित दंड (₹)
     maturityInterestPercent: 8, // ५० आठवडे पूर्ण झाल्यावर एकूण बचतीवर ८% मॅच्युरिटी व्याज
+    loanInterestRatePercent: 3, // कर्ज व्याज दर (दर ४ आठवड्यांनी किंवा मासिक ३%)
     autoApplyFine: true,
     startDate: new Date().toISOString().split('T')[0],
     lastUpdated: 0,
@@ -87,6 +88,9 @@ class BishiStore {
     }
     if (this.state.meta.maturityInterestPercent === undefined) {
       this.state.meta.maturityInterestPercent = 8;
+    }
+    if (this.state.meta.loanInterestRatePercent === undefined) {
+      this.state.meta.loanInterestRatePercent = 3;
     }
     if (!this.state.meta.bishiName) {
       this.state.meta.bishiName = 'सुखकर्ता बीशी';
@@ -278,9 +282,20 @@ class BishiStore {
     if (settings.maturityInterestPercent !== undefined) {
       this.state.meta.maturityInterestPercent = Math.max(0, Number(settings.maturityInterestPercent) || 8);
     }
+    if (settings.loanInterestRatePercent !== undefined) {
+      this.state.meta.loanInterestRatePercent = Math.max(0, Number(settings.loanInterestRatePercent) || 0);
+    }
     if (settings.currency) this.state.meta.currency = settings.currency.trim();
     this.saveState();
     return this.state.meta;
+  }
+
+  // डीफॉल्ट कर्ज व्याज दर मिळवणे (Get Configured Loan Interest Rate %)
+  getLoanInterestRate() {
+    if (this.state && this.state.meta && this.state.meta.loanInterestRatePercent !== undefined) {
+      return Math.max(0, Number(this.state.meta.loanInterestRatePercent));
+    }
+    return 3;
   }
 
   // आठवड्याची कॅलेंडर तारीख मिळवणे (Calculated Week Date from startDate)
@@ -1121,7 +1136,8 @@ class BishiStore {
     const isPartiallyPaid = !isPaid && principalRepaid > 0 && remainingPrincipal > 0;
     const isPending = !isPaid;
 
-    const interestRate = Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : 3);
+    const defaultMetaRate = this.getLoanInterestRate();
+    const interestRate = Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : defaultMetaRate);
     const cycleWeeks = Number(loan.gracePeriodWeeks !== undefined ? loan.gracePeriodWeeks : 4);
     const totalInterestPaid = Number(loan.totalInterestPaid || 0);
     const interestPayments = Array.isArray(loan.interestPayments) ? loan.interestPayments : [];
@@ -1272,7 +1288,11 @@ class BishiStore {
       issueDate: issueDate,
       lastInterestPaidWeek: issueWeek,
       lastInterestPaidDate: issueDate,
-      interestRatePercent: 3,
+      interestRatePercent: (data.interestRatePercent !== undefined && data.interestRatePercent !== null && !isNaN(Number(data.interestRatePercent))) 
+        ? Math.max(0, Number(data.interestRatePercent)) 
+        : ((data.interestRate !== undefined && data.interestRate !== null && !isNaN(Number(data.interestRate)))
+            ? Math.max(0, Number(data.interestRate))
+            : this.getLoanInterestRate()),
       gracePeriodWeeks: 4,
       status: 'active', // नवीन वाटप कर्ज (पेंडिंग / सक्रिय)
       repaidAmount: 0,
@@ -1336,7 +1356,7 @@ class BishiStore {
     }
 
     const details = this.calculateLoanDetails(loan);
-    const suggestedInterest = details.singleCycleInterestAmount || Math.round(details.remainingPrincipal * 0.03);
+    const suggestedInterest = details.singleCycleInterestAmount || Math.round(details.remainingPrincipal * (details.interestRate / 100));
     const amount = paymentData.amount !== undefined ? Math.max(1, Number(paymentData.amount)) : (details.interestAmount > 0 ? details.interestAmount : suggestedInterest);
     
     const paidDate = paymentData.paidDate || new Date().toISOString().split('T')[0];
@@ -1361,7 +1381,7 @@ class BishiStore {
       paymentMode: paymentMode,
       upiId: upiId,
       receiptNo: receiptNo,
-      notes: notes || `४ आठवड्यांचे ३% कर्ज व्याज जमा (चक्र ${currentCycleNum})`,
+      notes: notes || `४ आठवड्यांचे ${details.interestRate}% कर्ज व्याज जमा (चक्र ${currentCycleNum})`,
       createdAt: Date.now()
     };
 
@@ -1389,7 +1409,7 @@ class BishiStore {
       paymentMode: paymentMode,
       upiId: upiId,
       receiptNo: receiptNo,
-      note: notes ? `४ आठवड्यांचे कर्ज व्याज जमा (चक्र ${currentCycleNum}): ${notes}` : `कर्ज ${loan.id} चे ४ आठवड्यांचे ३% व्याज जमा: ₹${amount.toLocaleString('en-IN')} (चक्र ${currentCycleNum})`
+      note: notes ? `४ आठवड्यांचे कर्ज व्याज जमा (चक्र ${currentCycleNum}): ${notes}` : `कर्ज ${loan.id} चे ४ आठवड्यांचे ${details.interestRate}% व्याज जमा: ₹${amount.toLocaleString('en-IN')} (चक्र ${currentCycleNum})`
     });
 
     this.saveState();
@@ -1572,6 +1592,26 @@ class BishiStore {
       });
     }
     return { success: true, removedLoan: removed, message: 'कर्ज नोंद यशस्वीरीत्या काढून टाकली.' };
+  }
+
+  // कर्ज व्याज दर बदलणे / अपडेट करणे (Edit Loan Interest Rate - केवळ प्रशासक)
+  updateLoanInterestRate(loanId, newRatePercent) {
+    if (window.authManager && !window.authManager.isAdmin()) {
+      return { success: false, message: 'केवळ प्रशासक कर्ज व्याज दर बदलू शकतात.' };
+    }
+    const loan = this.getLoan(loanId);
+    if (!loan) return { success: false, message: 'कर्ज नोंद सापडली नाही.' };
+    const rate = Math.max(0, Number(newRatePercent) || 0);
+    const oldRate = loan.interestRatePercent !== undefined ? loan.interestRatePercent : this.getLoanInterestRate();
+    loan.interestRatePercent = rate;
+    this.saveState();
+    return {
+      success: true,
+      loan,
+      oldRate,
+      newRate: rate,
+      message: `कर्ज ${loan.id} चा व्याज दर ${oldRate}% वरून ${rate}% करण्यात आला.`
+    };
   }
 
   // सदस्यनिहाय कर्ज सारांश (Member Loan Summary)

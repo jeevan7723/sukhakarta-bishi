@@ -318,10 +318,11 @@
       if (!this.settings.loanActions) return;
       const memName = member ? (member.nameMarathi || member.name) : (loan.memberName || 'सदस्य');
       const principal = Number(loan.principalAmount || 0);
+      const rate = loan.interestRatePercent || loan.details?.interestRate || 3;
 
       this.notify({
         title: '💳 नवीन कर्ज वाटप मंजूर (Loan Disbursed)',
-        body: `${memName} (आयडी: ${loan.memberId}) यांना ₹${principal.toLocaleString('en-IN')} चे कर्ज वाटप करण्यात आले (दर ४ आठवड्यांनी ३% व्याज).`,
+        body: `${memName} (आयडी: ${loan.memberId}) यांना ₹${principal.toLocaleString('en-IN')} चे कर्ज वाटप करण्यात आले (दर ४ आठवड्यांनी ${rate}% व्याज).`,
         type: 'loan',
         url: './app.html#loans',
         meta: {
@@ -339,10 +340,11 @@
       const memName = loan.memberName || 'सदस्य';
       const amount = Number(payment.amount || 0);
       const cycle = payment.cycleNumber || 1;
+      const rate = loan.interestRatePercent || loan.details?.interestRate || payment.interestRate || 3;
 
       this.notify({
-        title: '💰 ३% कर्ज व्याज जमा (Loan Interest Paid)',
-        body: `${memName} यांनी चक्र ${cycle} चे ३% कर्ज व्याज ₹${amount.toLocaleString('en-IN')} यशस्वीरीत्या जमा केले (पावती: ${payment.receiptNo}).`,
+        title: `💰 ${rate}% कर्ज व्याज जमा (Loan Interest Paid)`,
+        body: `${memName} यांनी चक्र ${cycle} चे ${rate}% कर्ज व्याज ₹${amount.toLocaleString('en-IN')} यशस्वीरीत्या जमा केले (पावती: ${payment.receiptNo}).`,
         type: 'loan',
         url: './app.html#loans',
         meta: {

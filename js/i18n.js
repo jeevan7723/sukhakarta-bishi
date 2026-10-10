@@ -242,11 +242,153 @@
     cust_history_title: { mr: 'माझे सर्व व्यवहार व पेमेंट इतिहास', en: 'My Transactions & Payment History' },
     cust_history_sub: { mr: 'आपल्या ५०-आठवडे बीशीचे जमा हप्ते आणि डिजिटल पावत्यांचा संपूर्ण तपशील.', en: 'Complete record of your 50-week Bishi installments and digital receipts.' },
     cust_btn_print_ledger: { mr: 'माझे लेजर कार्ड पहा / प्रिंट करा', en: 'View / Print My Ledger Card' },
-    cust_btn_download_ledger: { mr: 'माझे स्टेटमेंट डाउनलोड करा', en: 'Download My Statement' }
+    cust_btn_download_ledger: { mr: 'माझे स्टेटमेंट डाउनलोड करा', en: 'Download My Statement' },
+
+    // Loan Modals (Give Loan, Repay Loan, Pay Interest)
+    modal_give_loan_title: { mr: '<span>➕</span> सदस्यास नवीन कर्ज द्या (प्रशासक)', en: '<span>➕</span> Issue New Loan to Member (Admin)' },
+    modal_give_loan_member_label: { mr: 'सदस्य निवडा *', en: 'Select Member *' },
+    modal_give_loan_member_default: { mr: '-- सदस्य निवडा --', en: '-- Select Member --' },
+    modal_give_loan_amount_label: { mr: 'कर्ज रक्कम (₹) *', en: 'Loan Amount (₹) *' },
+    modal_give_loan_rules_title: { mr: 'कर्ज व व्याज नियमावली:', en: 'Loan & Interest Rules:' },
+    modal_give_loan_rule_grace: { mr: '• <strong>पहिल्या ४ आठवड्यांत (Grace Period):</strong> <span style="color: var(--emerald-400); font-weight: 700;">०% व्याज</span> (फक्त मूळ रक्कम परतफेड).', en: '• <strong>First 4 Weeks (Grace Period):</strong> <span style="color: var(--emerald-400); font-weight: 700;">0% Interest</span> (Principal repayment only).' },
+    modal_give_loan_rule_interest: { mr: '• <strong>४ आठवड्यांनंतर:</strong> <span style="color: var(--gold-400); font-weight: 700;">३% व्याज</span> लागू होईल (उदा. ₹१०,००० वर +₹३०० व्याज).', en: '• <strong>After 4 Weeks:</strong> <span style="color: var(--gold-400); font-weight: 700;">3% Interest</span> applies (e.g. +₹300 interest on ₹10,000).' },
+    modal_give_loan_issue_week_label: { mr: 'वाटप आठवडा', en: 'Disbursement Week' },
+    modal_give_loan_issue_date_label: { mr: 'वाटप तारीख', en: 'Disbursed Date' },
+    modal_give_loan_mode_label: { mr: 'वितरण पद्धत (Disbursement Mode) *', en: 'Disbursement Mode *' },
+    modal_give_loan_opt_cash: { mr: '💵 रोख (Cash Handover)', en: '💵 Cash Handover' },
+    modal_give_loan_opt_upi: { mr: '📱 UPI (Google Pay, PhonePe, Paytm)', en: '📱 UPI (Google Pay, PhonePe, Paytm)' },
+    modal_give_loan_opt_bank: { mr: '🏦 बँक ट्रान्सफर (NEFT/IMPS)', en: '🏦 Bank Transfer (NEFT/IMPS)' },
+    modal_give_loan_opt_cheque: { mr: '📜 चेक', en: '📜 Cheque' },
+    modal_give_loan_upi_label: { mr: 'UPI आयडी / बँक ट्रान्झॅक्शन संदर्भ क्र.', en: 'UPI ID / Bank Transaction Ref No.' },
+    modal_give_loan_upi_ph: { mr: 'उदा. member@okaxis किंवा UTR क्र.', en: 'e.g. member@okaxis or UTR No.' },
+    modal_give_loan_notes_label: { mr: 'टीप / कारणांचा तपशील (ऐच्छिक)', en: 'Notes / Purpose Details (Optional)' },
+    modal_give_loan_notes_ph: { mr: 'उदा. वैयक्तिक/घरगुती गरज', en: 'e.g. Personal / Household need' },
+    modal_give_loan_btn_confirm: { mr: '💳 कर्ज वाटप निश्चित करा', en: '💳 Confirm Loan Disbursement' },
+
+    modal_mark_loan_paid_title: { mr: '<span>💰</span> कर्ज परतफेड / हप्ता जमा नोंदवा (प्रशासक)', en: '<span>💰</span> Record Loan Repayment / Installment (Admin)' },
+    modal_mark_loan_paid_total_header: { mr: 'चालू एकूण देय रक्कम (पूर्ण परतफेड):', en: 'Current Total Due (Full Repayment):' },
+    modal_mark_loan_paid_rem_principal_lbl: { mr: 'सध्याचे बाकी कर्ज मुद्दल:', en: 'Current Outstanding Principal:' },
+    modal_mark_loan_paid_orig_principal_lbl: { mr: 'सुरुवातीची मूळ मुद्दल:', en: 'Original Disbursed Principal:' },
+    modal_mark_loan_paid_duration_lbl: { mr: 'कालावधी:', en: 'Duration:' },
+    modal_mark_loan_paid_interest_lbl: { mr: '३% व्याज (४ आठवड्यांनंतर):', en: '3% Interest (After 4 Weeks):' },
+    modal_mark_loan_paid_presets_header: { mr: '⚡ जलद निवड करा (Quick Repayment Presets):', en: '⚡ Quick Repayment Presets:' },
+    modal_mark_loan_paid_amt_lbl: { mr: 'जमा करावयाची रक्कम (₹) *', en: 'Repayment Amount (₹) *' },
+    modal_mark_loan_paid_int_lbl: { mr: 'व्याज रक्कम (₹) *', en: 'Interest Amount (₹) *' },
+    modal_mark_loan_paid_rem_preview_lbl: { mr: 'या भरण्यानंतर उर्वरित बाकी कर्ज:', en: 'Remaining Principal After Payment:' },
+    modal_mark_loan_paid_week_lbl: { mr: 'परतफेड आठवडा', en: 'Repayment Week' },
+    modal_mark_loan_paid_date_lbl: { mr: 'परतफेड तारीख', en: 'Repayment Date' },
+    modal_mark_loan_paid_mode_lbl: { mr: 'पेमेंट पद्धत *', en: 'Payment Mode *' },
+    modal_mark_loan_paid_notes_lbl: { mr: 'परतफेड टीप (ऐच्छिक)', en: 'Repayment Notes (Optional)' },
+    modal_mark_loan_paid_notes_ph: { mr: 'उदा. अर्धे कर्ज परतफेड / पूर्ण परतफेड', en: 'e.g. Half / Full loan repayment' },
+    modal_mark_loan_paid_btn_confirm: { mr: '💰 कर्ज परतफेड जमा निश्चित करा', en: '💰 Confirm Loan Repayment' },
+
+    modal_pay_loan_interest_title: { mr: '<span>💰</span> ४-आठवडे कर्ज व्याज जमा नोंदवा (प्रशासक)', en: '<span>💰</span> Record 4-Week Loan Interest (Admin)' },
+    modal_pay_loan_interest_total_header: { mr: 'जमा करावयाची ४-आठवड्यांची ३% व्याज रक्कम:', en: '4-Week 3% Interest Amount Due:' },
+    modal_pay_loan_interest_principal_lbl: { mr: 'मूळ सक्रिय कर्ज मुद्दल:', en: 'Active Principal Loan:' },
+    modal_pay_loan_interest_last_paid_lbl: { mr: 'मागील व्याज भरणा / वाटप:', en: 'Last Interest Payment / Issue:' },
+    modal_pay_loan_interest_duration_lbl: { mr: 'कालावधी / स्थिती:', en: 'Duration / Status:' },
+    modal_pay_loan_interest_total_paid_lbl: { mr: 'आतापर्यंत जमा एकूण व्याज:', en: 'Total Interest Paid So Far:' },
+    modal_pay_loan_interest_amt_lbl: { mr: 'जमा व्याज रक्कम (₹) *', en: 'Interest Amount to Deposit (₹) *' },
+    modal_pay_loan_interest_week_lbl: { mr: 'व्याज भरणा आठवडा *', en: 'Interest Payment Week *' },
+    modal_pay_loan_interest_date_lbl: { mr: 'भरणा तारीख *', en: 'Payment Date *' },
+    modal_pay_loan_interest_mode_lbl: { mr: 'पेमेंट पद्धत *', en: 'Payment Mode *' },
+    modal_pay_loan_interest_notes_lbl: { mr: 'टीप / शेरा (ऐच्छिक)', en: 'Notes / Remarks (Optional)' },
+    modal_pay_loan_interest_notes_ph: { mr: 'उदा. ४ आठवड्यांचे ३% व्याज रोख मिळाले', en: 'e.g. 4-week 3% interest received in cash' },
+    modal_pay_loan_interest_btn_reminder: { mr: '💬 WhatsApp स्मरणपत्र पाठवा', en: '💬 Send WhatsApp Reminder' },
+    modal_pay_loan_interest_btn_confirm: { mr: '💰 व्याज जमा निश्चित करा', en: '💰 Confirm Interest Payment' },
+
+    admin_loan_interest_label: { mr: '💳 कर्ज व्याज दर (दर ४ आठवड्यांनी %) *', en: '💳 Loan Interest Rate (Every 4 Wks %) *' },
+    admin_loan_interest_regular_badge: { mr: 'नियमित: ३%', en: 'Standard: 3%' },
+    modal_give_loan_interest_label: { mr: '📈 कर्ज व्याज दर (दर ४ आठवड्यांनी %) *', en: '📈 Loan Interest Rate (Every 4 Wks %) *' },
+    modal_give_loan_default_badge: { mr: 'नियमित दर: ३%', en: 'Standard Rate: 3%' },
+    modal_edit_loan_interest_title: { mr: 'कर्ज व्याज दर बदला (Admin)', en: 'Edit Loan Interest Rate (Admin)' },
+    modal_edit_loan_interest_rate_label: { mr: 'नवीन व्याज दर (दर ४ आठवड्यांनी %) *', en: 'New Interest Rate (Every 4 Wks %) *' },
+    modal_edit_loan_interest_save_btn: { mr: '💾 व्याज दर जतन करा', en: '💾 Save Interest Rate' },
+
+    // Members table & Admin Txn Modal keys
+    th_member_details: { mr: 'सदस्य तपशील', en: 'Member Details' },
+    th_installment_amount: { mr: 'हप्ता रक्कम', en: 'Installment Amount' },
+    th_current_status: { mr: 'सद्य स्थिती', en: 'Current Status' },
+    th_total_deposit: { mr: 'एकूण जमा बचत', en: 'Total Deposit' },
+    th_next_due_target: { mr: 'पुढील हप्ता / लक्ष्य', en: 'Next Due / Target' },
+    th_savings_progress: { mr: 'बचत प्रगती', en: 'Savings Progress' },
+    th_actions_options: { mr: 'क्रिया / ऑप्शन्स', en: 'Actions / Options' },
+
+    modal_admin_txn_title: { mr: '<span>📋</span> सर्व सदस्यांच्या ठेवी व कर्ज तपशील खातावही', en: "<span>📋</span> All Members' Deposit & Loan Ledger Register" },
+    subtab_all_txns: { mr: '📋 सर्व व्यवहार (ठेवी + कर्ज)', en: '📋 All Transactions (Deposits + Loans)' },
+    subtab_bishi_deposits: { mr: '💰 फक्त बीशी ठेवी', en: '💰 Bishi Deposits Only' },
+    subtab_all_loans_txns: { mr: '💳 सर्व कर्ज व्यवहार (वाटप / व्याज / परतफेड)', en: '💳 All Loan Transactions (Disbursed / Interest / Repaid)' },
+    subtab_member_loan_accounts: { mr: '📊 सर्व सदस्यांचे कर्ज तपशील व खाती', en: "📊 All Members' Loan Accounts & Details" },
+    ph_admin_txn_search: { mr: 'सदस्याचे नाव, आयडी, कर्ज क्र. किंवा पावती नंबर शोधा...', en: 'Search by member name, ID, loan no., or receipt no...' },
+    btn_give_new_loan: { mr: '➕ नवीन कर्ज', en: '➕ New Loan' },
+    th_receipt_no: { mr: 'पावती क्र.', en: 'Receipt No.' },
+    th_member_loan_status: { mr: 'सदस्य तपशील व कर्ज स्थिती', en: 'Member Details & Loan Status' },
+    th_week_no: { mr: 'आठवडा क्र.', en: 'Week No.' },
+    th_installment_loan_amt: { mr: 'हप्ता / कर्ज रक्कम', en: 'Installment / Loan Amount' },
+    th_late_fee: { mr: 'लेट फी दंड', en: 'Late Fee Fine' },
+    th_total_amount: { mr: 'एकूण रक्कम', en: 'Total Amount' },
+    th_payment_mode: { mr: 'पेमेंट पद्धत', en: 'Payment Mode' },
+    th_date_time: { mr: 'तारीख व वेळ', en: 'Date & Time' },
+    th_receipt: { mr: 'पावती', en: 'Receipt' },
+    th_loan_no: { mr: 'कर्ज क्र.', en: 'Loan No.' },
+    th_sanctioned_principal: { mr: 'मंजूर कर्ज मुद्दल', en: 'Sanctioned Principal' },
+    th_issue_week_date: { mr: 'वाटप आठवडा/तारीख', en: 'Issue Week / Date' },
+    th_duration: { mr: 'कालावधी', en: 'Duration' },
+    th_interest_status: { mr: '३% व्याज स्थिती', en: 'Interest Status' },
+    th_repaid_principal: { mr: 'परत केलेली मुद्दल', en: 'Principal Repaid' },
+    th_remaining_principal: { mr: 'उर्वरित बाकी मुद्दल', en: 'Remaining Principal' },
+    th_status: { mr: 'स्थिती', en: 'Status' },
+    th_actions: { mr: 'क्रिया', en: 'Action' },
+    lbl_showing: { mr: 'दाखवत आहे:', en: 'Showing:' },
+    lbl_records: { mr: 'नोंदी', en: 'records' },
+    lbl_total_deposits: { mr: 'एकूण बचत:', en: 'Total Deposits:' },
+    lbl_total_fines: { mr: 'एकूण दंड:', en: 'Total Fines:' },
+    lbl_loans_disbursed: { mr: 'कर्ज वाटप:', en: 'Loans Disbursed:' },
+    lbl_loan_interest: { mr: 'कर्ज व्याज:', en: 'Loan Interest:' },
+    lbl_loans_repaid: { mr: 'कर्ज परतफेड:', en: 'Loans Repaid:' }
   };
 
   // Phrases for automatic bidirectional DOM scanning
   const EXACT_PHRASE_PAIRS = [
+    // Admin Transactions Modal & Member Table headers
+    ['सर्व सदस्यांच्या ठेवी व कर्ज तपशील खातावही', "All Members' Deposit & Loan Ledger Register"],
+    ['📋 सर्व सदस्यांच्या ठेवी व कर्ज तपशील खातावही', "📋 All Members' Deposit & Loan Ledger Register"],
+    ['सर्व व्यवहार (ठेवी + कर्ज)', 'All Transactions (Deposits + Loans)'],
+    ['📋 सर्व व्यवहार (ठेवी + कर्ज)', '📋 All Transactions (Deposits + Loans)'],
+    ['फक्त बीशी ठेवी', 'Bishi Deposits Only'],
+    ['💰 फक्त बीशी ठेवी', '💰 Bishi Deposits Only'],
+    ['सर्व कर्ज व्यवहार (वाटप / व्याज / परतफेड)', 'All Loan Transactions (Disbursed / Interest / Repaid)'],
+    ['💳 सर्व कर्ज व्यवहार (वाटप / व्याज / परतफेड)', '💳 All Loan Transactions (Disbursed / Interest / Repaid)'],
+    ['सर्व सदस्यांचे कर्ज तपशील व खाती', "All Members' Loan Accounts & Details"],
+    ['📊 सर्व सदस्यांचे कर्ज तपशील व खाती', "📊 All Members' Loan Accounts & Details"],
+    ['सदस्याचे नाव, आयडी, कर्ज क्र. किंवा पावती नंबर शोधा...', 'Search by member name, ID, loan no., or receipt no...'],
+    ['सर्व कर्ज व्यवहार', 'All Loan Transactions'],
+    ['💳 सर्व कर्ज व्यवहार', '💳 All Loan Transactions'],
+    ['फक्त कर्ज वाटप', 'Loan Disbursements Only'],
+    ['💳 फक्त कर्ज वाटप', '💳 Loan Disbursements Only'],
+    ['फक्त कर्ज व्याज जमा', 'Loan Interest Deposits Only'],
+    ['💰 फक्त कर्ज व्याज जमा', '💰 Loan Interest Deposits Only'],
+    ['फक्त कर्ज परतफेड', 'Loan Repayments Only'],
+    ['✅ फक्त कर्ज परतफेड', '✅ Loan Repayments Only'],
+    ['फक्त रोख (Cash)', 'Cash Only'],
+    ['💵 फक्त रोख (Cash)', '💵 Cash Only'],
+    ['फक्त UPI', 'UPI Only'],
+    ['📱 फक्त UPI', '📱 UPI Only'],
+    ['दंड भरलेले व्यवहार', 'Fined Transactions'],
+    ['⚠️ दंड भरलेले व्यवहार', '⚠️ Fined Transactions'],
+    ['पुढील हप्ता / लक्ष्य', 'Next Due / Target'],
+    ['बचत प्रगती', 'Savings Progress'],
+    ['सदस्य तपशील व कर्ज स्थिती', 'Member Details & Loan Status'],
+    ['हप्ता / कर्ज रक्कम', 'Installment / Loan Amount'],
+    ['मंजूर कर्ज मुद्दल', 'Sanctioned Principal'],
+    ['परत केलेली मुद्दल', 'Principal Repaid'],
+    ['उर्वरित बाकी मुद्दल', 'Remaining Principal'],
+    ['क्रिया / ऑप्शन्स', 'Actions / Options'],
+    ['➕ नवीन कर्ज', '➕ New Loan'],
+    ['+ नवीन कर्ज', '+ New Loan'],
+    ['नवीन कर्ज', 'New Loan'],
+    ['नवीन कर्जे', 'New Loans'],
+
     // Top Brand & Nav
     ['सुखकर्ता बीशी', 'Sukhakarta Bishi'],
     ['५०-आठवडे बचत फंड', '50-Week Savings Fund'],
@@ -446,6 +588,90 @@
     ['३% व्याज स्थिती', '3% Interest Status'],
     ['पूर्ण फेड तारीख:', 'Settled Date:'],
 
+    // Loan Modals (Issue Loan, Repay Loan, Pay Interest)
+    ['सदस्यास नवीन कर्ज द्या (प्रशासक)', 'Issue New Loan to Member (Admin)'],
+    ['सदस्यास नवीन कर्ज द्या', 'Issue New Loan to Member'],
+    ['या सदस्यास कर्ज द्या', 'Issue loan to this member'],
+    ['नवीन कर्ज द्या', 'Issue New Loan'],
+    ['सदस्य निवडा *', 'Select Member *'],
+    ['-- सदस्य निवडा --', '-- Select Member --'],
+    ['सदस्य निवडा', 'Select Member'],
+    ['कर्ज रक्कम (₹) *', 'Loan Amount (₹) *'],
+    ['कर्ज रक्कम (₹)', 'Loan Amount (₹)'],
+    ['कर्ज रक्कम', 'Loan Amount'],
+    ['कर्ज व व्याज नियमावली:', 'Loan & Interest Rules:'],
+    ['कर्ज व व्याज नियमावली', 'Loan & Interest Rules'],
+    ['पहिल्या ४ आठवड्यांत (Grace Period):', 'First 4 Weeks (Grace Period):'],
+    ['पहिल्या ४ आठवड्यांत', 'First 4 Weeks'],
+    ['०% व्याज (फक्त मूळ रक्कम परतफेड).', '0% Interest (Principal repayment only).'],
+    ['०% व्याज (फक्त मूळ रक्कम परतफेड)', '0% Interest (Principal repayment only)'],
+    ['०% व्याज (फक्त Principal Amount Repaid).', '0% Interest (Principal repayment only).'],
+    ['०% व्याज (फक्त Principal Amount Repaid)', '0% Interest (Principal amount repayment only)'],
+    ['४ आठवड्यांनंतर: ३% व्याज लागू होईल (उदा. ₹१०,००० वर +₹३०० व्याज).', 'After 4 Weeks: 3% Interest applies (e.g. +₹300 interest on ₹10,000).'],
+    ['४ आठवड्यांनंतर: ३% व्याज लागू होईल', 'After 4 Weeks: 3% Interest applies'],
+    ['३% व्याज लागू होईल', '3% Interest applies'],
+    ['वाटप आठवडा', 'Disbursement Week'],
+    ['वाटप आठवडा/तारीख', 'Issue Week / Date'],
+    ['वाटप तारीख', 'Disbursed Date'],
+    ['वितरण पद्धत (Disbursement Mode) *', 'Disbursement Mode *'],
+    ['वितरण पद्धत (DISBURSEMENT MODE) *', 'Disbursement Mode *'],
+    ['वितरण पद्धत', 'Disbursement Mode'],
+    ['💵 रोख (Cash Handover)', '💵 Cash Handover'],
+    ['💵 रोख (Cash)', '💵 Cash'],
+    ['💵 रोख', '💵 Cash'],
+    ['📱 UPI (Google Pay, PhonePe, Paytm)', '📱 UPI (Google Pay, PhonePe, Paytm)'],
+    ['🏦 बँक ट्रान्सफर (NEFT/IMPS)', '🏦 Bank Transfer (NEFT/IMPS)'],
+    ['🏦 बँक ट्रान्सफर', '🏦 Bank Transfer'],
+    ['📜 चेक', '📜 Cheque'],
+    ['UPI आयडी / बँक ट्रान्झॅक्शन संदर्भ क्र.', 'UPI ID / Bank Transaction Ref No.'],
+    ['उदा. member@okaxis किंवा UTR क्र.', 'e.g. member@okaxis or UTR No.'],
+    ['टीप / कारणांचा तपशील (ऐच्छिक)', 'Notes / Purpose Details (Optional)'],
+    ['उदा. वैयक्तिक/घरगुती गरज', 'e.g. Personal / Household need'],
+    ['कर्ज वाटप निश्चित करा', 'Confirm Loan Disbursement'],
+    ['💳 कर्ज वाटप निश्चित करा', '💳 Confirm Loan Disbursement'],
+    ['कर्ज परतफेड / हप्ता जमा नोंदवा (प्रशासक)', 'Record Loan Repayment / Installment (Admin)'],
+    ['चालू एकूण देय रक्कम (पूर्ण परतफेड):', 'Current Total Due (Full Repayment):'],
+    ['चालू एकूण देय रक्कम', 'Current Total Due'],
+    ['सध्याचे बाकी कर्ज मुद्दल:', 'Current Outstanding Principal:'],
+    ['सुरुवातीची मूळ मुद्दल:', 'Original Disbursed Principal:'],
+    ['भरलेली मुद्दल:', 'Repaid Principal:'],
+    ['कालावधी:', 'Duration:'],
+    ['२ आठवडे (सवलत कालावधीत)', '2 Weeks (In Grace Period)'],
+    ['३% व्याज (४ आठवड्यांनंतर):', '3% Interest (After 4 Weeks):'],
+    ['३% व्याज (४ आठवड्यांनंतर)', '3% Interest (After 4 Weeks)'],
+    ['₹0 (०% सवलत)', '₹0 (0% Grace Period)'],
+    ['₹० (०% सवलत)', '₹0 (0% Grace Period)'],
+    ['₹० (०% सवलतीत)', '₹0 (0% Grace Period)'],
+    ['⚡ जलद निवड करा (Quick Repayment Presets):', '⚡ Quick Repayment Presets:'],
+    ['⚡ जलद निवड करा', '⚡ Quick Selection'],
+    ['🌓 ५०% अर्धे फेड (Half Pay)', '🌓 Pay Half (50%)'],
+    ['💯 १००% पूर्ण फेड (Full Pay)', '💯 Pay Full (100%)'],
+    ['जमा करावयाची रक्कम (₹) *', 'Repayment Amount (₹) *'],
+    ['व्याज रक्कम (₹) *', 'Interest Amount (₹) *'],
+    ['या भरण्यानंतर उर्वरित बाकी कर्ज:', 'Remaining Principal After Payment:'],
+    ['परतफेड आठवडा', 'Repayment Week'],
+    ['परतफेड तारीख', 'Repayment Date'],
+    ['पेमेंट पद्धत *', 'Payment Mode *'],
+    ['परतफेड टीप (ऐच्छिक)', 'Repayment Notes (Optional)'],
+    ['उदा. अर्धे कर्ज परतफेड / पूर्ण परतफेड', 'e.g. Half / Full loan repayment'],
+    ['कर्ज परतफेड जमा निश्चित करा', 'Confirm Loan Repayment'],
+    ['💰 कर्ज परतफेड जमा निश्चित करा', '💰 Confirm Loan Repayment'],
+    ['४-आठवडे कर्ज व्याज जमा नोंदवा (प्रशासक)', 'Record 4-Week Loan Interest (Admin)'],
+    ['जमा करावयाची ४-आठवड्यांची ३% व्याज रक्कम:', '4-Week 3% Interest Amount Due:'],
+    ['मूळ सक्रिय कर्ज मुद्दल:', 'Active Principal Loan:'],
+    ['मागील व्याज भरणा / वाटप:', 'Last Interest Payment / Issue:'],
+    ['कालावधी / स्थिती:', 'Duration / Status:'],
+    ['आतापर्यंत जमा एकूण व्याज:', 'Total Interest Paid So Far:'],
+    ['जमा व्याज रक्कम (₹) *', 'Interest Amount to Deposit (₹) *'],
+    ['व्याज भरणा आठवडा *', 'Interest Payment Week *'],
+    ['भरणा तारीख *', 'Payment Date *'],
+    ['टीप / शेरा (ऐच्छिक)', 'Notes / Remarks (Optional)'],
+    ['उदा. ४ आठवड्यांचे ३% व्याज रोख मिळाले', 'e.g. 4-week 3% interest received in cash'],
+    ['WhatsApp स्मरणपत्र पाठवा', 'Send WhatsApp Reminder'],
+    ['💬 WhatsApp स्मरणपत्र पाठवा', '💬 Send WhatsApp Reminder'],
+    ['व्याज जमा निश्चित करा', 'Confirm Interest Payment'],
+    ['💰 व्याज जमा निश्चित करा', '💰 Confirm Interest Payment'],
+
     // Week navigation & summary banner
     ['साप्ताहिक कलेक्शन सायकल', 'Weekly Collection Cycle'],
     ['चालू आठवडा', 'Current Week'],
@@ -606,6 +832,28 @@
     ['माझे लॉगिन जतन ठेवा', 'Remember my login'],
     ['प्रशासक व सदस्य प्रवेश', 'Admin & Member Access']
   ];
+
+  function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&');
+  }
+
+  function replacePhrase(text, from, to, isEn) {
+    if (!text || !from || !to || !text.includes(from)) return text;
+    // Multi-word phrase or phrase with special characters: exact replace
+    if (from.includes(' ') || /[^\w\u0900-\u097F]/.test(from)) {
+      return text.split(from).join(to);
+    }
+    // Single Devanagari word: only match if not surrounded by Devanagari characters
+    if (isEn && /[\u0900-\u097F]/.test(from)) {
+      const reg = new RegExp('(^|[^\\u0900-\\u097F])' + escapeRegex(from) + '([^\\u0900-\\u097F]|$)', 'gu');
+      return text.replace(reg, (match, p1, p2) => p1 + to + p2);
+    } else if (!isEn && /^[a-zA-Z0-9_]+$/.test(from)) {
+      // Single English word: require word boundaries
+      const reg = new RegExp('\\b' + escapeRegex(from) + '\\b', 'g');
+      return text.replace(reg, to);
+    }
+    return text.split(from).join(to);
+  }
 
   class I18nManager {
     constructor() {
@@ -813,8 +1061,11 @@
               const to = isEn ? enPhrase : mrPhrase;
 
               if (from && to && text.includes(from)) {
-                text = text.split(from).join(to);
-                modified = true;
+                const nextText = replacePhrase(text, from, to, isEn);
+                if (nextText !== text) {
+                  text = nextText;
+                  modified = true;
+                }
               }
             }
 
@@ -854,9 +1105,12 @@
               const [mrPhrase, enPhrase] = sortedPairs[i];
               const from = isEn ? mrPhrase : enPhrase;
               const to = isEn ? enPhrase : mrPhrase;
-              if (from && ph.includes(from)) {
-                ph = ph.split(from).join(to);
-                modified = true;
+              if (from && to && ph.includes(from)) {
+                const nextPh = replacePhrase(ph, from, to, isEn);
+                if (nextPh !== ph) {
+                  ph = nextPh;
+                  modified = true;
+                }
               }
             }
             if (modified) el.setAttribute('placeholder', ph);
@@ -870,9 +1124,12 @@
               const [mrPhrase, enPhrase] = sortedPairs[i];
               const from = isEn ? mrPhrase : enPhrase;
               const to = isEn ? enPhrase : mrPhrase;
-              if (from && t.includes(from)) {
-                t = t.split(from).join(to);
-                modified = true;
+              if (from && to && t.includes(from)) {
+                const nextT = replacePhrase(t, from, to, isEn);
+                if (nextT !== t) {
+                  t = nextT;
+                  modified = true;
+                }
               }
             }
             if (modified) el.setAttribute('title', t);

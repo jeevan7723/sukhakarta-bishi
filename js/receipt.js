@@ -39,6 +39,12 @@ class ReceiptManager {
     }
   }
 
+  toMarathiNumber(num) {
+    if (num === null || num === undefined) return '';
+    const digits = { '0': '०', '1': '१', '2': '२', '3': '३', '4': '४', '5': '५', '6': '६', '7': '७', '8': '८', '9': '९' };
+    return String(num).split('').map(d => digits[d] || d).join('');
+  }
+
   getMemberDisplayName(member) {
     if (!member) return '';
     if (typeof window !== 'undefined' && window.bishiStore && typeof window.bishiStore.getMemberDisplayName === 'function') {
@@ -569,6 +575,9 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       badgeTitle = '🟠 अंशतः कर्ज परतफेड पावती (Partial Loan Repayment - Pending)';
     }
 
+    const loanRateNum = Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta?.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3));
+    const loanRateMr = this.toMarathiNumber(loanRateNum);
+
     return `
       <div class="receipt-wrapper" id="printableReceiptArea">
         <div class="receipt-header" style="${isPaid ? 'background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));' : (isPartiallyPaid ? 'background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(59, 130, 246, 0.15));' : 'background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(245, 158, 11, 0.15));')}">
@@ -615,7 +624,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           <div class="receipt-amount-val" style="color: ${isPaid ? '#059669' : (isPartiallyPaid ? '#d97706' : '#2563eb')};">${currency}${(isPaid ? totalAmount : (isPartiallyPaid ? details.principalRepaid : principal)).toLocaleString('en-IN')}</div>
           ${isPaid ? `
             <div style="font-size: 0.8rem; color: #475569; margin-top: 0.25rem;">
-              (मूळ कर्ज: ${currency}${principal.toLocaleString('en-IN')}${interestPaid > 0 ? ` + ३% व्याज: +${currency}${interestPaid.toLocaleString('en-IN')}` : ' + ०% व्याज'})
+              (मूळ कर्ज: ${currency}${principal.toLocaleString('en-IN')}${interestPaid > 0 ? ` + ${loanRateMr}% व्याज: +${currency}${interestPaid.toLocaleString('en-IN')}` : ' + ०% व्याज'})
             </div>
           ` : (isPartiallyPaid ? `
             <div style="font-size: 0.85rem; color: #b45309; font-weight: 700; margin-top: 0.25rem;">
@@ -623,7 +632,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
             </div>
           ` : `
             <div style="font-size: 0.8rem; color: #475569; margin-top: 0.25rem;">
-              (नियम: पहिल्या ४ आठवड्यांपर्यंत ०% व्याज • ४ आठवड्यांनंतर ३% व्याज)
+              (नियम: पहिल्या ४ आठवड्यांपर्यंत ०% व्याज • ४ आठवड्यांनंतर ${loanRateMr}% व्याज)
             </div>
           `)}
         </div>
@@ -649,10 +658,10 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           </tr>
           <tr>
             <td>कालावधी / आठवडे</td>
-            <td>${details.elapsedWeeks} आठवडे ${details.isGracePeriodActive ? `(सवलत कालावधीत: ${details.remainingGraceWeeks} आठवडे बाकी)` : '(४ आठवड्यांनंतर ३% व्याज लागू)'}</td>
+            <td>${details.elapsedWeeks} आठवडे ${details.isGracePeriodActive ? `(सवलत कालावधीत: ${details.remainingGraceWeeks} आठवडे बाकी)` : `(४ आठवड्यांनंतर ${loanRateMr}% व्याज लागू)`}</td>
           </tr>
           <tr style="color: ${interestPaid > 0 ? '#d97706' : '#64748b'}; font-weight: 600; background: ${interestPaid > 0 ? 'rgba(245, 158, 11, 0.08)' : 'transparent'};">
-            <td>३% व्याज रक्कम (४ आठवड्यांनंतर)</td>
+            <td>${loanRateMr}% व्याज रक्कम (४ आठवड्यांनंतर)</td>
             <td>${interestPaid > 0 ? `+ ${currency}${interestPaid.toLocaleString('en-IN')}` : '₹० (०%)'}</td>
           </tr>
           <tr style="color: ${isPaid ? '#059669' : '#2563eb'}; font-weight: 800; font-size: 1.05rem; background: ${isPaid ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)'};">
@@ -678,7 +687,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         </table>
 
         <div class="receipt-footer-note" style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.85rem; font-size: 0.75rem; color: #64748b;">
-          📌 सुखकर्ता बीशी कर्ज नियमावली: पहिल्या ४ आठवड्यांत ०% व्याज, ४ आठवड्यांनंतर ३% व्याज आकारले जाते. अधिकृत डिजिटल स्वाक्षरीसह जारी.
+          📌 सुखकर्ता बीशी कर्ज नियमावली: पहिल्या ४ आठवड्यांत ०% व्याज, ४ आठवड्यांनंतर ${loanRateMr}% व्याज आकारले जाते. अधिकृत डिजिटल स्वाक्षरीसह जारी.
         </div>
       </div>
     `;
@@ -694,6 +703,8 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     const isPartiallyPaid = details.isPartiallyPaid;
     const interestPaid = isPaid ? (Number(loan.interestPaid) || 0) : details.interestAmount;
     const totalAmount = isPaid ? (Number(loan.repaidAmount) || (principal + interestPaid)) : details.totalPayable;
+    const loanRateNum = Number(details?.interestRate !== undefined ? details.interestRate : (loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta?.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3)));
+    const loanRateMr = this.toMarathiNumber(loanRateNum);
 
     let message = `✨ *${bishiMeta.bishiName} - अधिकृत कर्ज पावती* ✨\n`;
     message += `─────────────────────\n`;
@@ -705,7 +716,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     if (isPaid) {
       message += `✅ *कर्ज परतफेड यशस्वीपणे पूर्ण झाली आहे (Paid)!*\n\n`;
       message += `💵 *मूळ कर्ज मुद्दल:* ${currency}${principal.toLocaleString('en-IN')}\n`;
-      message += `📈 *३% व्याज दर:* ${interestPaid > 0 ? `+${currency}${interestPaid.toLocaleString('en-IN')}` : '₹० (४ आठवड्यांच्या सवलतीत)'}\n`;
+      message += `📈 *${loanRateMr}% व्याज दर:* ${interestPaid > 0 ? `+${currency}${interestPaid.toLocaleString('en-IN')}` : '₹० (४ आठवड्यांच्या सवलतीत)'}\n`;
       message += `💰 *एकूण भरलेली रक्कम:* *${currency}${totalAmount.toLocaleString('en-IN')}*\n`;
       message += `💳 *पेमेंट पद्धत:* ${loan.paymentMode || 'Cash'}${loan.upiId ? ` (UPI: ${loan.upiId})` : ''}\n`;
       message += `🧾 *पावती क्र.:* ${loan.receiptNo || 'N/A'}\n`;
@@ -715,7 +726,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       message += `💵 *सुरुवातीची मूळ मुद्दल:* ${currency}${principal.toLocaleString('en-IN')}\n`;
       message += `💰 *आतापर्यंत भरलेली मुद्दल:* ${currency}${details.principalRepaid.toLocaleString('en-IN')}\n`;
       message += `⚠️ *उर्वरित बाकी कर्ज मुद्दल:* *${currency}${remainingPrincipal.toLocaleString('en-IN')}*\n`;
-      message += `📈 *चालू ३% व्याज:* ${details.interestAmount > 0 ? `+${currency}${details.interestAmount.toLocaleString('en-IN')}` : '₹० (सवलतीत)'}\n`;
+      message += `📈 *चालू ${loanRateMr}% व्याज:* ${details.interestAmount > 0 ? `+${currency}${details.interestAmount.toLocaleString('en-IN')}` : '₹० (सवलतीत)'}\n`;
       message += `💳 *पेमेंट पद्धत:* ${loan.paymentMode || 'Cash'}${loan.upiId ? ` (UPI: ${loan.upiId})` : ''}\n`;
       message += `🧾 *पावती क्र.:* ${loan.receiptNo || 'N/A'}\n`;
       message += `📊 *कर्ज स्थिती:* 🔴 कर्ज बाकी (Pending - ₹${remainingPrincipal.toLocaleString('en-IN')} बाकी)\n`;
@@ -723,7 +734,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       message += `💳 *सदस्यास नवीन कर्ज वाटप करण्यात आले आहे.*\n\n`;
       message += `💵 *कर्ज रक्कम:* *${currency}${principal.toLocaleString('en-IN')}*\n`;
       message += `📅 *वाटप आठवडा:* आठवडा ${loan.issueWeek || 1} (${loan.issueDate || '-'})\n`;
-      message += `⏳ *व्याज नियम:* पहिल्या ४ आठवड्यांत ०% व्याज • ४ आठवड्यांनंतर ३% व्याज\n`;
+      message += `⏳ *व्याज नियम:* पहिल्या ४ आठवड्यांत ०% व्याज • ४ आठवड्यांनंतर ${loanRateMr}% व्याज\n`;
       message += `💳 *वितरण पद्धत:* ${loan.disbursementMode || 'Cash'}${loan.disbursementUpiId ? ` (UPI: ${loan.disbursementUpiId})` : ''}\n`;
       message += `🧾 *व्हाउचर क्र.:* DISB-${loan.id}\n`;
       message += `📊 *कर्ज स्थिती:* 🔴 कर्ज बाकी (Pending)\n`;
@@ -843,7 +854,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           <div class="receipt-amount-lbl">मंजूर व वाटप केलेली मूळ कर्ज रक्कम (Assigned Loan Amount)</div>
           <div class="receipt-amount-val" style="color: #2563eb;">${currency}${principal.toLocaleString('en-IN')}</div>
           <div style="font-size: 0.8rem; color: #475569; margin-top: 0.25rem;">
-            (नियम: पहिल्या ४ आठवड्यांपर्यंत ०% व्याज • ४ आठवड्यांनंतर दर चक्रास ३% व्याज)
+            (नियम: पहिल्या ४ आठवड्यांपर्यंत ०% व्याज • ४ आठवड्यांनंतर दर चक्रास ${this.toMarathiNumber(Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3)))}% व्याज)
           </div>
         </div>
 
@@ -862,7 +873,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           </tr>
           <tr>
             <td>पुढील देय व्याज नियम (Interest Terms)</td>
-            <td>४ आठवड्यांनंतर दरमहा ३% व्याज आकारले जाईल (+${currency}${Math.round(principal * (Number(bishiMeta.loanInterestRate) || 0.03))})</td>
+            <td>४ आठवड्यांनंतर दर चक्रास ${this.toMarathiNumber(Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3)))}% व्याज आकारले जाईल (+${currency}${Math.round(principal * ((Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3))) / 100))})</td>
           </tr>
           <tr>
             <td>कर्ज वाटप स्थिती (Status)</td>
@@ -879,7 +890,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         </table>
 
         <div class="receipt-footer-note" style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.85rem; font-size: 0.75rem; color: #64748b;">
-          📌 सुखकर्ता बीशी कर्ज नियमावली: पहिल्या ४ आठवड्यांत ०% व्याज, ४ आठवड्यांनंतर दर चक्रास ३% व्याज आकारले जाते. अधिकृत डिजिटल स्वाक्षरीसह जारी.
+          📌 सुखकर्ता बीशी कर्ज नियमावली: पहिल्या ४ आठवड्यांत ०% व्याज, ४ आठवड्यांनंतर दर चक्रास ${this.toMarathiNumber(Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3)))}% व्याज आकारले जाते. अधिकृत डिजिटल स्वाक्षरीसह जारी.
         </div>
       </div>
     `;
@@ -889,7 +900,9 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
   generateLoanAssignWhatsAppText(loan, member, bishiMeta) {
     const currency = bishiMeta.currency || '₹';
     const principal = Number(loan.originalPrincipal || loan.principalAmount) || 0;
-    const interestPerCycle = Math.round(principal * (Number(bishiMeta.loanInterestRate) || 0.03));
+    const loanRate = Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3));
+    const interestPerCycle = Math.round(principal * (loanRate / 100));
+    const mrRate = this.toMarathiNumber(loanRate);
 
     let message = `✨ *${bishiMeta.bishiName} - अधिकृत कर्ज वाटप व्हाउचर (Loan Assign Voucher)* ✨\n`;
     message += `─────────────────────\n`;
@@ -905,7 +918,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     message += `─────────────────────\n`;
     message += `📌 *व्याज नियमावली (Rules):*\n`;
     message += `• पहिल्या ४ आठवड्यांपर्यंत: ०% व्याज (सवलत कालावधी)\n`;
-    message += `• ४ आठवड्यांनंतर: दर चक्रास ३% व्याज (+${currency}${interestPerCycle}) लागू होईल\n`;
+    message += `• ४ आठवड्यांनंतर: दर चक्रास ${mrRate}% व्याज (+${currency}${interestPerCycle.toLocaleString('en-IN')}) लागू होईल\n`;
     message += `─────────────────────\n`;
     message += `_सुखकर्ता बीशी - विश्वासू व पारदर्शक फंड व्यवस्थापन_`;
 
@@ -972,6 +985,9 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       year: 'numeric'
     }) : new Date().toLocaleDateString('hi-IN');
 
+    const loanRateNum = Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta?.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3));
+    const loanRateMr = this.toMarathiNumber(loanRateNum);
+
     return `
       <div class="receipt-wrapper" id="printableReceiptArea">
         <div class="receipt-header">
@@ -979,7 +995,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
           <div class="receipt-org-title">✨ ${bishiMeta.bishiName}</div>
           <div class="receipt-sub">अधिकृत ४-आठवडे कर्ज व्याज संकलन पावती</div>
           <div class="receipt-badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border-color: rgba(245, 158, 11, 0.35);">
-            💰 ४-आठवडे ३% व्याज भरणा • चक्र ${cycleNum}
+            💰 ४-आठवडे ${loanRateMr}% व्याज भरणा • चक्र ${cycleNum}
           </div>
         </div>
 
@@ -1014,7 +1030,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         </div>
 
         <div class="receipt-amount-box" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(16, 185, 129, 0.15)); border: 1.5px solid #f59e0b;">
-          <div class="receipt-amount-lbl">जमा झालेले ४-आठवड्यांचे ३% कर्ज व्याज</div>
+          <div class="receipt-amount-lbl">जमा झालेले ४-आठवड्यांचे ${loanRateMr}% कर्ज व्याज</div>
           <div class="receipt-amount-val" style="color: #d97706;">${currency}${interestAmt.toLocaleString('en-IN')}</div>
           <div style="font-size: 0.8rem; color: #475569; margin-top: 0.25rem;">
             (मूळ कर्ज मुद्दल: ${currency}${principal.toLocaleString('en-IN')} • चक्र ${cycleNum} भरणा)
@@ -1035,7 +1051,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
             <td>आठवडा ${payment.paidWeek || '-'} • <strong>चक्र ${cycleNum} (४ आठवडे)</strong></td>
           </tr>
           <tr style="color: #d97706; font-weight: 700; background: rgba(245, 158, 11, 0.08);">
-            <td>या चक्राचे ३% जमा व्याज</td>
+            <td>या चक्राचे ${loanRateMr}% जमा व्याज</td>
             <td>+ ${currency}${interestAmt.toLocaleString('en-IN')}</td>
           </tr>
           <tr>
@@ -1061,7 +1077,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         </table>
 
         <div class="receipt-footer-note" style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.85rem; font-size: 0.75rem; color: #64748b;">
-          📌 सुखकर्ता बीशी कर्ज नियमावली: दर ४ आठवड्यांनी ३% व्याज संकलित केले जाते. मूळ कर्ज मुद्दल स्वतंत्रपणे सक्रिय राहील. अधिकृत डिजिटल स्वाक्षरीसह जारी.
+          📌 सुखकर्ता बीशी कर्ज नियमावली: दर ४ आठवड्यांनी ${loanRateMr}% व्याज संकलित केले जाते. मूळ कर्ज मुद्दल स्वतंत्रपणे सक्रिय राहील. अधिकृत डिजिटल स्वाक्षरीसह जारी.
         </div>
       </div>
     `;
@@ -1075,13 +1091,15 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     const cycleNum = payment.cycleNumber || 1;
     const nextDueWeek = Number(payment.paidWeek || 1) + (loan.gracePeriodWeeks || 4);
 
+    const loanRate = Number(loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3));
+    const mrRate = this.toMarathiNumber(loanRate);
     let message = `✨ *${bishiMeta.bishiName} - ४-आठवडे कर्ज व्याज पावती* ✨\n`;
     message += `─────────────────────\n`;
     message += `👤 *सदस्याचे नाव:* ${this.getMemberDisplayName(member)}\n`;
     message += `🆔 *सदस्य आयडी:* ${member.id} | *कर्ज क्र.:* ${loan.id}\n`;
     message += `📅 *व्याज भरणा तारीख:* ${payment.paidDate || '-'}\n`;
     message += `─────────────────────\n`;
-    message += `💰 *४ आठवड्यांचे ३% व्याज यशस्वीपणे जमा झाले!*\n\n`;
+    message += `💰 *४ आठवड्यांचे ${mrRate}% व्याज यशस्वीपणे जमा झाले!*\n\n`;
     message += `💵 *जमा व्याज रक्कम:* *${currency}${interestAmt.toLocaleString('en-IN')}*\n`;
     message += `🔄 *व्याज सायकल:* चक्र ${cycleNum} (आठवडा ${payment.paidWeek || '-'})\n`;
     message += `💳 *पेमेंट पद्धत:* ${payment.paymentMode || 'Cash'}${payment.upiId ? ` (UPI: ${payment.upiId})` : ''}\n`;
@@ -1178,8 +1196,10 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     const currency = bishiMeta?.currency || '₹';
     const details = window.bishiStore.calculateLoanDetails(loan);
     const principal = Number(loan.principalAmount) || 0;
-    const interestAmt = details.interestAmount > 0 ? details.interestAmount : Math.round(principal * 0.03);
+    const loanRate = Number(details?.interestRate !== undefined ? details.interestRate : (loan.interestRatePercent !== undefined ? loan.interestRatePercent : (bishiMeta?.loanInterestRatePercent !== undefined ? bishiMeta.loanInterestRatePercent : 3)));
+    const interestAmt = details.interestAmount > 0 ? details.interestAmount : Math.round(principal * (loanRate / 100));
     const currentWeek = window.bishiStore.state.meta.currentWeek || 1;
+    const mrRate = this.toMarathiNumber(loanRate);
 
     let message = `✨ *${bishiMeta?.bishiName || 'सुखकर्ता बीशी'} - कर्ज व्याज भरणा स्मरणपत्र* ✨\n`;
     message += `─────────────────────\n`;
@@ -1187,13 +1207,13 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     message += `🆔 *सदस्य आयडी:* ${member.id} | *कर्ज क्र.:* ${loan.id}\n`;
     message += `📅 *दिनांक:* ${new Date().toLocaleDateString('hi-IN', {day: '2-digit', month: 'short', year: 'numeric'})}\n`;
     message += `─────────────────────\n`;
-    message += `🔔 *आदरणीय सदस्य, आपल्या कर्जाचे ४-आठवड्यांचे ३% व्याज देय झाले आहे.*\n\n`;
+    message += `🔔 *आदरणीय सदस्य, आपल्या कर्जाचे ४-आठवड्यांचे ${mrRate}% व्याज देय झाले आहे.*\n\n`;
     message += `💵 *मूळ सक्रिय कर्ज मुद्दल:* ${currency}${principal.toLocaleString('en-IN')}\n`;
-    message += `📈 *व्याज दर:* ३% (दर ४ आठवड्यांनी देय)\n`;
+    message += `📈 *व्याज दर:* ${mrRate}% (दर ४ आठवड्यांनी देय)\n`;
     message += `⏳ *कालावधी:* ${details.elapsedWeeks} आठवडे पूर्ण (चक्र ${details.currentCycleNumber})\n`;
     message += `💰 *या चक्राची देय व्याज रक्कम:* *${currency}${interestAmt.toLocaleString('en-IN')}*\n`;
     message += `📅 *देय आठवडा:* आठवडा ${details.nextInterestDueWeek || currentWeek}\n\n`;
-    message += `📌 *कृपया हे ३% व्याज प्रशासकांकडे वेळेवर जमा करून अधिकृत पावती प्राप्त करावी.*\n`;
+    message += `📌 *कृपया हे ${mrRate}% व्याज प्रशासकांकडे वेळेवर जमा करून अधिकृत पावती प्राप्त करावी.*\n`;
     message += `─────────────────────\n`;
     message += `_सुखकर्ता बीशी - विश्वासू व पारदर्शक फंड व्यवस्थापन_`;
 
@@ -1250,7 +1270,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
     const bishiMeta = window.bishiStore.state.meta;
     const details = window.bishiStore.calculateLoanDetails(loan);
     const currency = bishiMeta?.currency || '₹';
-    const interestAmt = details.interestAmount > 0 ? details.interestAmount : Math.round(loan.principalAmount * 0.03);
+    const interestAmt = details.interestAmount > 0 ? details.interestAmount : Math.round(loan.principalAmount * (details.interestRate / 100));
 
     const modalBody = document.getElementById('receiptModalBody');
     if (!modalBody) return;
@@ -1288,7 +1308,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         </div>
 
         <div class="receipt-amount-box" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.1)); border: 1.5px solid #f59e0b;">
-          <div class="receipt-amount-lbl">या चक्राची देय ३% व्याज रक्कम</div>
+          <div class="receipt-amount-lbl">या चक्राची देय ${this.toMarathiNumber(details.interestRate)}% व्याज रक्कम</div>
           <div class="receipt-amount-val" style="color: #d97706;">${currency}${interestAmt.toLocaleString('en-IN')}</div>
           <div style="font-size: 0.8rem; color: #475569; margin-top: 0.25rem;">
             (मूळ सक्रिय कर्ज मुद्दल: ${currency}${Number(loan.principalAmount).toLocaleString('en-IN')})
@@ -1391,6 +1411,9 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       totalLoanInterestDeposited += Number(l.totalInterestPaid || l.interestPaid) || 0;
     });
     const remainingLoanPrincipal = Math.max(0, totalLoanDisbursed - totalLoanPrincipalRepaid);
+    const activeOrFirstLoan = allLoans.find(l => l.status === 'active') || allLoans[0];
+    const memberLoanRate = activeOrFirstLoan?.interestRatePercent || activeOrFirstLoan?.details?.interestRate || 3;
+    const memberLoanRateMr = this.toMarathiNumber(memberLoanRate);
 
     // Filter weeks to show:
     // If showAllWeeks is true: show all 50 weeks
@@ -1673,7 +1696,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
                 </td>
                 <td class="info-lbl" style="background: linear-gradient(135deg, #064e3b, #047857); color: #ffffff;">${isEn ? 'Loan Interest Deposited:' : 'कर्ज व्याज जमा:'}</td>
                 <td class="info-val" style="background: #f0fdf4; font-weight: 700; color: #047857;">
-                  ${isEn ? `Total Interest: <span style="background: #d1fae5; color: #047857; padding: 0.15rem 0.55rem; border-radius: 4px; border: 1px solid #10b981; font-weight: 800;">+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')} (3% Rate)</span>` : `एकूण जमा व्याज: <span style="background: #d1fae5; color: #047857; padding: 0.15rem 0.55rem; border-radius: 4px; border: 1px solid #10b981; font-weight: 800;">+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')} (३% दर)</span>`}
+                  ${isEn ? `Total Interest: <span style="background: #d1fae5; color: #047857; padding: 0.15rem 0.55rem; border-radius: 4px; border: 1px solid #10b981; font-weight: 800;">+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')} (${memberLoanRate}% Rate)</span>` : `एकूण जमा व्याज: <span style="background: #d1fae5; color: #047857; padding: 0.15rem 0.55rem; border-radius: 4px; border: 1px solid #10b981; font-weight: 800;">+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')} (${memberLoanRateMr}% दर)</span>`}
                 </td>
               </tr>
             ` : ''}
@@ -1729,7 +1752,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
             <div class="notes-line notes-payout">${isEn ? `4) Total Final Payout: ${currency}${totalWithInterest.toLocaleString('en-IN')} ${!isPayoutTime ? '(Current Savings • Payable with ' + annualInterestPercent + '% annual interest upon completing ' + totalPeriods + ' ' + periodUnitPlural + ')' : ''}` : `४) एकूण अंतिम परतावा: ${currency}${totalWithInterest.toLocaleString('en-IN')} ${!isPayoutTime ? '(चालू बचत • ' + totalPeriods + ' ' + periodUnitPlural + ' पूर्ण झाल्यावर ' + annualInterestPercent + '% वार्षिक व्याजासह वाटप)' : ''}`}</div>
             ${totalLoanDisbursed > 0 ? `
               <div class="notes-line" style="color: #065f46; font-weight: 700; border-top: 1px dashed #a7f3d0; padding-top: 3px; margin-top: 2px;">
-                ${isEn ? `5) Loan & Interest Ledger: Total Loan ${currency}${totalLoanDisbursed.toLocaleString('en-IN')} (Remaining Principal: ${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}) • Total 3% Interest: +${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}` : `५) कर्ज व व्याज ताळेबंद: एकूण कर्ज ${currency}${totalLoanDisbursed.toLocaleString('en-IN')} (बाकी मुद्दल: ${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}) • एकूण जमा ३% व्याज: +${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}`}
+                ${isEn ? `5) Loan & Interest Ledger: Total Loan ${currency}${totalLoanDisbursed.toLocaleString('en-IN')} (Remaining Principal: ${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}) • Total ${memberLoanRate}% Interest: +${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}` : `५) कर्ज व व्याज ताळेबंद: एकूण कर्ज ${currency}${totalLoanDisbursed.toLocaleString('en-IN')} (बाकी मुद्दल: ${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}) • एकूण जमा ${memberLoanRateMr}% व्याज: +${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}`}
               </div>
             ` : ''}
           </div>
@@ -1777,6 +1800,9 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       totalLoanInterestDeposited += Number(l.totalInterestPaid || l.interestPaid) || 0;
     });
     const remainingLoanPrincipal = Math.max(0, totalLoanDisbursed - totalLoanPrincipalRepaid);
+    const activeOrFirstLoan = allLoans.find(l => l.status === 'active') || allLoans[0];
+    const memberLoanRate = activeOrFirstLoan?.interestRatePercent || activeOrFirstLoan?.details?.interestRate || 3;
+    const memberLoanRateMr = this.toMarathiNumber(memberLoanRate);
 
     const rawMName = this.getMemberMarathiName(member) || member.nameMarathi || member.name || '';
     const mName = rawMName.replace(/\s*\([a-zA-Z\s.-]+\)/g, '').trim();
@@ -1804,7 +1830,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
         msg += `• Total Loan Disbursed: *${currency}${totalLoanDisbursed.toLocaleString('en-IN')}*\n`;
         msg += `• Principal Repaid: *${currency}${totalLoanPrincipalRepaid.toLocaleString('en-IN')}*\n`;
         msg += `• Outstanding Principal: *${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}*\n`;
-        msg += `• Total 3% Interest Paid: *+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}*\n`;
+        msg += `• Total ${memberLoanRate}% Interest Paid: *+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}*\n`;
       }
       msg += `─────────────────────\n`;
       msg += `_Issued with Authorized Digital Verification - ${bishiTitle}_`;
@@ -1830,7 +1856,7 @@ _सुखकर्ता बीशी सोबत यशस्वीरीत�
       msg += `• एकूण कर्ज वाटप: *${currency}${totalLoanDisbursed.toLocaleString('en-IN')}*\n`;
       msg += `• परतफेड मुद्दल: *${currency}${totalLoanPrincipalRepaid.toLocaleString('en-IN')}*\n`;
       msg += `• बाकी कर्ज मुद्दल: *${currency}${remainingLoanPrincipal.toLocaleString('en-IN')}*\n`;
-      msg += `• एकूण जमा ३% व्याज: *+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}*\n`;
+      msg += `• एकूण जमा ${memberLoanRateMr}% व्याज: *+${currency}${totalLoanInterestDeposited.toLocaleString('en-IN')}*\n`;
     }
     msg += `─────────────────────\n`;
     msg += `_अधिकृत डिजिटल स्वाक्षरीसह जारी - ${bishiMeta.bishiName}_`;
