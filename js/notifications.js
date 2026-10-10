@@ -20,8 +20,10 @@
     constructor() {
       this.notifications = this.loadNotifications();
       this.settings = this.loadSettings();
-      this.activeTab = 'all'; // 'all' | 'installment' | 'loan'
+      this.activeTab = 'all'; // 'all' | 'deposit' | 'installment' | 'loan'
       this.swRegistration = null;
+      this.isDepositFormCollapsed = false;
+      this.lastSelectedDepositMemberId = null;
 
       // Initialize after DOM loads
       if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
@@ -437,6 +439,12 @@
     // ==========================================================================
 
     getUnreadCount() {
+      const isCustomer = window.authManager && typeof window.authManager.isCustomer === 'function' && window.authManager.isCustomer();
+      const currentMember = isCustomer ? window.authManager.getCurrentCustomerMember() : null;
+
+      if (isCustomer && currentMember) {
+        return this.notifications.filter(n => !n.read && (!n.meta?.memberId || n.meta?.memberId === currentMember.id)).length;
+      }
       return this.notifications.filter(n => !n.read).length;
     }
 
@@ -482,6 +490,321 @@
         }
       });
       this.renderNotificationList();
+    }
+
+    // ==========================================================================
+    // 💰 ॲडमिन थेट साप्ताहिक हप्ता जमा नोंदणी (Admin Quick Weekly Deposit Entry)
+    // ==========================================================================
+    renderAdminDepositBox(prefillMemberId = null) {
+      const container = document.getElementById('notifAdminDepositSection');
+      if (!container) return;
+
+      const isEn = window.i18n && window.i18n.isEnglish();
+      const isAdmin = !window.authManager || (typeof window.authManager.isAdmin === 'function' && window.authManager.isAdmin());
+      const isCustomer = window.authManager && typeof window.authManager.isCustomer === 'function' && window.authManager.isCustomer();
+      const currentMember = isCustomer ? window.authManager.getCurrentCustomerMember() : null;
+
+      // जर सदस्य (ग्राहक) लॉगिन असेल, तर ॲडमिन फॉर्म लपवा आणि सदस्याला वेलकम बॅनर दाखवा
+      if (!isAdmin) {
+        if (isCustomer && currentMember) {
+          container.innerHTML = `
+            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.1)); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 0.85rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="font-size: 1.3rem;">👤</span>
+                  <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary);">${currentMember.name} (${currentMember.id})</div>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary);">${isEn ? 'Your official weekly deposit and loan alerts below:' : 'तुमच्या खात्याच्या सर्व अधिकृत हप्ता व कर्ज सूचना खालीलप्रमाणे:'}</div>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openPassbookModal('${currentMember.id}'); window.notificationManager.closeModal();" style="font-size: 0.75rem; padding: 0.25rem 0.65rem; font-weight: 700;">
+                  ${isEn ? '📖 View Passbook ➔' : '📖 पासबुक पहा ➔'}
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          container.innerHTML = '';
+        }
+        return;
+      }
+
+      // प्रशासक (Admin) व्ह्यू: थेट साप्ताहिक हप्ता नोंदणी बॉक्स
+      const allMembers = (window.bishiStore && typeof window.bishiStore.getMembers === 'function')
+        ? window.bishiStore.getMembers()
+        : [];
+      const activeMembers = allMembers.filter(m => m.status === 'active');
+
+      if (activeMembers.length === 0) {
+        container.innerHTML = `
+          <div style="padding: 0.75rem 1rem; background: var(--bg-tertiary); border-radius: var(--radius-md); font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
+            ${isEn ? 'No active members available for deposit entry.' : 'हप्ता भरण्यासाठी कोणतेही सक्रिय सदस्य उपलब्ध नाहीत.'}
+          </div>
+        `;
+        return;
+      }
+
+      let selectedMemberId = prefillMemberId || this.lastSelectedDepositMemberId;
+      if (!selectedMemberId || !activeMembers.find(m => m.id === selectedMemberId)) {
+        selectedMemberId = activeMembers[0].id;
+      }
+      this.lastSelectedDepositMemberId = selectedMemberId;
+
+      const selMember = activeMembers.find(m => m.id === selectedMemberId) || activeMembers[0];
+      const stats = window.bishiStore.calculateMemberStats(selMember);
+      const currency = window.bishiStore.state?.meta?.currency || '₹';
+      const targetPeriod = stats.nextDueWeek || 1;
+      const targetAmount = stats.installmentAmount || (selMember.weeklyAmount || 1000);
+
+      container.innerHTML = `
+        <div class="notif-deposit-entry-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.08)); border: 1.5px solid rgba(16, 185, 129, 0.38); border-radius: var(--radius-md); padding: 0.95rem; margin-bottom: 1rem; box-shadow: 0 4px 14px rgba(0,0,0,0.06);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.35rem;">💰</span>
+              <div>
+                <strong style="color: var(--emerald-400); font-size: 0.95rem; display: block;">${isEn ? 'Quick Weekly Deposit Entry (Admin)' : 'साप्ताहिक हप्ता थेट जमा नोंदवा (प्रशासक)'}</strong>
+                <span style="font-size: 0.74rem; color: var(--text-secondary);">${isEn ? 'Record deposit & immediately dispatch message to member\'s app & WhatsApp' : 'येथून हप्ता नोंदवून थेट सदस्याच्या मोबाईल ॲपवर व WhatsApp वर मेसेज पाठवा'}</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="window.notificationManager.toggleDepositForm()" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; font-weight: 700;">
+              ${this.isDepositFormCollapsed ? (isEn ? '▼ Open Form' : '▼ फॉर्म उघडा') : (isEn ? '▲ Minimize' : '▲ लपवा')}
+            </button>
+          </div>
+
+          <div id="notifDepositFormBody" style="${this.isDepositFormCollapsed ? 'display: none;' : 'display: block;'}">
+            <!-- सदस्य निवडा ड्रॉपडाउन -->
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label class="form-label" for="notifDepositMemberSelect" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">
+                ${isEn ? 'Select Member *' : 'सदस्य निवडा *'}
+              </label>
+              <select id="notifDepositMemberSelect" class="form-control" style="font-size: 0.88rem; padding: 0.5rem 0.75rem; font-weight: 600;" onchange="window.notificationManager.onMemberSelectChange(this.value)">
+                ${activeMembers.map(m => {
+                  const mStats = window.bishiStore.calculateMemberStats(m);
+                  const isSel = m.id === selectedMemberId;
+                  const mName = window.bishiStore.getMemberMarathiName ? window.bishiStore.getMemberMarathiName(m) : m.name;
+                  return `<option value="${m.id}" ${isSel ? 'selected' : ''}>${m.id} • ${mName || m.name} (${mStats.periodUnit} ${mStats.nextDueWeek} बाकी • ₹${mStats.installmentAmount})</option>`;
+                }).join('')}
+              </select>
+            </div>
+
+            <!-- निवडलेल्या सदस्याची स्थिती माहिती -->
+            <div id="notifDepositMemberInfoCard" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; margin-bottom: 0.75rem; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <span style="color: var(--text-muted);">${isEn ? 'Due Period:' : 'देय कालावधी:'}</span>
+                <strong style="color: var(--emerald-400); margin-left: 0.25rem;">${stats.periodUnit} ${targetPeriod} / ${stats.totalPeriods}</strong>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">${isEn ? 'Deposited So Far:' : 'आतापर्यंत जमा:'}</span>
+                <strong style="color: var(--text-primary); margin-left: 0.25rem;">${currency}${stats.totalDeposited.toLocaleString('en-IN')}</strong>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">${isEn ? 'Standard Installment:' : 'नियमित हप्ता:'}</span>
+                <strong style="color: var(--gold-400); margin-left: 0.25rem;">${currency}${targetAmount.toLocaleString('en-IN')}</strong>
+              </div>
+            </div>
+
+            <input type="hidden" id="notifDepositWeekNumber" value="${targetPeriod}">
+
+            <!-- भरणा रक्कम व पेमेंट पद्धत (२ कॉलम्स) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 0.75rem;">
+              <div class="form-group" style="margin: 0;">
+                <label class="form-label" for="notifDepositAmount" style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">
+                  ${isEn ? 'Deposit Amount (₹) *' : 'भरणा रक्कम (₹) *'}
+                </label>
+                <input type="number" id="notifDepositAmount" class="form-control" value="${targetAmount}" min="1" step="any" style="font-size: 1rem; font-weight: 800; color: var(--emerald-400); font-family: var(--font-mono); padding: 0.5rem 0.75rem;" required>
+              </div>
+
+              <div class="form-group" style="margin: 0;">
+                <label class="form-label" for="notifDepositPaymentMode" style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">
+                  ${isEn ? 'Payment Mode *' : 'पेमेंट पद्धत *'}
+                </label>
+                <select id="notifDepositPaymentMode" class="form-control" style="font-size: 0.88rem; padding: 0.5rem 0.75rem;">
+                  <option value="Cash">💵 ${isEn ? 'Cash' : 'रोख (Cash)'}</option>
+                  <option value="UPI">📱 UPI (GPay/PhonePe)</option>
+                  <option value="Bank Transfer">🏦 ${isEn ? 'Bank Transfer' : 'बँक ट्रान्सफर'}</option>
+                  <option value="Cheque">📜 ${isEn ? 'Cheque' : 'चेक'}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- लेट फी दंड (ऐच्छिक) व टीप -->
+            <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 0.65rem; margin-bottom: 0.75rem;">
+              <div class="form-group" style="margin: 0;">
+                <label class="form-label" for="notifDepositFineAmount" style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                  ${isEn ? 'Fine / Late Fee (₹)' : 'लेट फी दंड (₹)'}
+                </label>
+                <input type="number" id="notifDepositFineAmount" class="form-control" value="0" min="0" step="any" style="font-size: 0.88rem; padding: 0.45rem 0.65rem;">
+              </div>
+
+              <div class="form-group" style="margin: 0;">
+                <label class="form-label" for="notifDepositNote" style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                  ${isEn ? 'Note / Remark' : 'टीप / शेरा (ऐच्छिक)'}
+                </label>
+                <input type="text" id="notifDepositNote" class="form-control" placeholder="${isEn ? 'e.g. Received via Mobile' : 'उदा. मोबाईल ॲपवरून भरणा'}" style="font-size: 0.85rem; padding: 0.45rem 0.65rem;">
+              </div>
+            </div>
+
+            <!-- मेसेज वितरण चेकबॉक्सेस -->
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px dashed rgba(16, 185, 129, 0.35); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; margin-bottom: 0.85rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--text-primary); cursor: pointer; margin: 0; font-weight: 700;">
+                <input type="checkbox" id="notifSendToMemberAppCheckbox" checked style="width: 17px; height: 17px; accent-color: var(--emerald-500); cursor: pointer;">
+                <span>📲 ${isEn ? 'Send Notification to Member\'s App' : 'सदस्याच्या मोबाईल ॲपवर मेसेज व अलर्ट पाठवा'}</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: #25d366; cursor: pointer; margin: 0; font-weight: 700;">
+                <input type="checkbox" id="notifSendWhatsAppCheckbox" checked style="width: 17px; height: 17px; accent-color: #25d366; cursor: pointer;">
+                <span>💬 ${isEn ? 'Send Digital Receipt via WhatsApp' : 'सदस्याच्या WhatsApp वर पावती मेसेज पाठवा'}</span>
+              </label>
+            </div>
+
+            <!-- सबमिट बटण -->
+            <button type="button" class="btn btn-emerald" onclick="window.notificationManager.submitWeeklyDepositFromNotif()" style="width: 100%; font-weight: 800; font-size: 0.92rem; padding: 0.65rem 1rem; justify-content: center; border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+              ${isEn ? '💰 Collect Deposit & Send Message to Member ➔' : '💰 हप्ता जमा करा व सदस्यास मेसेज पाठवा ➔'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    toggleDepositForm() {
+      this.isDepositFormCollapsed = !this.isDepositFormCollapsed;
+      this.renderAdminDepositBox();
+    }
+
+    onMemberSelectChange(memberId) {
+      this.lastSelectedDepositMemberId = memberId;
+      this.renderAdminDepositBox(memberId);
+    }
+
+    prefillDepositForm(memberId = null, weekNumber = null) {
+      this.isDepositFormCollapsed = false;
+      if (memberId) {
+        this.lastSelectedDepositMemberId = memberId;
+      }
+      this.renderAdminDepositBox(memberId);
+      if (weekNumber) {
+        const wkInput = document.getElementById('notifDepositWeekNumber');
+        if (wkInput) wkInput.value = weekNumber;
+      }
+      const amtInput = document.getElementById('notifDepositAmount');
+      if (amtInput) amtInput.focus();
+    }
+
+    submitWeeklyDepositFromNotif() {
+      if (!window.bishiStore || typeof window.bishiStore.recordPayment !== 'function') {
+        if (window.ui && window.ui.showToast) window.ui.showToast('सिस्टम उपलब्ध नाही.', 'error');
+        return;
+      }
+      if (window.authManager && !window.authManager.isAdmin()) {
+        if (window.ui && window.ui.showToast) window.ui.showToast('🔒 केवळ प्रशासक हप्ता नोंदवू शकतात.', 'error');
+        return;
+      }
+
+      const selEl = document.getElementById('notifDepositMemberSelect');
+      const memberId = selEl ? selEl.value : null;
+      if (!memberId) {
+        if (window.ui && window.ui.showToast) window.ui.showToast('कृपया सदस्य निवडा.', 'warning');
+        return;
+      }
+
+      const member = window.bishiStore.getMember(memberId);
+      if (!member) {
+        if (window.ui && window.ui.showToast) window.ui.showToast('सदस्य सापडला नाही.', 'error');
+        return;
+      }
+
+      const stats = window.bishiStore.calculateMemberStats(member);
+      const isEn = window.i18n && window.i18n.isEnglish();
+      const amountInput = document.getElementById('notifDepositAmount');
+      const depositAmount = Number(amountInput ? amountInput.value : 0);
+      if (depositAmount <= 0) {
+        if (window.ui && window.ui.showToast) window.ui.showToast('कृपया वैध हप्ता रक्कम टाका.', 'warning');
+        if (amountInput) amountInput.focus();
+        return;
+      }
+
+      const paymentMode = document.getElementById('notifDepositPaymentMode')?.value || 'Cash';
+      const fineAmount = Number(document.getElementById('notifDepositFineAmount')?.value || 0);
+      const note = document.getElementById('notifDepositNote')?.value || (isEn ? 'Deposit recorded from Mobile Notifications' : 'मोबाईल नोटिफिकेशन्सवरून थेट हप्ता भरणा');
+      const sendToMemberApp = document.getElementById('notifSendToMemberAppCheckbox')?.checked !== false;
+      const sendWhatsApp = document.getElementById('notifSendWhatsAppCheckbox')?.checked !== false;
+      const targetWeek = Number(document.getElementById('notifDepositWeekNumber')?.value) || stats.nextDueWeek || 1;
+
+      try {
+        const result = window.bishiStore.recordPayment(
+          member.id,
+          targetWeek,
+          depositAmount,
+          paymentMode,
+          note,
+          fineAmount,
+          ''
+        );
+
+        if (result) {
+          const totalPaid = depositAmount + fineAmount;
+          const memName = window.bishiStore.getMemberDisplayName ? window.bishiStore.getMemberDisplayName(member) : member.name;
+          const receiptNo = result.transaction?.receiptNo || `REC-${member.id}-W${targetWeek}`;
+          const currentTotalDeposited = result.stats?.totalDeposited || (stats.totalDeposited + depositAmount);
+
+          // 📲 सदस्याच्या मोबाईल ॲपवर विशेष मेसेज व सूचना तयार करा (Targeted Member Notification)
+          if (sendToMemberApp) {
+            const memberMsgTitle = isEn 
+              ? `✅ ${stats.periodUnit} ${targetWeek} Installment Received (Receipt: ${receiptNo})`
+              : `✅ ${stats.periodUnit} ${targetWeek} हप्ता यशस्वीरीत्या जमा (पावती क्र. ${receiptNo})`;
+            const memberMsgBody = isEn
+              ? `Dear ${member.name}, your ${stats.periodUnit} ${targetWeek} installment of ₹${depositAmount.toLocaleString('en-IN')} has been successfully credited via ${paymentMode}. Total Savings: ₹${currentTotalDeposited.toLocaleString('en-IN')}.`
+              : `प्रिय ${memName}, आपला ${stats.periodUnit} ${targetWeek} चा ₹${depositAmount.toLocaleString('en-IN')} हप्ता ${paymentMode} द्वारे यशस्वीरीत्या जमा झाला आहे. एकूण बचत: ₹${currentTotalDeposited.toLocaleString('en-IN')}.`;
+
+            this.notify({
+              title: memberMsgTitle,
+              body: memberMsgBody,
+              type: 'installment',
+              url: './app.html#members',
+              meta: {
+                memberId: member.id,
+                memberName: member.name,
+                memberPhone: member.phone,
+                weekNumber: targetWeek,
+                amount: depositAmount,
+                finePaid: fineAmount,
+                paymentMode: paymentMode,
+                receiptNo: receiptNo,
+                action: 'installment_completed',
+                sentToMemberApp: true,
+                sentAt: Date.now()
+              }
+            });
+          }
+
+          // 💬 सदस्याच्या WhatsApp वर पावती पाठवणे
+          if (sendWhatsApp && window.receiptManager && typeof window.receiptManager.sendWhatsAppMessage === 'function') {
+            setTimeout(() => {
+              window.receiptManager.sendWhatsAppMessage(member.id, targetWeek);
+            }, 300);
+          }
+
+          // टोस्ट संदेश
+          if (window.ui && window.ui.showToast) {
+            const toastMsg = isEn
+              ? `✅ ₹${totalPaid.toLocaleString('en-IN')} deposit recorded! Sent message to ${member.name}'s app.`
+              : `✅ ₹${totalPaid.toLocaleString('en-IN')} हप्ता जमा झाला आणि ${memName} यांच्या मोबाईल ॲपवर मेसेज पाठवला!`;
+            window.ui.showToast(toastMsg, 'success');
+          }
+
+          // संपूर्ण UI अद्ययावत करा
+          if (window.ui && typeof window.ui.renderAll === 'function') {
+            window.ui.renderAll();
+          }
+
+          this.renderAdminDepositBox();
+          this.renderNotificationList();
+        } else {
+          if (window.ui && window.ui.showToast) window.ui.showToast('पेमेंट नोंदवताना त्रुटी आली.', 'error');
+        }
+      } catch (err) {
+        console.error('Error submitting deposit from notif:', err);
+        if (window.ui && window.ui.showToast) window.ui.showToast(`त्रुटी: ${err.message}`, 'error');
+      }
     }
 
     markAllAsRead() {
@@ -542,9 +865,22 @@
       const container = document.getElementById('notifListContainer');
       if (!container) return;
 
+      const isEn = window.i18n && window.i18n.isEnglish();
+      const isAdmin = !window.authManager || (typeof window.authManager.isAdmin === 'function' && window.authManager.isAdmin());
+      const isCustomer = window.authManager && typeof window.authManager.isCustomer === 'function' && window.authManager.isCustomer();
+      const currentMember = isCustomer ? window.authManager.getCurrentCustomerMember() : null;
+
       let list = [...this.notifications];
-      if (this.activeTab === 'installment') {
-        list = list.filter(n => n.type === 'installment');
+
+      // जर सदस्य लॉगिन असेल, तर फक्त स्वतःच्या सूचना किंवा सामान्य सूचना दाखवा
+      if (isCustomer && currentMember) {
+        list = list.filter(n => !n.meta?.memberId || n.meta.memberId === currentMember.id);
+      }
+
+      if (this.activeTab === 'deposit') {
+        list = list.filter(n => n.meta?.action === 'installment_completed');
+      } else if (this.activeTab === 'installment') {
+        list = list.filter(n => n.type === 'installment' && n.meta?.action !== 'installment_completed');
       } else if (this.activeTab === 'loan') {
         list = list.filter(n => n.type === 'loan');
       }
@@ -553,18 +889,68 @@
         container.innerHTML = `
           <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
             <div style="font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.6;">🔕</div>
-            <div style="font-size: 1rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">कोणत्याही सूचना नाहीत</div>
-            <p style="font-size: 0.82rem; margin: 0;">हप्ता भरणा व कर्ज व्यवहारांचे अपडेट्स येथे आपोआप दिसतील.</p>
+            <div style="font-size: 1rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">
+              ${isEn ? 'No notifications found' : 'कोणत्याही सूचना नाहीत'}
+            </div>
+            <p style="font-size: 0.82rem; margin: 0;">
+              ${isEn ? 'Installment deposits, reminders, and loan updates will appear here automatically.' : 'हप्ता भरणा, स्मरणपत्रे व कर्ज व्यवहारांचे अपडेट्स येथे आपोआप दिसतील.'}
+            </p>
           </div>
         `;
         return;
       }
 
       container.innerHTML = list.map(n => {
-        const icon = n.type === 'loan' ? '💳' : (n.type === 'installment' ? '📅' : '🔔');
-        const badgeClass = n.type === 'loan' ? 'status-pill status-active' : (n.type === 'installment' ? 'status-pill status-paid' : 'status-pill');
-        const badgeText = n.type === 'loan' ? 'कर्ज ॲक्शन' : (n.type === 'installment' ? 'हप्ता २ दिवस आधी' : 'सामान्य सूचना');
+        const isDepositAction = n.meta?.action === 'installment_completed';
+        const icon = n.type === 'loan' ? '💳' : (isDepositAction ? '💰' : (n.type === 'installment' ? '📅' : '🔔'));
+        const badgeClass = n.type === 'loan' ? 'status-pill status-active' : (isDepositAction ? 'status-pill status-paid' : (n.type === 'installment' ? 'status-pill status-pending' : 'status-pill'));
+        const badgeText = n.type === 'loan' 
+          ? (isEn ? 'Loan Action' : 'कर्ज ॲक्शन') 
+          : (isDepositAction 
+              ? (isEn ? 'Deposit Credited' : 'हप्ता भरणा पावती') 
+              : (n.type === 'installment' ? (isEn ? '2 Days Early' : 'हप्ता २ दिवस आधी') : (isEn ? 'General' : 'सामान्य सूचना')));
         const unreadStyle = !n.read ? 'border-left: 4px solid var(--emerald-500); background: rgba(16, 185, 129, 0.05);' : '';
+
+        // Generate action buttons
+        let actionsHtml = '';
+        if (isDepositAction && n.meta?.memberId && n.meta?.weekNumber) {
+          const mId = n.meta.memberId;
+          const wNum = n.meta.weekNumber;
+          if (isAdmin) {
+            actionsHtml = `
+              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-top: 0.5rem;" onclick="event.stopPropagation();">
+                <button type="button" class="btn btn-sm" onclick="window.receiptManager.sendWhatsAppMessage('${mId}', ${wNum})" style="background: #25d366; color: #000; font-weight: 700; font-size: 0.73rem; padding: 0.25rem 0.6rem; border: none; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.25rem;">
+                  <span>💬</span> WhatsApp ${isEn ? 'Receipt' : 'पावती'}
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="window.receiptManager.showReceiptModal('${mId}', ${wNum})" style="font-size: 0.73rem; padding: 0.25rem 0.6rem; font-weight: 700;">
+                  <span>🧾</span> ${isEn ? 'View Receipt' : 'पावती पहा'}
+                </button>
+                <span class="status-pill status-paid" style="font-size: 0.68rem; padding: 0.15rem 0.45rem; background: rgba(16, 185, 129, 0.12); color: var(--emerald-400);">
+                  ✓ ${isEn ? 'Delivered to Member App' : 'सदस्य ॲपवर मेसेज वितरित'}
+                </span>
+              </div>
+            `;
+          } else {
+            actionsHtml = `
+              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-top: 0.5rem;" onclick="event.stopPropagation();">
+                <button type="button" class="btn btn-emerald btn-sm" onclick="window.receiptManager.showReceiptModal('${mId}', ${wNum})" style="font-size: 0.73rem; padding: 0.25rem 0.65rem; font-weight: 700;">
+                  <span>🧾</span> ${isEn ? 'View My Receipt' : 'माझी डिजिटल पावती पहा'}
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="window.ui.openPassbookModal('${mId}'); window.notificationManager.closeModal();" style="font-size: 0.73rem; padding: 0.25rem 0.6rem; font-weight: 700;">
+                  <span>📖</span> ${isEn ? 'View Passbook' : 'पासबुक पहा'}
+                </button>
+              </div>
+            `;
+          }
+        } else if (isAdmin && n.type === 'installment' && n.meta?.unpaidCount > 0 && n.meta?.week) {
+          actionsHtml = `
+            <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-top: 0.5rem;" onclick="event.stopPropagation();">
+              <button type="button" class="btn btn-primary btn-sm" onclick="window.notificationManager.prefillDepositForm(null, ${n.meta.week})" style="font-size: 0.73rem; padding: 0.25rem 0.65rem; font-weight: 700;">
+                <span>💰</span> ${isEn ? 'Collect Remaining Installment' : 'बाकी हप्ता जमा करा'}
+              </button>
+            </div>
+          `;
+        }
 
         return `
           <div class="notification-item-card ${n.read ? 'read' : 'unread'}" 
@@ -583,9 +969,7 @@
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 0.5rem 0; line-height: 1.45;">
               ${n.body}
             </p>
-            <div style="display: flex; justify-content: flex-end;">
-              <span style="font-size: 0.78rem; color: var(--emerald-400); font-weight: 700;">पहा ➔</span>
-            </div>
+            ${actionsHtml}
           </div>
         `;
       }).join('');
@@ -654,7 +1038,8 @@
       }
     }
 
-    openModal() {
+    openModal(prefillMemberId = null) {
+      this.renderAdminDepositBox(prefillMemberId);
       this.renderNotificationList();
       this.updatePermissionUi();
       const modal = document.getElementById('notificationsModal');

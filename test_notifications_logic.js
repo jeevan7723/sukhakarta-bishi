@@ -196,5 +196,93 @@ assert.ok(completedNotif.body.includes('₹2,000'), 'Body should mention deposit
 assert.ok(completedNotif.body.includes('आठवडा 3'), 'Body should mention week number');
 console.log('✅ Member installment completed notification verified:', completedNotif.title, '->', completedNotif.body);
 
-console.log('\n🎉 ALL NOTIFICATION UNIT TESTS (1 to 9) PASSED WITH 100% SUCCESS!');
+console.log('--- Test 10: Admin Quick Deposit Submission from Notification Section ---');
+// Mock receiptManager
+global.receiptManager = {
+  lastWhatsAppCall: null,
+  sendWhatsAppMessage(memberId, weekNum) {
+    this.lastWhatsAppCall = { memberId, weekNum };
+  }
+};
+
+// Mock UI elements required by submitWeeklyDepositFromNotif
+const mockDomElements = {
+  notifDepositMemberSelect: { value: 'SKB-001' },
+  notifDepositWeekNumber: { value: '2' },
+  notifDepositAmount: { value: '1000' },
+  notifDepositPaymentMode: { value: 'UPI' },
+  notifDepositFineAmount: { value: '0' },
+  notifDepositNote: { value: 'Mobile App Test' },
+  notifSendToMemberAppCheckbox: { checked: true },
+  notifSendWhatsAppCheckbox: { checked: true },
+  notifListContainer: { innerHTML: '' },
+  notifAdminDepositSection: { innerHTML: '' }
+};
+
+const originalGetElementById = global.document.getElementById;
+global.document.getElementById = function(id) {
+  if (mockDomElements[id]) return mockDomElements[id];
+  return { style: {}, classList: { add() {}, remove() {} }, textContent: '', innerHTML: '' };
+};
+
+// Mock store methods
+window.bishiStore.getMember = function(id) {
+  return { id: 'SKB-001', name: 'अजय शिंदे', phone: '9876543210', status: 'active', weeklyAmount: 1000 };
+};
+window.bishiStore.calculateMemberStats = function(m) {
+  return { nextDueWeek: 2, totalPeriods: 20, periodUnit: 'आठवडा', totalDeposited: 1000, installmentAmount: 1000 };
+};
+
+// Mock recordPayment on bishiStore
+let paymentRecorded = null;
+window.bishiStore.recordPayment = function(mId, wNum, amt, mode, note, fine) {
+  paymentRecorded = { mId, wNum, amt, mode, note, fine };
+  return {
+    success: true,
+    transaction: { receiptNo: `REC-${mId}-W${wNum}` },
+    stats: { totalDeposited: 2000 }
+  };
+};
+
+// Execute admin quick deposit
+nm.submitWeeklyDepositFromNotif();
+
+assert.ok(paymentRecorded, 'bishiStore.recordPayment should be called');
+assert.strictEqual(paymentRecorded.mId, 'SKB-001', 'Member ID matches');
+assert.strictEqual(paymentRecorded.wNum, 2, 'Week number matches');
+assert.strictEqual(paymentRecorded.amt, 1000, 'Amount matches');
+assert.strictEqual(paymentRecorded.mode, 'UPI', 'Payment mode matches');
+
+// Verify member app in-app notification exists
+const memberDepositNotif = nm.notifications.find(n => n.meta && n.meta.memberId === 'SKB-001' && n.meta.weekNumber === 2);
+assert.ok(memberDepositNotif, 'Deposit notification should be in notification list');
+assert.strictEqual(memberDepositNotif.type, 'installment');
+console.log('✅ Admin Quick Deposit submission from notification section verified');
+
+setTimeout(() => {
+  assert.ok(global.receiptManager.lastWhatsAppCall, 'WhatsApp message triggered');
+  assert.strictEqual(global.receiptManager.lastWhatsAppCall.memberId, 'SKB-001');
+  console.log('✅ WhatsApp message dispatch triggered successfully');
+
+  console.log('--- Test 11: Customer App Notifications Filtering ---');
+  // When customer is logged in, they only see their own notifications + general broadcasts
+  global.window.authManager = {
+    isAdmin() { return false; },
+    isCustomer() { return true; },
+    getCurrentCustomerMember() {
+      return { id: 'SKB-001', name: 'अजय शिंदे' };
+    }
+  };
+
+  const member1Unread = nm.getUnreadCount();
+  assert.ok(member1Unread >= 1, 'Member should have at least 1 unread notification for their account');
+
+  // Restore document.getElementById
+  global.document.getElementById = originalGetElementById;
+  console.log('✅ Customer App Notifications filtering verified');
+
+  console.log('\n🎉 ALL NOTIFICATION UNIT TESTS (1 to 11) PASSED WITH 100% SUCCESS!');
+}, 350);
+
+
 

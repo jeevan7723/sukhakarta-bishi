@@ -345,7 +345,22 @@
     lbl_total_fines: { mr: 'एकूण दंड:', en: 'Total Fines:' },
     lbl_loans_disbursed: { mr: 'कर्ज वाटप:', en: 'Loans Disbursed:' },
     lbl_loan_interest: { mr: 'कर्ज व्याज:', en: 'Loan Interest:' },
-    lbl_loans_repaid: { mr: 'कर्ज परतफेड:', en: 'Loans Repaid:' }
+    lbl_loans_repaid: { mr: 'कर्ज परतफेड:', en: 'Loans Repaid:' },
+
+    // Notifications Section Quick Deposit
+    notif_tab_all: { mr: 'सर्व', en: 'All' },
+    notif_tab_deposit: { mr: '💰 हप्ते भरणा', en: '💰 Deposits' },
+    notif_tab_installment: { mr: '📅 हप्ता (२ दिवस)', en: '📅 Installments (2 Days)' },
+    notif_tab_loan: { mr: '💳 कर्ज', en: '💳 Loans' },
+    notif_admin_quick_deposit: { mr: 'साप्ताहिक हप्ता थेट जमा नोंदवा', en: 'Quick Weekly Deposit Entry' },
+    notif_admin_deposit_desc: { mr: 'येथून हप्ता नोंदवून थेट सदस्याच्या मोबाईल ॲपवर व WhatsApp वर मेसेज पाठवा', en: 'Record deposit here and send message directly to member\'s mobile app & WhatsApp' },
+    notif_select_member_label: { mr: 'सदस्य निवडा *', en: 'Select Member *' },
+    notif_deposit_amount_label: { mr: 'भरणा रक्कम (₹) *', en: 'Deposit Amount (₹) *' },
+    notif_payment_mode_label: { mr: 'पेमेंट पद्धत *', en: 'Payment Mode *' },
+    notif_fine_amount_label: { mr: 'दंड रक्कम (ऐच्छिक)', en: 'Fine Amount (Optional)' },
+    notif_send_member_app_lbl: { mr: '📲 सदस्याच्या मोबाईल ॲपवर मेसेज पाठवा', en: '📲 Send Message on Member\'s App' },
+    notif_send_whatsapp_lbl: { mr: '💬 WhatsApp वर पावती पाठवा', en: '💬 Send Receipt on WhatsApp' },
+    notif_btn_submit_deposit: { mr: '💰 हप्ता जमा करा व मेसेज पाठवा ➔', en: '💰 Collect Deposit & Send Message ➔' }
   };
 
   // Phrases for automatic bidirectional DOM scanning
@@ -378,6 +393,13 @@
     ['⚠️ दंड भरलेले व्यवहार', '⚠️ Fined Transactions'],
     ['पुढील हप्ता / लक्ष्य', 'Next Due / Target'],
     ['बचत प्रगती', 'Savings Progress'],
+    ['साप्ताहिक हप्ता थेट जमा नोंदवा', 'Quick Weekly Deposit Entry'],
+    ['येथून हप्ता नोंदवून थेट सदस्याच्या मोबाईल ॲपवर व WhatsApp वर मेसेज पाठवा', "Record deposit here and send message directly to member's mobile app & WhatsApp"],
+    ['💰 हप्ते भरणा', '💰 Deposits'],
+    ['हप्ते भरणा', 'Deposits'],
+    ['📲 सदस्याच्या मोबाईल ॲपवर मेसेज पाठवा', "📲 Send Message on Member's App"],
+    ['💬 WhatsApp वर पावती पाठवा', '💬 Send Receipt on WhatsApp'],
+    ['💰 हप्ता जमा करा व मेसेज पाठवा ➔', '💰 Collect Deposit & Send Message ➔'],
     ['सदस्य तपशील व कर्ज स्थिती', 'Member Details & Loan Status'],
     ['हप्ता / कर्ज रक्कम', 'Installment / Loan Amount'],
     ['मंजूर कर्ज मुद्दल', 'Sanctioned Principal'],

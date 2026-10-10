@@ -10209,12 +10209,16 @@ body {
         <!-- मोबाईल परमिशन बॅनर -->
         <div id="notifPermissionBanner" style="margin-bottom: 1rem;"></div>
 
+        <!-- 💰 ॲडमिन थेट साप्ताहिक हप्ता जमा नोंदणी विभाग (Admin Weekly Deposit Entry Section) -->
+        <div id="notifAdminDepositSection" style="margin-bottom: 1rem;"></div>
+
         <!-- फिल्टर टॅब्स व क्लिअर बटणे -->
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
           <div style="display: flex; gap: 0.35rem;" id="notifTabs">
-            <button type="button" class="filter-btn active" data-notif-tab="all" onclick="window.notificationManager.setTab('all')">सर्व</button>
-            <button type="button" class="filter-btn" data-notif-tab="installment" onclick="window.notificationManager.setTab('installment')">📅 हप्ता (२ दिवस)</button>
-            <button type="button" class="filter-btn" data-notif-tab="loan" onclick="window.notificationManager.setTab('loan')">💳 कर्ज</button>
+            <button type="button" class="filter-btn active" data-notif-tab="all" onclick="window.notificationManager.setTab('all')" data-i18n="notif_tab_all">सर्व</button>
+            <button type="button" class="filter-btn" data-notif-tab="deposit" onclick="window.notificationManager.setTab('deposit')" data-i18n="notif_tab_deposit">💰 हप्ते भरणा</button>
+            <button type="button" class="filter-btn" data-notif-tab="installment" onclick="window.notificationManager.setTab('installment')" data-i18n="notif_tab_installment">📅 हप्ता (२ दिवस)</button>
+            <button type="button" class="filter-btn" data-notif-tab="loan" onclick="window.notificationManager.setTab('loan')" data-i18n="notif_tab_loan">💳 कर्ज</button>
           </div>
           <div style="display: flex; gap: 0.4rem;">
             <button type="button" class="btn btn-secondary btn-sm" onclick="window.notificationManager.markAllAsRead()" style="font-size: 0.75rem; padding: 0.25rem 0.55rem;" title="सर्व वाचल्या म्हणून चिन्हांकित करा">
