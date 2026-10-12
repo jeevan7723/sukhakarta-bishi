@@ -166,15 +166,22 @@ async function populateRecentData() {
     console.log(`✅ [members/${docId}]: Saved "${m.name}" (${doc.weeks.length} weeks, ${doc.transactions.length} txns, ${doc.loans.length} loans).`);
   }
 
-  // 2. Write Transactions collection
+  // 2. Write Transactions collection (Newest at top of table in Firebase Console)
   console.log('\n--- Writing Transaction Documents (Collection: "transactions") ---');
   for (const txn of transactions) {
-    await writeFirestoreDoc('transactions', txn.id, {
+    const ts = new Date(txn.date || txn.paidDate || txn.createdAt || Date.now()).getTime() || Date.now();
+    const inv = String(9999999999999 - ts).padStart(13, '0');
+    const recNo = (txn.receiptNo || txn.id || 'TXN').replace(/[/\\#?.$\x5B\x5D]/g, '-').trim();
+    const name = (txn.memberName || '').replace(/[/\\#?.$\x5B\x5D]/g, '-').trim();
+    const week = txn.weekNumber ? `W${txn.weekNumber}` : '';
+    const docId = `TXN - ${[inv, recNo, week, name].filter(Boolean).join(' - ')}`;
+    await writeFirestoreDoc('transactions', docId, {
       ...txn,
+      _docId: docId,
       _section: 'transactions',
       _updatedAt: new Date().toISOString()
     });
-    console.log(`✅ [transactions/${txn.id}]: Saved txn for ${txn.memberName} (Week ${txn.weekNumber}, ₹${txn.totalAmount || txn.depositAmount || txn.amount}).`);
+    console.log(`✅ [transactions/${docId}]: Saved txn for ${txn.memberName} (Week ${txn.weekNumber}, ₹${txn.totalAmount || txn.depositAmount || txn.amount}).`);
   }
 
   // 3. Write Loans collection

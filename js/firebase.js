@@ -34,6 +34,8 @@ class FirebaseSyncManager {
     this.activityLogs = [];
     this.restBaseUrl = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents`;
     this.rtdbBaseUrl = firebaseConfig.databaseURL;
+    this.debounceTimer = null;
+    this.isDeltaSyncEnabled = true;
 
     // Immediately boot up
     this.init();
@@ -222,10 +224,31 @@ class FirebaseSyncManager {
       await this.patchFirestoreDocViaRest('members', docId, memberDoc);
     }
 
-    // 3. Transactions
+    // 3. Transactions (नवीन व्यवहार Firebase कन्सोलमध्ये सर्वात वर दिसण्यासाठी getTxnDocId वापरणे)
+    try {
+      const activeTxnDocIds = new Set((payload.transactions || []).map(t => this.getTxnDocId(t)));
+      const listUrl = `${this.restBaseUrl}/transactions`;
+      const listRes = await fetch(listUrl);
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        if (Array.isArray(listData.documents)) {
+          for (const doc of listData.documents) {
+            const oldDocId = doc.name.split('/').pop();
+            if (!activeTxnDocIds.has(oldDocId)) {
+              await this.deleteFirestoreDocViaRest('transactions', oldDocId);
+            }
+          }
+        }
+      }
+    } catch (e) {}
+
     for (const txn of (payload.transactions || [])) {
-      await this.patchFirestoreDocViaRest('transactions', txn.id, {
+      const docId = this.getTxnDocId(txn);
+      txn.id = docId;
+      await this.patchFirestoreDocViaRest('transactions', docId, {
         ...txn,
+        id: docId,
+        _docId: docId,
         _section: 'transactions',
         _updatedAt: new Date().toISOString()
       });
@@ -262,33 +285,42 @@ class FirebaseSyncManager {
 
     // 1. Primary: Firestore Realtime Listener
     if (this.firestoreDocRef) {
-      this.firestoreDocRef.onSnapshot(
-        (docSnap) => {
-          this.isConnected = true;
-          this.updateStatusUI('connected', '🟢 लाइव्ह सिंक (Firebase Live)');
+      let listenerAttached = false;
+      try {
+        this.firestoreDocRef.onSnapshot(
+          (docSnap) => {
+            this.isConnected = true;
+            this.updateStatusUI('connected', '🟢 लाइव्ह सिंक (Firebase Live)');
 
-          if (docSnap.exists) {
-            const remoteData = docSnap.data();
-            this.handleRemoteUpdate(remoteData, 'Firestore');
-          } else {
-            const store = window.bishiStore;
-            if (store && store.hasData && store.hasData()) {
-              console.log('Firestore doc empty. Seeding local state to cloud...');
-              this.saveCurrentStateToCloud(true);
+            if (docSnap.exists) {
+              const remoteData = docSnap.data();
+              this.handleRemoteUpdate(remoteData, 'Firestore');
+            } else {
+              const store = window.bishiStore;
+              if (store && store.hasData && store.hasData()) {
+                console.log('Firestore doc empty. Seeding local state to cloud...');
+                this.saveCurrentStateToCloud(true);
+              }
             }
-          }
-        },
-        (err) => {
-          console.warn('Firestore live listener notice (using Realtime DB):', err.message || err);
-          if (!this.isConnected) {
+          },
+          (err) => {
+            console.warn('Firestore live listener notice (fallback to Realtime DB):', err.message || err);
+            // Fallback to RTDB only when Firestore listener encounters error
             this.setupRealtimeDBListener();
           }
-        }
-      );
-    }
+        );
+        listenerAttached = true;
+      } catch (e) {
+        console.warn('Firestore onSnapshot error, falling back to RTDB:', e);
+      }
 
-    // 2. Secondary: Realtime Database Listener
-    this.setupRealtimeDBListener();
+      if (!listenerAttached) {
+        this.setupRealtimeDBListener();
+      }
+    } else {
+      // 2. Secondary fallback: Realtime Database Listener if Firestore is not available
+      this.setupRealtimeDBListener();
+    }
   }
 
   setupRealtimeDBListener() {
@@ -430,6 +462,20 @@ class FirebaseSyncManager {
     return `${id} - ${cleanName}`;
   }
 
+  // --- ३.०२ व्यवहार डॉक्युमेंट आयडी तयार करणे (उदा. "TXN-8208199699999-W5TO") ---
+  // Firebase कन्सोलमध्ये नवीन व्यवहार सर्वांत वर (Top of table) दिसण्यासाठी इनव्हर्टेड टाईमस्टॅम्प वापरणे
+  getTxnDocId(txn) {
+    if (!txn) return '';
+    if (txn.id && txn.id.startsWith('TXN-') && txn.id.length >= 18) {
+      return txn.id;
+    }
+    const dateVal = txn.date || txn.paidDate || txn.createdAt || new Date().toISOString();
+    const ts = new Date(dateVal).getTime() || Date.now();
+    const inv = String(9999999999999 - (isNaN(ts) ? Date.now() : ts)).padStart(13, '0');
+    const rand = (txn.id || '').replace(/^TXN-/, '').substring(0, 4) || Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `TXN-${inv}-${rand}`;
+  }
+
   // --- ३.१ सर्व डेटा समाविष्ट असलेले स्वतंत्र सदस्य डॉक्युमेंट तयार करणे (Comprehensive Member Document) ---
   buildMemberDocument(member, storeState = null) {
     const store = storeState || (window.bishiStore && window.bishiStore.state);
@@ -546,11 +592,33 @@ class FirebaseSyncManager {
     };
   }
 
-  // --- ४. क्लाउडवर डेटा सेव्ह/पुश करणे (Push State & Modular Sections to Firebase Cloud) ---
-  async saveCurrentStateToCloud(force = false) {
+  // --- ४.० ऑटो-सिंक डीबाउन्स शेड्यूल (Debounced Cloud Sync to prevent redundant rapid writes) ---
+  scheduleCloudSave(delayMs = 2500) {
+    if (!this.autoSyncEnabled) return;
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+    if (delayMs <= 0) {
+      this.saveCurrentStateToCloud(false, false);
+      return;
+    }
+    this.debounceTimer = setTimeout(() => {
+      this.debounceTimer = null;
+      this.saveCurrentStateToCloud(false, false);
+    }, delayMs);
+  }
+
+  // --- ४. क्लाउडवर डेटा सेव्ह/पुश करणे (Push State & Optimized Modular Delta Sync) ---
+  async saveCurrentStateToCloud(force = false, isFullSync = false) {
     if (!this.isInitialized) return;
     if (!this.autoSyncEnabled && !force) return;
     if (this.isSyncing && !force) return;
+
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
 
     const store = window.bishiStore;
     if (!store || !store.state) return;
@@ -596,118 +664,109 @@ class FirebaseSyncManager {
       }
     }
 
-    // 3. Modular Sections: Write Dedicated Documents in Firestore & Clean Out Old Ones
+    // 3. Modular Sections: Optimized Delta vs Full Sync (Eliminates all slow .get() scans)
+    const delta = (store && typeof store.getDelta === 'function') ? store.getDelta() : { fullSyncNeeded: true };
+    const shouldFullSync = isFullSync || delta.fullSyncNeeded || (!delta.memberIds.length && !delta.txnIds.length && !delta.loanIds.length && !delta.settings);
+
     if (this.firestore) {
       try {
-        const membersList = payload.members || [];
-        const activeMemberDocIds = new Set(membersList.map(m => this.getMemberDocId(m)));
+        if (shouldFullSync) {
+          // --- FULL MODULAR SYNC (Writes docs without full-collection .get() scans) ---
+          for (const m of (payload.members || [])) {
+            const docId = this.getMemberDocId(m);
+            await this.firestore.collection('members').doc(docId).set(this.buildMemberDocument(m, payload));
+          }
 
-        // Delete old obsolete member documents that are not in local members (e.g. old "SKB-001" or renamed names)
-        try {
-          const existingMembersSnap = await this.firestore.collection('members').get();
-          const batch = this.firestore.batch();
-          let hasDeletions = false;
-          existingMembersSnap.forEach(doc => {
-            if (!activeMemberDocIds.has(doc.id)) {
-              batch.delete(doc.ref);
-              hasDeletions = true;
+          for (const sm of (payload.settledMembers || [])) {
+            const docId = this.getMemberDocId(sm);
+            await this.firestore.collection('settled_members').doc(docId).set(this.buildMemberDocument(sm, payload));
+          }
+
+          for (const txn of (payload.transactions || [])) {
+            const docId = this.getTxnDocId(txn);
+            txn.id = docId;
+            await this.firestore.collection('transactions').doc(docId).set({
+              ...txn,
+              id: docId,
+              _docId: docId,
+              _section: 'transactions',
+              _updatedAt: new Date().toISOString()
+            });
+          }
+
+          for (const loan of (payload.loans || [])) {
+            const docId = this.getLoanDocId(loan);
+            await this.firestore.collection('loans').doc(docId).set({
+              ...loan,
+              _section: 'loans',
+              _updatedAt: new Date().toISOString()
+            });
+          }
+
+          if (payload.meta) {
+            await this.firestore.collection('settings').doc('bishi_rules').set({
+              ...payload.meta,
+              _section: 'settings',
+              _updatedAt: new Date().toISOString()
+            });
+          }
+        } else {
+          // --- DELTA SYNC: ONLY WRITE MODIFIED DOCUMENTS (0 Reads, minimal writes!) ---
+          // A. Dirty members
+          for (const mId of delta.memberIds) {
+            const m = (payload.members || []).find(x => x.id === mId);
+            if (m) {
+              const docId = this.getMemberDocId(m);
+              await this.firestore.collection('members').doc(docId).set(this.buildMemberDocument(m, payload));
+            } else {
+              const sm = (payload.settledMembers || []).find(x => x.id === mId);
+              if (sm) {
+                const docId = this.getMemberDocId(sm);
+                await this.firestore.collection('settled_members').doc(docId).set(this.buildMemberDocument(sm, payload));
+              }
             }
-          });
-          if (hasDeletions) await batch.commit();
-        } catch (e) {
-          console.warn('Notice cleaning obsolete members:', e);
-        }
+          }
 
-        // (A) Write Separate Document for each active member (उदा. "SKB-001 - aditya patil")
-        for (const m of membersList) {
-          const docId = this.getMemberDocId(m);
-          const memberDoc = this.buildMemberDocument(m, payload);
-          await this.firestore.collection('members').doc(docId).set(memberDoc);
-        }
-
-        // (B) Write Separate Document for each settled member
-        const settledList = payload.settledMembers || [];
-        const activeSettledDocIds = new Set(settledList.map(sm => this.getMemberDocId(sm)));
-        try {
-          const existingSettledSnap = await this.firestore.collection('settled_members').get();
-          const batchSettled = this.firestore.batch();
-          let hasSettledDel = false;
-          existingSettledSnap.forEach(doc => {
-            if (!activeSettledDocIds.has(doc.id)) {
-              batchSettled.delete(doc.ref);
-              hasSettledDel = true;
+          // B. Dirty transactions
+          for (const tId of delta.txnIds) {
+            const txn = (payload.transactions || []).find(x => x.id === tId);
+            if (txn) {
+              const docId = this.getTxnDocId(txn);
+              txn.id = docId;
+              await this.firestore.collection('transactions').doc(docId).set({
+                ...txn,
+                id: docId,
+                _docId: docId,
+                _section: 'transactions',
+                _updatedAt: new Date().toISOString()
+              });
             }
-          });
-          if (hasSettledDel) await batchSettled.commit();
-        } catch (e) {
-          console.warn('Notice cleaning obsolete settled members:', e);
-        }
+          }
 
-        for (const sm of settledList) {
-          const docId = this.getMemberDocId(sm);
-          const settledDoc = this.buildMemberDocument(sm, payload);
-          await this.firestore.collection('settled_members').doc(docId).set(settledDoc);
-        }
-
-        // (C) Write Separate Document for each transaction & clean old
-        const txnList = payload.transactions || [];
-        const activeTxnIds = new Set(txnList.map(t => t.id));
-        try {
-          const existingTxnsSnap = await this.firestore.collection('transactions').get();
-          const batchTxn = this.firestore.batch();
-          let hasTxnDel = false;
-          existingTxnsSnap.forEach(doc => {
-            if (!activeTxnIds.has(doc.id)) {
-              batchTxn.delete(doc.ref);
-              hasTxnDel = true;
+          // C. Dirty loans
+          for (const lId of delta.loanIds) {
+            const loan = (payload.loans || []).find(x => x.id === lId);
+            if (loan) {
+              const docId = this.getLoanDocId(loan);
+              await this.firestore.collection('loans').doc(docId).set({
+                ...loan,
+                _section: 'loans',
+                _updatedAt: new Date().toISOString()
+              });
             }
-          });
-          if (hasTxnDel) await batchTxn.commit();
-        } catch (e) {}
+          }
 
-        for (const txn of txnList) {
-          await this.firestore.collection('transactions').doc(txn.id).set({
-            ...txn,
-            _section: 'transactions',
-            _updatedAt: new Date().toISOString()
-          });
+          // D. Dirty settings
+          if (delta.settings && payload.meta) {
+            await this.firestore.collection('settings').doc('bishi_rules').set({
+              ...payload.meta,
+              _section: 'settings',
+              _updatedAt: new Date().toISOString()
+            });
+          }
         }
 
-        // (D) Write Separate Document for each loan & clean old (उदा. "LN-SKB-001-01 - aditya patil")
-        const loanList = payload.loans || [];
-        const activeLoanDocIds = new Set(loanList.map(l => this.getLoanDocId(l)));
-        try {
-          const existingLoansSnap = await this.firestore.collection('loans').get();
-          const batchLoans = this.firestore.batch();
-          let hasLoanDel = false;
-          existingLoansSnap.forEach(doc => {
-            if (!activeLoanDocIds.has(doc.id)) {
-              batchLoans.delete(doc.ref);
-              hasLoanDel = true;
-            }
-          });
-          if (hasLoanDel) await batchLoans.commit();
-        } catch (e) {}
-
-        for (const loan of loanList) {
-          const docId = this.getLoanDocId(loan);
-          await this.firestore.collection('loans').doc(docId).set({
-            ...loan,
-            _section: 'loans',
-            _updatedAt: new Date().toISOString()
-          });
-        }
-
-        // (E) Settings Section (bishi_rules)
-        if (payload.meta) {
-          await this.firestore.collection('settings').doc('bishi_rules').set({
-            ...payload.meta,
-            _section: 'settings',
-            _updatedAt: new Date().toISOString()
-          });
-        }
-
-        // (F) Summary Section (dashboard_overview)
+        // Summary Section (dashboard_overview)
         const summaryDoc = this.buildSummaryPayload(payload);
         await this.firestore.collection('summary').doc('dashboard_overview').set(summaryDoc);
 
@@ -717,32 +776,59 @@ class FirebaseSyncManager {
       }
     }
 
-    // 4. Modular Sections: Mirror to Realtime Database Nodes
+    // 4. Modular Sections: Mirror to Realtime Database Nodes (Delta vs Full)
     if (this.rtdb) {
       try {
-        const membersList = payload.members || [];
-        const membersObj = {};
-        membersList.forEach(m => {
-          membersObj[m.id] = this.buildMemberDocument(m, payload);
-        });
-        await this.rtdb.ref('sukhakarta_bishi/members').set(membersObj);
+        if (shouldFullSync) {
+          const membersList = payload.members || [];
+          const membersObj = {};
+          membersList.forEach(m => {
+            membersObj[m.id] = this.buildMemberDocument(m, payload);
+          });
+          await this.rtdb.ref('sukhakarta_bishi/members').set(membersObj);
 
-        const txnList = payload.transactions || [];
-        const txnsObj = {};
-        txnList.forEach(t => {
-          txnsObj[t.id] = t;
-        });
-        await this.rtdb.ref('sukhakarta_bishi/transactions').set(txnsObj);
+          const txnList = payload.transactions || [];
+          const txnsObj = {};
+          txnList.forEach(t => {
+            const docKey = this.getTxnDocId(t);
+            txnsObj[docKey] = t;
+          });
+          await this.rtdb.ref('sukhakarta_bishi/transactions').set(txnsObj);
 
-        const loanList = payload.loans || [];
-        const loansObj = {};
-        loanList.forEach(l => {
-          loansObj[l.id] = l;
-        });
-        await this.rtdb.ref('sukhakarta_bishi/loans').set(loansObj);
+          const loanList = payload.loans || [];
+          const loansObj = {};
+          loanList.forEach(l => {
+            loansObj[l.id] = l;
+          });
+          await this.rtdb.ref('sukhakarta_bishi/loans').set(loansObj);
 
-        if (payload.meta) {
-          await this.rtdb.ref('sukhakarta_bishi/settings').set(payload.meta);
+          if (payload.meta) {
+            await this.rtdb.ref('sukhakarta_bishi/settings').set(payload.meta);
+          }
+        } else {
+          // Delta sync to RTDB
+          for (const mId of delta.memberIds) {
+            const m = (payload.members || []).find(x => x.id === mId);
+            if (m) {
+              await this.rtdb.ref(`sukhakarta_bishi/members/${m.id}`).set(this.buildMemberDocument(m, payload));
+            }
+          }
+          for (const tId of delta.txnIds) {
+            const txn = (payload.transactions || []).find(x => x.id === tId);
+            if (txn) {
+              const docKey = this.getTxnDocId(txn);
+              await this.rtdb.ref(`sukhakarta_bishi/transactions/${docKey}`).set(txn);
+            }
+          }
+          for (const lId of delta.loanIds) {
+            const loan = (payload.loans || []).find(x => x.id === lId);
+            if (loan) {
+              await this.rtdb.ref(`sukhakarta_bishi/loans/${loan.id}`).set(loan);
+            }
+          }
+          if (delta.settings && payload.meta) {
+            await this.rtdb.ref('sukhakarta_bishi/settings').set(payload.meta);
+          }
         }
 
         await this.rtdb.ref('sukhakarta_bishi/summary').set(this.buildSummaryPayload(payload));
@@ -750,6 +836,11 @@ class FirebaseSyncManager {
       } catch (err) {
         console.warn('Realtime DB modular sections push warning:', err.message || err);
       }
+    }
+
+    // Clear the store delta after successful synchronization
+    if (store && typeof store.clearDelta === 'function') {
+      store.clearDelta();
     }
 
     // 5. Direct REST API Fallback (Ultra-Reliable, runs even if SDK is blocked)
@@ -957,19 +1048,16 @@ class FirebaseSyncManager {
   async deleteMemberFromCloud(memberId) {
     const removed = window.bishiStore.removeMember(memberId);
     if (removed) {
-      // 1. Explicitly remove member's dedicated document from Firestore collection 'members'
+      // 1. Explicitly remove member's dedicated document from Firestore collection 'members' (Direct delete without .get() scan)
       if (this.firestore) {
         try {
-          const snap = await this.firestore.collection('members').get();
-          const batch = this.firestore.batch();
-          let hasDel = false;
-          snap.forEach(d => {
-            if (d.id === memberId || d.id.startsWith(`${memberId} -`) || (d.data() && d.data().id === memberId)) {
-              batch.delete(d.ref);
-              hasDel = true;
-            }
-          });
-          if (hasDel) await batch.commit();
+          const docId = this.getMemberDocId(removed);
+          if (docId) {
+            await this.firestore.collection('members').doc(docId).delete().catch(() => {});
+          }
+          if (memberId !== docId) {
+            await this.firestore.collection('members').doc(memberId).delete().catch(() => {});
+          }
         } catch (e) {
           console.warn('Error deleting member doc from Firestore:', e);
         }
@@ -982,7 +1070,7 @@ class FirebaseSyncManager {
           console.warn('Error deleting member from RTDB:', e);
         }
       }
-      await this.saveCurrentStateToCloud(true);
+      await this.saveCurrentStateToCloud(true, false);
       this.logActivity(`सदस्य डिलीट: ${removed.name} (${memberId}) - स्वतंत्र डॉक्युमेंट नष्ट केले`);
     }
     return removed;
@@ -1017,7 +1105,7 @@ class FirebaseSyncManager {
     store.saveStateLocalOnly();
 
     // 2. Perform comprehensive push to modular collections and live_state
-    await this.saveCurrentStateToCloud(true);
+    await this.saveCurrentStateToCloud(true, true);
 
     this.updateStatusUI('connected', '🟢 लाइव्ह सिंक (Firebase Live)');
     this.logActivity(`वेबसाइटचा सर्व डेटा (${membersCount} सदस्य, ${txnsCount} व्यवहार) Firebase वर यशस्वीरित्या पाठवला`);
@@ -1033,7 +1121,7 @@ class FirebaseSyncManager {
 
   async syncAllModularSections(force = true) {
     this.updateStatusUI('connecting', 'सर्व सेक्शन्स सिंक होत आहेत...');
-    await this.saveCurrentStateToCloud(force);
+    await this.saveCurrentStateToCloud(force, true);
     const count = (window.bishiStore?.getMembers() || []).length;
     this.logActivity(`सर्व सेक्शन्स (members, transactions, settings, summary) यशस्वीरित्या सिंक झाले (${count} सदस्य डॉक्युमेंट्स)`);
     if (window.ui && typeof window.ui.showToast === 'function') {
@@ -1198,6 +1286,60 @@ class FirebaseSyncManager {
         elLogs.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem;">अद्याप कोणतेही लॉग्स नाहीत.</div>';
       } else {
         elLogs.innerHTML = stats.logs.map(l => `<div style="padding: 0.25rem 0; border-bottom: 1px dashed rgba(255,255,255,0.06); font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary);">${l}</div>`).join('');
+      }
+    }
+
+    // थेट Firebase व्यवहार टेबल: नवीन व्यवहार सर्वांत वर दाखवणे (New Transactions on Top of Table)
+    const elTxnsTable = document.getElementById('fbModalTxnsTableBody');
+    if (elTxnsTable) {
+      const store = window.bishiStore;
+      const txns = [...((store && store.state && store.state.transactions) || [])];
+      // नवीन व्यवहार सर्वांत वर (Newest transaction on top of table)
+      txns.sort((a, b) => {
+        const timeB = new Date(b.date || b.paidDate || b.createdAt || 0).getTime();
+        const timeA = new Date(a.date || a.paidDate || a.createdAt || 0).getTime();
+        if (timeB !== timeA) return timeB - timeA;
+        return String(b.id || b.receiptNo || '').localeCompare(String(a.id || a.receiptNo || ''));
+      });
+
+      if (txns.length === 0) {
+        elTxnsTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.25rem; font-size: 0.82rem;">अद्याप कोणतेही व्यवहार नोंदवलेले नाहीत.</td></tr>';
+      } else {
+        const currency = (store && store.state && store.state.meta && store.state.meta.currency) || '₹';
+        elTxnsTable.innerHTML = txns.slice(0, 50).map((t, idx) => {
+          let dateStr = '—';
+          try {
+            const d = new Date(t.date || t.paidDate || 0);
+            if (!isNaN(d.getTime())) {
+              const day = String(d.getDate()).padStart(2, '0');
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const yr = d.getFullYear();
+              const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+              dateStr = `${day}/${month}/${yr} ${time}`;
+            }
+          } catch (e) {}
+
+          const amt = Number(t.totalAmount || t.depositAmount || t.amount || 0);
+          const typeLabel = t.type === 'loan_disbursed' ? '<span style="color: #60a5fa;">💳 कर्ज वाटप</span>'
+            : t.type === 'loan_interest_payment' ? '<span style="color: #fbbf24;">💰 कर्ज व्याज</span>'
+            : t.type === 'loan_repayment' ? '<span style="color: #34d399;">✅ कर्ज परतफेड</span>'
+            : t.type === 'payout' ? '<span style="color: #f472b6;">🎁 परतावा</span>'
+            : (t.weekNumber ? `<span style="color: #a7f3d0;">आठवडा ${t.weekNumber}</span>` : 'ठेव');
+
+          const isNewest = idx === 0;
+          const rowBg = isNewest ? 'rgba(16, 185, 129, 0.08)' : 'transparent';
+          const badgeTop = isNewest ? ' <span style="background: var(--emerald-500); color: #fff; font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 3px; margin-left: 0.25rem;">नवीन</span>' : '';
+
+          return `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); background: ${rowBg};">
+              <td style="padding: 0.45rem 0.55rem; font-family: var(--font-mono); font-size: 0.76rem; font-weight: 700; color: var(--emerald-400); white-space: nowrap;">${t.receiptNo || t.id || '—'}${badgeTop}</td>
+              <td style="padding: 0.45rem 0.55rem; font-size: 0.8rem; font-weight: 600; color: var(--text-primary);">${t.memberName || t.memberId || '—'}</td>
+              <td style="padding: 0.45rem 0.55rem; font-size: 0.78rem;">${typeLabel}</td>
+              <td style="padding: 0.45rem 0.55rem; font-size: 0.82rem; font-weight: 800; color: var(--gold-400); text-align: right;">${currency}${amt.toLocaleString('en-IN')}</td>
+              <td style="padding: 0.45rem 0.55rem; font-size: 0.72rem; color: var(--text-muted); text-align: right; white-space: nowrap;">${dateStr}</td>
+            </tr>
+          `;
+        }).join('');
       }
     }
   }

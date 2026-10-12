@@ -205,16 +205,23 @@ async function migrate() {
     }
   }
 
-  // 4. Write transactions to collection 'transactions'
+  // 4. Write transactions to collection 'transactions' (Newest at top of table in Firebase Console)
   console.log('\n--- Writing Transaction Documents (Collection: "transactions") ---');
   for (const txn of transactions) {
+    const ts = new Date(txn.date || txn.paidDate || txn.createdAt || Date.now()).getTime() || Date.now();
+    const inv = String(9999999999999 - ts).padStart(13, '0');
+    const recNo = (txn.receiptNo || txn.id || 'TXN').replace(/[/\\#?.$\x5B\x5D]/g, '-').trim();
+    const name = (txn.memberName || '').replace(/[/\\#?.$\x5B\x5D]/g, '-').trim();
+    const week = txn.weekNumber ? `W${txn.weekNumber}` : '';
+    const docId = `TXN - ${[inv, recNo, week, name].filter(Boolean).join(' - ')}`;
     const txnDoc = {
       ...txn,
+      _docId: docId,
       _section: 'transactions',
       _updatedAt: new Date().toISOString()
     };
-    await writeFirestoreDoc('transactions', txn.id, txnDoc);
-    console.log(`✅ [transactions/${txn.id}]: Saved txn for ${txn.memberName} (Week ${txn.weekNumber}, ₹${txn.totalAmount || txn.depositAmount}).`);
+    await writeFirestoreDoc('transactions', docId, txnDoc);
+    console.log(`✅ [transactions/${docId}]: Saved txn for ${txn.memberName} (Week ${txn.weekNumber}, ₹${txn.totalAmount || txn.depositAmount}).`);
   }
 
   // 5. Write loans to collection 'loans'

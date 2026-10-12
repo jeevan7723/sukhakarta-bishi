@@ -202,6 +202,12 @@
     loans_th_balance: { mr: 'बाकी मुद्दल', en: 'Remaining Principal' },
     loans_th_status: { mr: 'कर्ज स्थिती', en: 'Loan Status' },
     loans_th_actions: { mr: 'कृती', en: 'Actions' },
+    opt_loans_status_all: { mr: 'सर्व कर्जे', en: 'All Loans' },
+    opt_loans_status_active: { mr: '🔴 कर्ज बाकी', en: '🔴 Pending Loans' },
+    opt_loans_status_paid: { mr: '✅ पूर्ण फेड कर्जे', en: '✅ Settled Loans' },
+    opt_admin_loans_all: { mr: 'सर्व कर्जे', en: 'All Loans' },
+    opt_admin_loans_active: { mr: '🟡 फक्त सक्रिय बाकी कर्जे', en: '🟡 Active Loans Only' },
+    opt_admin_loans_paid: { mr: '✅ फक्त पूर्ण परतफेड झालेली', en: '✅ Settled Loans Only' },
 
     // Modals Common
     btn_close: { mr: 'बंद करा', en: 'Close' },
@@ -564,8 +570,13 @@
     ['कर्जे पूर्ण', 'Loans Settled'],
     ['परतफेड', 'Repaid'],
     ['सर्व कर्जे (All Loans)', 'All Loans'],
+    ['सर्व कर्जे (All)', 'All Loans'],
+    ['सर्व कर्जे', 'All Loans'],
     ['🔴 कर्ज बाकी (Pending Loans)', '🔴 Pending Loans'],
+    ['🔴 कर्ज बाकी (Pending)', '🔴 Pending Loans'],
+    ['🔴 कर्ज बाकी', '🔴 Pending Loans'],
     ['✅ पूर्ण फेड कर्जे (Paid / Settled)', '✅ Settled Loans'],
+    ['✅ पूर्ण फेड कर्जे', '✅ Settled Loans'],
     ['कर्ज क्र.', 'Loan No.'],
     ['सदस्य नाव व संपर्क', 'Member Name & Contact'],
     ['मूळ मुद्दल', 'Original Principal'],
@@ -574,6 +585,7 @@
     ['४-आठवडे ३% व्याज स्थिती', '4-Week 3% Interest Status'],
     ['एकूण देय रक्कम', 'Total Payable Amount'],
     ['कृती (Actions)', 'Actions'],
+    ['कृती', 'Actions'],
     ['↔️ संपूर्ण खातावही पाहण्यासाठी डावीकडे/उजवीकडे स्क्रोल करा (Swipe to view full ledger)', '↔️ Swipe left/right to view full ledger'],
     ['🔍 सदस्याचे नाव, आयडी, मोबाईल किंवा कर्ज क्र. शोधा...', '🔍 Search member name, ID, mobile, or loan no...'],
     ['कोणतीही कर्ज नोंद सापडली नाही', 'No loan records found'],
@@ -1063,6 +1075,7 @@
                 if (!parent) return NodeFilter.FILTER_REJECT;
                 const tag = parent.tagName;
                 if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return NodeFilter.FILTER_REJECT;
+                if (parent.closest && (parent.closest('[data-i18n]') || parent.closest('[data-no-i18n]'))) return NodeFilter.FILTER_REJECT;
                 return NodeFilter.FILTER_ACCEPT;
               }
             }
@@ -1077,10 +1090,21 @@
             let text = node.nodeValue;
             let modified = false;
 
+            // Sanitize any previously repeated / corrupted All Loans strings
+            if (/All\s*Loans/i.test(text) && (text.match(/All\s*Loans/gi) || []).length > 1) {
+              text = text.replace(/All\s*Loans[\s\S]*All\s*Loans[)\]\s\u0900-\u097F]*/gi, isEn ? 'All Loans' : 'सर्व कर्जे');
+              modified = true;
+            }
+
             for (let i = 0; i < sortedPairs.length; i++) {
               const [mrPhrase, enPhrase] = sortedPairs[i];
               const from = isEn ? mrPhrase : enPhrase;
-              const to = isEn ? enPhrase : mrPhrase;
+              let to = isEn ? enPhrase : mrPhrase;
+
+              // When translating to Marathi, strip English parenthesized suffixes to prevent nested re-translations
+              if (!isEn && to.includes(' (')) {
+                to = to.replace(/\s*\([a-zA-Z0-9\s\/+.,-]+\)/g, '');
+              }
 
               if (from && to && text.includes(from)) {
                 const nextText = replacePhrase(text, from, to, isEn);
@@ -1105,12 +1129,16 @@
         const selectors = 'th, td, p, h1, h2, h3, h4, span, label, button, a, option, div.stat-label, div.sidebar-group-title, span.sidebar-nav-text';
         try {
           document.querySelectorAll(selectors).forEach(el => {
+            if (el.hasAttribute('data-i18n') || (el.closest && el.closest('[data-i18n]'))) return;
             if (el.children.length === 0 && el.textContent) {
               const trimmed = el.textContent.trim();
               for (let i = 0; i < sortedPairs.length; i++) {
                 const [mrPhrase, enPhrase] = sortedPairs[i];
                 const from = isEn ? mrPhrase : enPhrase;
-                const to = isEn ? enPhrase : mrPhrase;
+                let to = isEn ? enPhrase : mrPhrase;
+                if (!isEn && to.includes(' (')) {
+                  to = to.replace(/\s*\([a-zA-Z0-9\s\/+.,-]+\)/g, '');
+                }
                 if (trimmed === from) {
                   el.textContent = to;
                   break;
@@ -1156,6 +1184,27 @@
             }
             if (modified) el.setAttribute('title', t);
           });
+
+          // 7. Explicit synchronization for loans status filter dropdowns
+          const loansFilter = document.getElementById('loansPageStatusFilter');
+          if (loansFilter) {
+            const optAll = loansFilter.querySelector('option[value="all"]');
+            if (optAll) optAll.textContent = isEn ? 'All Loans' : 'सर्व कर्जे';
+            const optActive = loansFilter.querySelector('option[value="active"]');
+            if (optActive) optActive.textContent = isEn ? '🔴 Pending Loans' : '🔴 कर्ज बाकी';
+            const optPaid = loansFilter.querySelector('option[value="paid"]');
+            if (optPaid) optPaid.textContent = isEn ? '✅ Settled Loans' : '✅ पूर्ण फेड कर्जे';
+          }
+
+          const adminLoansFilter = document.getElementById('adminLoansStatusFilter');
+          if (adminLoansFilter) {
+            const optAll = adminLoansFilter.querySelector('option[value="all"]');
+            if (optAll) optAll.textContent = isEn ? 'All Loans' : 'सर्व कर्जे';
+            const optActive = adminLoansFilter.querySelector('option[value="active"]');
+            if (optActive) optActive.textContent = isEn ? '🟡 Active Loans Only' : '🟡 फक्त सक्रिय बाकी कर्जे';
+            const optPaid = adminLoansFilter.querySelector('option[value="paid"]');
+            if (optPaid) optPaid.textContent = isEn ? '✅ Settled Loans Only' : '✅ फक्त पूर्ण परतफेड झालेली';
+          }
         } catch (_) {}
       }
     }

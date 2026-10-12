@@ -829,6 +829,14 @@ class UIManager {
         }
       }
 
+      // नवीन व्यवहार सर्वांत वर दाखवणे (Newest transactions on top of table)
+      recordsToDisplay.sort((a, b) => {
+        const timeB = new Date(b.date || 0).getTime();
+        const timeA = new Date(a.date || 0).getTime();
+        if (timeB !== timeA) return timeB - timeA;
+        return (Number(b.weekNumber) || 0) - (Number(a.weekNumber) || 0);
+      });
+
       const secTitle = document.getElementById('custHistorySectionTitle');
       if (secTitle) {
         secTitle.textContent = isEn ? 'Official Installment Passbook & Deposit Ledger' : 'अधिकृत हप्ते भरणा पासबुक व जमा खातावही';
@@ -3784,7 +3792,7 @@ class UIManager {
           depositAmount: 0,
           loanDisbursedAmount: Number(loan.principalAmount || 0),
           totalAmount: Number(loan.principalAmount || 0),
-          date: loan.issueDate ? new Date(loan.issueDate).toISOString() : (loan.createdAt ? new Date(loan.createdAt).toISOString() : new Date().toISOString()),
+          date: loan.createdAt ? new Date(loan.createdAt).toISOString() : (loan.issueDate ? new Date(loan.issueDate).toISOString() : new Date().toISOString()),
           paymentMode: loan.disbursementMode || 'Cash',
           upiId: loan.disbursementUpiId || '',
           receiptNo: `DISB-${loan.id}`,
@@ -3865,8 +3873,13 @@ class UIManager {
       }
     });
 
-    // तारीख उतरत्या क्रमाने लावणे (Newest first)
-    txns.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    // नवीन व्यवहार सर्वांत वर (Newest transaction at top of table)
+    txns.sort((a, b) => {
+      const timeB = new Date(b.date || b.paidDate || b.createdAt || 0).getTime();
+      const timeA = new Date(a.date || a.paidDate || a.createdAt || 0).getTime();
+      if (timeB !== timeA) return timeB - timeA;
+      return String(b.id || b.receiptNo || '').localeCompare(String(a.id || a.receiptNo || ''));
+    });
 
     if (window.authManager && window.authManager.isCustomer()) {
       const curCust = window.authManager.getCurrentCustomerMember();

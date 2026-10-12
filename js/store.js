@@ -35,6 +35,11 @@ class BishiStore {
     this.hasLoadedFromStorage = false;
     this.state = this.loadState();
     this.ensureIntegrity();
+    this._dirtyMemberIds = new Set();
+    this._dirtyTxnIds = new Set();
+    this._dirtyLoanIds = new Set();
+    this._dirtySettings = false;
+    this._fullSyncNeeded = false;
   }
 
   // स्टोअरमध्ये प्रत्यक्ष डेटा (सदस्य, व्यवहार किंवा कर्ज) उपलब्ध आहे का ते तपासणे
@@ -79,6 +84,23 @@ class BishiStore {
     }
     if (!Array.isArray(this.state.transactions)) {
       this.state.transactions = [];
+    } else {
+      // जुने रँडम आयडी आपोआप इन्व्हर्टेड टाईमस्टॅम्प आयडीमध्ये रूपांतरित करणे (Firebase कन्सोलमध्ये वर दिसण्यासाठी)
+      this.state.transactions.forEach(t => {
+        if (t && t.id && (!t.id.startsWith('TXN-') || t.id.length < 18)) {
+          const ts = new Date(t.date || t.paidDate || t.createdAt || Date.now()).getTime();
+          const inv = String(9999999999999 - (isNaN(ts) ? Date.now() : ts)).padStart(13, '0');
+          const rand = (t.id || '').replace(/^TXN-/, '').substring(0, 4) || Math.random().toString(36).substring(2, 6).toUpperCase();
+          t.id = `TXN-${inv}-${rand}`;
+        }
+      });
+      // नवीन व्यवहार सर्वांत वर (Newest transaction on top)
+      this.state.transactions.sort((a, b) => {
+        const timeB = new Date(b.date || b.paidDate || b.createdAt || 0).getTime();
+        const timeA = new Date(a.date || a.paidDate || a.createdAt || 0).getTime();
+        if (timeB !== timeA) return timeB - timeA;
+        return String(a.id || '').localeCompare(String(b.id || '')); // smaller inverted ID = newer
+      });
     }
     if (!Array.isArray(this.state.loans)) {
       this.state.loans = [];
@@ -219,6 +241,14 @@ class BishiStore {
     }
   }
 
+  // नवीन व्यवहार आयडी तयार करणे (Newest Transaction ID - Firebase Console मध्ये सर्वात वर दिसण्यासाठी Inverted Timestamp)
+  generateTransactionId(date = null) {
+    const ts = date ? new Date(date).getTime() : Date.now();
+    const inv = String(9999999999999 - (isNaN(ts) ? Date.now() : ts)).padStart(13, '0');
+    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `TXN-${inv}-${rand}`;
+  }
+
   // स्थानिक स्टोरेजमधून डेटा लोड करणे
   loadState() {
     try {
@@ -247,16 +277,62 @@ class BishiStore {
     }
   }
 
-  // संपूर्ण सेव्ह व क्लाउड ऑटो-सिंक (Local + Cloud Auto Sync)
-  saveState() {
+  // --- डेल्टा सिंक ट्रॅकिंग (Track modified items to decrease Firebase reads & writes) ---
+  markDirtyMember(memberId) {
+    if (!this._dirtyMemberIds) this._dirtyMemberIds = new Set();
+    if (memberId) this._dirtyMemberIds.add(memberId);
+  }
+
+  markDirtyTxn(txnId) {
+    if (!this._dirtyTxnIds) this._dirtyTxnIds = new Set();
+    if (txnId) this._dirtyTxnIds.add(txnId);
+  }
+
+  markDirtyLoan(loanId) {
+    if (!this._dirtyLoanIds) this._dirtyLoanIds = new Set();
+    if (loanId) this._dirtyLoanIds.add(loanId);
+  }
+
+  markDirtySettings() {
+    this._dirtySettings = true;
+  }
+
+  markFullSyncNeeded() {
+    this._fullSyncNeeded = true;
+  }
+
+  getDelta() {
+    return {
+      memberIds: this._dirtyMemberIds ? Array.from(this._dirtyMemberIds) : [],
+      txnIds: this._dirtyTxnIds ? Array.from(this._dirtyTxnIds) : [],
+      loanIds: this._dirtyLoanIds ? Array.from(this._dirtyLoanIds) : [],
+      settings: Boolean(this._dirtySettings),
+      fullSyncNeeded: Boolean(this._fullSyncNeeded)
+    };
+  }
+
+  clearDelta() {
+    if (this._dirtyMemberIds) this._dirtyMemberIds.clear();
+    if (this._dirtyTxnIds) this._dirtyTxnIds.clear();
+    if (this._dirtyLoanIds) this._dirtyLoanIds.clear();
+    this._dirtySettings = false;
+    this._fullSyncNeeded = false;
+  }
+
+  // संपूर्ण सेव्ह व क्लाउड ऑटो-सिंक (Local + Debounced Cloud Auto Sync)
+  saveState(immediate = false) {
     if (!this.state.meta) this.state.meta = {};
     this.state.meta.lastUpdated = Date.now();
     this.state.meta.updateVersion = (this.state.meta.updateVersion || 0) + 1;
     this.saveStateLocalOnly();
 
-    // Firebase वर तात्काळ ऑटो-सिंक
-    if (window.firebaseSyncManager && typeof window.firebaseSyncManager.saveCurrentStateToCloud === 'function') {
-      window.firebaseSyncManager.saveCurrentStateToCloud(true);
+    // Firebase वर स्मार्ट ऑटो-सिंक (Debounced 2.5s & Delta sync to reduce reads/writes)
+    if (window.firebaseSyncManager) {
+      if (typeof window.firebaseSyncManager.scheduleCloudSave === 'function') {
+        window.firebaseSyncManager.scheduleCloudSave(immediate ? 0 : 2500);
+      } else if (typeof window.firebaseSyncManager.saveCurrentStateToCloud === 'function') {
+        window.firebaseSyncManager.saveCurrentStateToCloud(immediate);
+      }
     }
   }
 
@@ -265,7 +341,8 @@ class BishiStore {
     this.state = JSON.parse(JSON.stringify(defaultState));
     this.state.meta.lastUpdated = Date.now();
     this.state.meta.updateVersion = (this.state.meta.updateVersion || 0) + 1;
-    this.saveState();
+    this.markFullSyncNeeded();
+    this.saveState(true);
   }
 
   resetAllData() {
@@ -286,6 +363,7 @@ class BishiStore {
       this.state.meta.loanInterestRatePercent = Math.max(0, Number(settings.loanInterestRatePercent) || 0);
     }
     if (settings.currency) this.state.meta.currency = settings.currency.trim();
+    this.markDirtySettings();
     this.saveState();
     return this.state.meta;
   }
@@ -432,7 +510,7 @@ class BishiStore {
       };
 
       this.state.transactions.unshift({
-        id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+        id: this.generateTransactionId(),
         memberId: memberId,
         memberName: newMember.name,
         cycleNumber: 1,
@@ -449,6 +527,8 @@ class BishiStore {
     }
 
     this.state.members.push(newMember);
+    this.markDirtyMember(newMember.id);
+    if (this.state.transactions[0]) this.markDirtyTxn(this.state.transactions[0].id);
     this.saveState();
     return newMember;
   }
@@ -480,6 +560,7 @@ class BishiStore {
       member.weeklyAmount = Number(updateData.weeklyAmount);
     }
 
+    this.markDirtyMember(member.id);
     this.saveState();
     return member;
   }
@@ -531,7 +612,7 @@ class BishiStore {
     // सेटलमेंट रिफंड व्यवहार नोंदवणे
     if (refundAmount && Number(refundAmount) > 0) {
       this.state.transactions.unshift({
-        id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+        id: this.generateTransactionId(),
         memberId: member.id,
         memberName: member.name,
         cycleNumber: member.currentCycle || 1,
@@ -702,7 +783,7 @@ class BishiStore {
 
     const isExtra = finalDeposit > weeklyAmount;
     const primaryTxn = {
-      id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      id: this.generateTransactionId(),
       memberId: member.id,
       memberName: member.name,
       cycleNumber: member.currentCycle || 1,
@@ -726,6 +807,8 @@ class BishiStore {
       member.status = 'completed';
     }
 
+    this.markDirtyMember(memberId);
+    this.markDirtyTxn(primaryTxn.id);
     this.saveState();
     if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyInstallmentCompleted === 'function') {
       window.notificationManager.notifyInstallmentCompleted(member, {
@@ -814,7 +897,7 @@ class BishiStore {
 
     // ३. खातावहीत केवळ १ अधिकृत मुख्य व्यवहार नोंदवणे (सर्व आठवड्यांचे स्वतंत्र व्यवहार न बनवता)
     const singleBulkTxn = {
-      id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      id: this.generateTransactionId(),
       memberId: member.id,
       memberName: member.name,
       cycleNumber: member.currentCycle || 1,
@@ -832,6 +915,8 @@ class BishiStore {
 
     member.status = 'completed';
     const stats = this.calculateMemberStats(member);
+    this.markDirtyMember(member.id);
+    this.markDirtyTxn(singleBulkTxn.id);
     this.saveState();
     if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyInstallmentCompleted === 'function') {
       window.notificationManager.notifyInstallmentCompleted(member, {
@@ -956,7 +1041,7 @@ class BishiStore {
 
     // परतावा वाटप व्यवहार खातावहीत नोंदवणे
     this.state.transactions.unshift({
-      id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      id: this.generateTransactionId(),
       memberId: member.id,
       memberName: member.name,
       cycleNumber: member.currentCycle || 1,
@@ -971,6 +1056,8 @@ class BishiStore {
       note: `५०-आठवडे मॅच्युरिटी परतावा वाटप (+${stats.maturityInterestPercent}% व्याज = ₹${finalPayoutAmount.toLocaleString('en-IN')})`
     });
 
+    this.markDirtyMember(memberId);
+    if (this.state.transactions[0]) this.markDirtyTxn(this.state.transactions[0].id);
     this.saveState();
     return { member, payoutDetails: member.payoutDetails, stats };
   }
@@ -1063,7 +1150,7 @@ class BishiStore {
       };
 
       this.state.transactions.unshift({
-        id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+        id: this.generateTransactionId(),
         memberId: member.id,
         memberName: member.name,
         cycleNumber: member.currentCycle,
@@ -1315,7 +1402,7 @@ class BishiStore {
 
     // कर्ज वाटप व्यवहार खातावहीत नोंदवणे
     this.state.transactions.unshift({
-      id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      id: this.generateTransactionId(),
       memberId: member.id,
       memberName: member.name,
       cycleNumber: member.currentCycle || 1,
@@ -1332,6 +1419,9 @@ class BishiStore {
       note: loanNotes ? `कर्ज वाटप: ${loanNotes} (दर ४ आठवड्यांनी ३% व्याज संकलन)` : `सदस्यास कर्ज वाटप: ₹${principal.toLocaleString('en-IN')} (दर ४ आठवड्यांनी ३% व्याज संकलन)`
     });
 
+    this.markDirtyLoan(newLoan.id);
+    this.markDirtyMember(member.id);
+    if (this.state.transactions[0]) this.markDirtyTxn(this.state.transactions[0].id);
     this.saveState();
     if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyLoanDisbursed === 'function') {
       window.notificationManager.notifyLoanDisbursed(newLoan, member);
@@ -1395,7 +1485,7 @@ class BishiStore {
 
     // व्याज जमा व्यवहार खातावहीत नोंदवणे
     this.state.transactions.unshift({
-      id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      id: this.generateTransactionId(),
       memberId: loan.memberId,
       memberName: loan.memberName,
       cycleNumber: cycleNum,
@@ -1412,6 +1502,9 @@ class BishiStore {
       note: notes ? `४ आठवड्यांचे कर्ज व्याज जमा (चक्र ${currentCycleNum}): ${notes}` : `कर्ज ${loan.id} चे ४ आठवड्यांचे ${details.interestRate}% व्याज जमा: ₹${amount.toLocaleString('en-IN')} (चक्र ${currentCycleNum})`
     });
 
+    this.markDirtyLoan(loan.id);
+    this.markDirtyMember(loan.memberId);
+    if (this.state.transactions[0]) this.markDirtyTxn(this.state.transactions[0].id);
     this.saveState();
     if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyLoanInterestPaid === 'function') {
       window.notificationManager.notifyLoanInterestPaid(loan, interestPaymentRecord);
@@ -1526,7 +1619,7 @@ class BishiStore {
 
     // कर्ज परतफेड व्यवहार खातावहीत नोंदवणे
     this.state.transactions.unshift({
-      id: 'TXN-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+      id: this.generateTransactionId(),
       memberId: loan.memberId,
       memberName: loan.memberName,
       cycleNumber: cycleNum,
@@ -1546,6 +1639,9 @@ class BishiStore {
         : `अंशतः कर्ज परतफेड: मुद्दल जमा ₹${principalPaid.toLocaleString('en-IN')}${interestPaid > 0 ? ` + व्याज ₹${interestPaid.toLocaleString('en-IN')}` : ''} = एकूण जमा ₹${totalRepaid.toLocaleString('en-IN')} (उर्वरित बाकी कर्ज: ₹${remainingPrincipalAfter.toLocaleString('en-IN')} - कर्ज बाकी/Pending)`)
     });
 
+    this.markDirtyLoan(loan.id);
+    this.markDirtyMember(loan.memberId);
+    if (this.state.transactions[0]) this.markDirtyTxn(this.state.transactions[0].id);
     this.saveState();
     if (typeof window !== 'undefined' && window.notificationManager && typeof window.notificationManager.notifyLoanRepayment === 'function') {
       window.notificationManager.notifyLoanRepayment(loan, {
