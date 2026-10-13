@@ -106,7 +106,10 @@
     weekly_cycle_title: { mr: 'साप्ताहिक कलेक्शन सायकल', en: 'Weekly Collection Cycle' },
     btn_prev_week: { mr: '◀ मागील', en: '◀ Previous' },
     btn_next_week: { mr: 'पुढील ▶', en: 'Next ▶' },
+    tooltip_prev_week: { mr: 'मागील आठवडा', en: 'Previous Week' },
+    tooltip_next_week: { mr: 'पुढील आठवडा', en: 'Next Week' },
     select_week_dropdown: { mr: 'आठवडा निवडा', en: 'Select Week' },
+    tooltip_select_week_directly: { mr: 'थेट आठवडा निवडा', en: 'Select Week Directly' },
 
     // Summary Banner
     banner_selected_week: { mr: 'निवडलेला आठवडा', en: 'Selected Week' },
@@ -708,12 +711,15 @@
 
     // Week navigation & summary banner
     ['साप्ताहिक कलेक्शन सायकल', 'Weekly Collection Cycle'],
+    ['◀ मागील', '◀ Previous'],
+    ['पुढील ▶', 'Next ▶'],
     ['चालू आठवडा', 'Current Week'],
     ['आठवडा', 'Week'],
     ['महिना', 'Month'],
     ['मागील आठवडा', 'Previous Week'],
     ['पुढील आठवडा', 'Next Week'],
     ['थेट आठवडा निवडा', 'Select Week Directly'],
+    ['आठवडा निवडा', 'Select Week'],
     ['कलेक्शन टक्केवारी', 'Collection Rate'],
     ['या आठवड्याची बाकी', 'Remaining Balance This Week'],
     ['आतापर्यंत जमा रक्कम', 'Total Amount Collected'],
@@ -1205,6 +1211,29 @@
             const optPaid = adminLoansFilter.querySelector('option[value="paid"]');
             if (optPaid) optPaid.textContent = isEn ? '✅ Settled Loans Only' : '✅ फक्त पूर्ण परतफेड झालेली';
           }
+
+          // 8. Explicit synchronization for week navigation controls
+          ['btnPrevWeek', 'btnPrevWeekLoans'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+              el.textContent = isEn ? '◀ Previous' : '◀ मागील';
+              el.setAttribute('title', isEn ? 'Previous Week' : 'मागील आठवडा');
+            }
+          });
+          ['btnNextWeek', 'btnNextWeekLoans'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+              el.textContent = isEn ? 'Next ▶' : 'पुढील ▶';
+              el.setAttribute('title', isEn ? 'Next Week' : 'पुढील आठवडा');
+            }
+          });
+          ['weekDropdownSelect', 'weekDropdownSelectLoans'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+              el.setAttribute('aria-label', isEn ? 'Select Week' : 'आठवडा निवडा');
+              el.setAttribute('title', isEn ? 'Select Week Directly' : 'थेट आठवडा निवडा');
+            }
+          });
         } catch (_) {}
       }
     }

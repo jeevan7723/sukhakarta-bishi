@@ -1344,6 +1344,22 @@ class UIManager {
     const currency = window.bishiStore.state.meta.currency || '₹';
     const isEn = window.i18n && window.i18n.isEnglish();
 
+    // ०. मागील / पुढील नेव्हिगेशन बटणे (Dashboard & Loans Page)
+    ['btnPrevWeek', 'btnPrevWeekLoans'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = isEn ? '◀ Previous' : '◀ मागील';
+        el.title = isEn ? 'Previous Week' : 'मागील आठवडा';
+      }
+    });
+    ['btnNextWeek', 'btnNextWeekLoans'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = isEn ? 'Next ▶' : 'पुढील ▶';
+        el.title = isEn ? 'Next Week' : 'पुढील आठवडा';
+      }
+    });
+
     // १. दोन्ही ठिकाणची शीर्षके अद्ययावत करणे (Dashboard & Loans Page)
     ['currentWeekDisplayTitle', 'currentWeekDisplayTitleLoans'].forEach(id => {
       const titleEl = document.getElementById(id);
@@ -1360,6 +1376,8 @@ class UIManager {
     ['weekDropdownSelect', 'weekDropdownSelectLoans'].forEach(id => {
       const dropdownSelect = document.getElementById(id);
       if (dropdownSelect) {
+        dropdownSelect.setAttribute('aria-label', isEn ? 'Select Week' : 'आठवडा निवडा');
+        dropdownSelect.setAttribute('title', isEn ? 'Select Week Directly' : 'थेट आठवडा निवडा');
         dropdownSelect.innerHTML = '';
         for (let w = 1; w <= 50; w++) {
           const opt = document.createElement('option');
@@ -1377,7 +1395,7 @@ class UIManager {
           if (selectedWk) {
             window.bishiStore.setCurrentWeek(selectedWk);
             this.renderAll();
-            this.showToast(`आठवडा ${selectedWk} दृश्य उघडले`, 'info');
+            this.showToast(isEn ? `Week ${selectedWk} view opened` : `आठवडा ${selectedWk} दृश्य उघडले`, 'info');
           }
         };
       }
@@ -1433,23 +1451,35 @@ class UIManager {
       if (w > currentWeek) {
         if (isCompleted) {
           statusClass = 'completed paid';
-          statusTooltip = `आठवडा ${w} (${weekDateFull}): सर्व सदस्यांचे आगाऊ जमा (${fullyPaidCount}/${members.length} सदस्य • ${currency}${totalWkAmount.toLocaleString('en-IN')})`;
+          statusTooltip = isEn
+            ? `Week ${w} (${weekDateFull}): All members advance paid (${fullyPaidCount}/${members.length} members • ${currency}${totalWkAmount.toLocaleString('en-IN')})`
+            : `आठवडा ${w} (${weekDateFull}): सर्व सदस्यांचे आगाऊ जमा (${fullyPaidCount}/${members.length} सदस्य • ${currency}${totalWkAmount.toLocaleString('en-IN')})`;
         } else {
           statusClass = 'pending';
-          statusTooltip = `आठवडा ${w} (${weekDateFull}): प्रलंबित (०/${members.length} जमा)`;
+          statusTooltip = isEn
+            ? `Week ${w} (${weekDateFull}): Pending (0/${members.length} paid)`
+            : `आठवडा ${w} (${weekDateFull}): प्रलंबित (०/${members.length} जमा)`;
         }
       } else if (isCompleted) {
         statusClass = 'completed paid';
-        statusTooltip = `आठवडा ${w} (${weekDateFull}): पूर्ण जमा (${fullyPaidCount}/${members.length} सदस्य • ${currency}${totalWkAmount.toLocaleString('en-IN')})`;
+        statusTooltip = isEn
+          ? `Week ${w} (${weekDateFull}): Fully paid (${fullyPaidCount}/${members.length} members • ${currency}${totalWkAmount.toLocaleString('en-IN')})`
+          : `आठवडा ${w} (${weekDateFull}): पूर्ण जमा (${fullyPaidCount}/${members.length} सदस्य • ${currency}${totalWkAmount.toLocaleString('en-IN')})`;
       } else if (hasDeposits) {
         statusClass = 'has-deposits partial';
-        statusTooltip = `आठवडा ${w} (${weekDateFull}): हप्ते जमा (${fullyPaidCount}/${members.length} पूर्ण • ${currency}${totalWkAmount.toLocaleString('en-IN')})`;
+        statusTooltip = isEn
+          ? `Week ${w} (${weekDateFull}): Installments deposited (${fullyPaidCount}/${members.length} paid • ${currency}${totalWkAmount.toLocaleString('en-IN')})`
+          : `आठवडा ${w} (${weekDateFull}): हप्ते जमा (${fullyPaidCount}/${members.length} पूर्ण • ${currency}${totalWkAmount.toLocaleString('en-IN')})`;
       } else if (isOverdue) {
         statusClass = 'overdue';
-        statusTooltip = `आठवडा ${w} (${weekDateFull}): थकबाकी (०/${members.length} जमा)`;
+        statusTooltip = isEn
+          ? `Week ${w} (${weekDateFull}): Overdue (0/${members.length} paid)`
+          : `आठवडा ${w} (${weekDateFull}): थकबाकी (०/${members.length} जमा)`;
       } else {
         statusClass = 'pending';
-        statusTooltip = `आठवडा ${w} (${weekDateFull}): प्रलंबित (०/${members.length} जमा)`;
+        statusTooltip = isEn
+          ? `Week ${w} (${weekDateFull}): Pending (0/${members.length} paid)`
+          : `आठवडा ${w} (${weekDateFull}): प्रलंबित (०/${members.length} जमा)`;
       }
 
       weekDataList.push({ w, weekDateShort, weekDateFull, isActive, statusClass, statusTooltip });
@@ -1461,7 +1491,7 @@ class UIManager {
         const pill = document.createElement('button');
         pill.className = `week-pill ${isActive ? 'active' : ''} ${statusClass}`;
         pill.setAttribute('title', statusTooltip);
-        pill.setAttribute('aria-label', `आठवडा ${w}, ${weekDateFull}`);
+        pill.setAttribute('aria-label', isEn ? `Week ${w}, ${weekDateFull}` : `आठवडा ${w}, ${weekDateFull}`);
         pill.innerHTML = `
           <span class="wk-label">${isEn ? 'Week' : 'आठवडा'}</span>
           <span class="wk-num">${w}</span>
@@ -1472,7 +1502,7 @@ class UIManager {
         pill.addEventListener('click', () => {
           window.bishiStore.setCurrentWeek(w);
           this.renderAll();
-          this.showToast(`आठवडा ${w} दृश्य उघडले`, 'info');
+          this.showToast(isEn ? `Week ${w} view opened` : `आठवडा ${w} दृश्य उघडले`, 'info');
         });
 
         container.appendChild(pill);

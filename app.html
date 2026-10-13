@@ -7186,13 +7186,13 @@ body {
         <section class="week-navigator-card" style="margin-bottom: 1.5rem;">
           <div class="week-nav-header">
             <div class="week-nav-title">
-              <h2 style="font-size: 1.15rem; font-weight: 700;">साप्ताहिक कलेक्शन सायकल</h2>
+              <h2 style="font-size: 1.15rem; font-weight: 700;" data-i18n="weekly_cycle_title">साप्ताहिक कलेक्शन सायकल</h2>
               <span class="current-week-badge" id="currentWeekDisplayTitleLoans">आठवडा १</span>
             </div>
             <div class="week-nav-controls">
-              <button class="btn btn-secondary btn-sm" id="btnPrevWeekLoans" title="मागील आठवडा">◀ मागील</button>
-              <select id="weekDropdownSelectLoans" class="week-dropdown-select" aria-label="आठवडा निवडा" title="थेट आठवडा निवडा"></select>
-              <button class="btn btn-secondary btn-sm" id="btnNextWeekLoans" title="पुढील आठवडा">पुढील ▶</button>
+              <button class="btn btn-secondary btn-sm" id="btnPrevWeekLoans" title="मागील आठवडा" data-i18n="btn_prev_week" data-i18n-title="tooltip_prev_week">◀ मागील</button>
+              <select id="weekDropdownSelectLoans" class="week-dropdown-select" aria-label="आठवडा निवडा" title="थेट आठवडा निवडा" data-i18n-title="tooltip_select_week_directly"></select>
+              <button class="btn btn-secondary btn-sm" id="btnNextWeekLoans" title="पुढील आठवडा" data-i18n="btn_next_week" data-i18n-title="tooltip_next_week">पुढील ▶</button>
             </div>
           </div>
           <div class="week-scroll-container" id="weekScrollContainerLoans">
@@ -7374,13 +7374,13 @@ body {
         <section class="week-navigator-card">
           <div class="week-nav-header">
             <div class="week-nav-title">
-              <h2 style="font-size: 1.15rem; font-weight: 700;">साप्ताहिक कलेक्शन सायकल</h2>
+              <h2 style="font-size: 1.15rem; font-weight: 700;" data-i18n="weekly_cycle_title">साप्ताहिक कलेक्शन सायकल</h2>
               <span class="current-week-badge" id="currentWeekDisplayTitle">आठवडा १</span>
             </div>
             <div class="week-nav-controls">
-              <button class="btn btn-secondary btn-sm" id="btnPrevWeek" title="मागील आठवडा">◀ मागील</button>
-              <select id="weekDropdownSelect" class="week-dropdown-select" aria-label="आठवडा निवडा" title="थेट आठवडा निवडा"></select>
-              <button class="btn btn-secondary btn-sm" id="btnNextWeek" title="पुढील आठवडा">पुढील ▶</button>
+              <button class="btn btn-secondary btn-sm" id="btnPrevWeek" title="मागील आठवडा" data-i18n="btn_prev_week" data-i18n-title="tooltip_prev_week">◀ मागील</button>
+              <select id="weekDropdownSelect" class="week-dropdown-select" aria-label="आठवडा निवडा" title="थेट आठवडा निवडा" data-i18n-title="tooltip_select_week_directly"></select>
+              <button class="btn btn-secondary btn-sm" id="btnNextWeek" title="पुढील आठवडा" data-i18n="btn_next_week" data-i18n-title="tooltip_next_week">पुढील ▶</button>
             </div>
           </div>
           <div class="week-scroll-container" id="weekScrollContainer">
@@ -7391,24 +7391,24 @@ body {
         <!-- निवडलेल्या आठवड्याचा सारांश बॅनर -->
         <section class="week-summary-banner">
           <div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">निवडलेला आठवडा</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;" data-i18n="banner_selected_week">निवडलेला आठवडा</div>
             <div style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary);" id="bannerCurrentWeekNumber">आठवडा १ / ५०</div>
           </div>
           <div class="summary-details">
             <div class="summary-item">
-              <span class="label">अपेक्षित हप्ता लक्ष्य</span>
+              <span class="label" data-i18n="banner_expected_target">अपेक्षित हप्ता लक्ष्य</span>
               <span class="val" id="bannerWeekTarget" style="color: var(--text-primary);">₹0</span>
             </div>
             <div class="summary-item">
-              <span class="label">आतापर्यंत जमा रक्कम</span>
+              <span class="label" data-i18n="banner_collected_amt">आतापर्यंत जमा रक्कम</span>
               <span class="val" id="bannerWeekCollected" style="color: var(--emerald-400);">₹0</span>
             </div>
             <div class="summary-item">
-              <span class="label">या आठवड्याची बाकी</span>
+              <span class="label" data-i18n="banner_pending_amt">या आठवड्याची बाकी</span>
               <span class="val" id="bannerWeekPending" style="color: var(--rose-400);">₹0</span>
             </div>
             <div class="summary-item">
-              <span class="label">कलेक्शन टक्केवारी</span>
+              <span class="label" data-i18n="banner_collection_rate">कलेक्शन टक्केवारी</span>
               <span class="val" id="bannerWeekRate" style="color: var(--gold-400);">0%</span>
             </div>
           </div>
